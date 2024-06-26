@@ -4,14 +4,14 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " configuration one can do in vimrc
 " shared config
-let g:vqq_max_tokens = get(g:, 'vqq_max_tokens', 1024)
+let g:vqna_max_tokens = get(g:, 'vqna_max_tokens', 1024)
 
 " anthropic-specific config
-let g:vqq_api_key    = get(g:, 'vqq_api_key'   , $ANTHROPIC_API_KEY)
-let g:vqq_model_name = get(g:, 'vqq_model_name', "claude-3-5-sonnet-20240620")
+let g:vqna_api_key    = get(g:, 'vqna_api_key'   , $ANTHROPIC_API_KEY)
+let g:vqna_model_name = get(g:, 'vqna_model_name', "claude-3-5-sonnet-20240620")
 
 " local llama.cpp server config
-let g:vqq_local_addr = get(g:, 'vqq_local_host', "http://localhost:8080/chat/completions")
+let g:vqna_local_addr = get(g:, 'vqna_local_addr', "http://localhost:8080/chat/completions")
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -68,8 +68,8 @@ endfunction
 
 function! s:ask_anthropic(question)
     let req = {}
-    let req.model      = g:vqq_model_name
-    let req.max_tokens = g:vqq_max_tokens
+    let req.model      = g:vqna_model_name
+    let req.max_tokens = g:vqna_max_tokens
     let req.messages   = [{"role": "user", "content": a:question}]
 
     let json_req = json_encode(req)
@@ -77,7 +77,7 @@ function! s:ask_anthropic(question)
 
     let curl_cmd  = "curl -s -X POST 'https://api.anthropic.com/v1/messages'"
     let curl_cmd .= " -H 'Content-Type: application/json'"
-    let curl_cmd .= " -H 'x-api-key: " . g:vqq_api_key . "'"
+    let curl_cmd .= " -H 'x-api-key: " . g:vqna_api_key . "'"
     let curl_cmd .= " -H 'anthropic-version: 2023-06-01'"
     let curl_cmd .= " -d '" . json_req . "'"
 
@@ -92,7 +92,7 @@ function! s:on_out_token(channel, msg)
     if a:msg !~# '^data: '
         return
     endif
-    let bufnum = bufnr('VQQ_Chat')
+    let bufnum = bufnr('vim_qna_chat')
     let json_string = substitute(a:msg, '^data: ', '', '')
     let response = json_decode(json_string)
     if has_key(response.choices[0].delta, 'content')
@@ -104,20 +104,20 @@ endfunction
 
 function! s:ask_local(question)
     let req = {}
-    let req.n_predict = g:vqq_max_tokens
+    let req.n_predict = g:vqna_max_tokens
     let req.messages  = [{"role": "user", "content": a:question}]
     let req.stream    = v:true
 
     let json_req = json_encode(req)
     let json_req = substitute(json_req, "'", "'\\\\''", "g")
 
-    let curl_cmd  = "curl --no-buffer -s -X POST '" . g:vqq_local_addr . "'"
+    let curl_cmd  = "curl --no-buffer -s -X POST '" . g:vqna_local_addr . "'"
     let curl_cmd .= " -H 'Content-Type: application/json'"
     let curl_cmd .= " -d '" . json_req . "'"
 
     let s:job_id = job_start(['/bin/sh', '-c', curl_cmd], {'out_cb': 's:on_out_token'})
 
-    let bufnum = bufnr('VQQ_Chat')
+    let bufnum = bufnr('vim_qna_chat')
     let prompt = strftime("%H:%M:%S  Local: ")
     call appendbufline(bufnum, line('$'), prompt)
 endfunction
@@ -165,10 +165,10 @@ endfunction
 " utilities for buffer/chat manipulation
 function! s:open_chat()
     " Check if the buffer already exists
-    let bufnum = bufnr('VQQ_Chat')
+    let bufnum = bufnr('vim_qna_chat')
     if bufnum == -1
         " Create a new buffer in a vertical split
-        execute 'vsplit VQQ_Chat'
+        execute 'vsplit vim_qna_chat'
         setlocal buftype=nofile
         setlocal bufhidden=hide
         setlocal noswapfile
@@ -184,7 +184,7 @@ endfunction
 
 augroup VQQSyntax
   autocmd!
-  autocmd BufRead,BufNewFile *VQQ_Chat* call s:setup_syntax()
+  autocmd BufRead,BufNewFile *vim_qna_chat* call s:setup_syntax()
 augroup END
 
 function! s:print_question(backend, question)
