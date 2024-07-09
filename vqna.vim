@@ -201,5 +201,3 @@ function! s:print_question(backend, question)
 
     normal! G
 endfunction
-
-
