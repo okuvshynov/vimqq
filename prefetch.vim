@@ -17,7 +17,9 @@ let s:history_file    = expand('~/.vim/qq_history')
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " local state
 let s:job_id = -1
+
 let s:current_reply = ""
+let s:history = []
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " basic color scheme setup
@@ -38,24 +40,36 @@ function! s:setup_syntax()
     highlight taggedBot     ctermfg=DarkBlue guifg=DarkBlue
 endfunction
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-function! s:append_message(msg_j)
-    if !filereadable(s:history_file)
-        call writefile(['[]'], s:history_file)
+function! s:load_history()
+    if filereadable(s:history_file)
+        let l:history_s = join(readfile(s:history_file), '')
+        let s:history = json_decode(l:history_s) 
+    else
+        let s:history = []
     endif
+endfunction
 
-    let msgs   = join(readfile(s:history_file), '')
-    let msgs_j = json_decode(msgs) 
+function! s:clear_history()
+    let s:history = []
+    call s:save_history()
+endfunction
 
+function! s:save_history()
+    let l:history_text = json_encode(s:history)
+    silent! call writefile([l:history_text], s:history_file)
+endfunction
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" appends message to local history and saves to file
+function! s:append_message(msg_j)
     let l:msg  = copy(a:msg_j)
     if !has_key(l:msg, 'timestamp')
         let l:msg['timestamp'] = localtime()
     endif
 
-    call add(msgs_j, l:msg)
+    call add(s:history, l:msg)
 
-    let msgs = json_encode(msgs_j)
-    silent! call writefile([msgs], s:history_file)
+    call s:save_history()
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -69,7 +83,6 @@ function! s:on_out_token(channel, msg)
         let curr_line = getbufoneline(bufnum, '$')
         silent! call setbufline(bufnum, '$', split(curr_line . next_token . "\n", '\n'))
         let s:current_reply = s:current_reply . next_token
-        "silent! call writefile([next_token], s:history_file, 'a')
     endif
     " TODO: not move the cursor here so I can copy/paste?
     "silent! call win_execute(bufwinid('vim_qna_chat'), 'normal! G')
@@ -78,7 +91,7 @@ endfunction
 function! s:prime_local(question)
     let req = {}
     let req.n_predict = g:vqna_max_tokens
-    let req.messages  = [{"role": "user", "content": a:question}]
+    let req.messages  = s:history + [{"role": "user", "content": a:question}]
     let req.complete  = v:false
 
     let json_req = json_encode(req)
@@ -96,10 +109,14 @@ function! s:on_close(channel)
     let s:current_reply = ""
 endfunction
 
+function! s:on_err(channel, msg)
+endfunction
+
 function! s:ask_local(question)
+    call s:append_message({"role": "user", "content": a:question})
     let req = {}
     let req.n_predict = g:vqna_max_tokens
-    let req.messages  = [{"role": "user", "content": a:question}]
+    let req.messages  = s:history
     let req.complete  = v:true
 
     let json_req = json_encode(req)
@@ -110,7 +127,7 @@ function! s:ask_local(question)
     let curl_cmd .= " -d '" . json_req . "'"
 
     let s:current_reply = ""
-    let s:job_id = job_start(['/bin/sh', '-c', curl_cmd], {'out_cb': 's:on_out_token', 'err_cb': 's:on_out_token', 'close_cb': 's:on_close'})
+    let s:job_id = job_start(['/bin/sh', '-c', curl_cmd], {'out_cb': 's:on_out_token', 'err_cb': 's:on_err', 'close_cb': 's:on_close'})
 
     let bufnum = bufnr('vim_qna_chat')
     let prompt = strftime("%H:%M:%S  Local: ")
@@ -147,7 +164,6 @@ endfunction
 function! s:ask_with_context(question)
     let prompt = s:fmt_question(s:visual_selection, a:question)
     call s:print_question(a:question)
-    call s:append_message({"role": "user", "content": prompt})
     call s:ask_local(prompt)
 endfunction
 
@@ -194,9 +210,8 @@ augroup VQQSyntax
   autocmd BufRead,BufNewFile *vim_qna_chat* call s:setup_syntax()
 augroup END
 
-" TODO: should we print the selection or not?
-function! s:print_question(question)
-    " save to local history
+" appends a single message to the buffer
+function! s:print_message(message)
     call s:open_chat()
 
     let backend_title = 'Local'
@@ -215,41 +230,44 @@ function! s:print_question(question)
     normal! G
 endfunction
 
-" TODO: save/load timestamps
 function! s:load_from_history()
-    if filereadable(s:history_file)
-        let msgs   = join(readfile(s:history_file), '')
-        let msgs_j = json_decode(msgs) 
+    call s:load_history()
+    call s:open_chat()
 
-        call s:open_chat()
+    call deletebufline('%', 1, '$')
 
-        for msg_j in msgs_j
-            let l:tstamp = "        "
-            if has_key(msg_j, 'timestamp')
-                let l:tstamp = strftime("%H:%M:%S ", msg_j['timestamp'])
-            endif
-            if msg_j['role'] == 'user'
-                let prompt = l:tstamp . "  You: "
+    for msg_j in s:history
+        let l:tstamp = "        "
+        if has_key(msg_j, 'timestamp')
+            let l:tstamp = strftime("%H:%M:%S ", msg_j['timestamp'])
+        endif
+        if msg_j['role'] == 'user'
+            let prompt = l:tstamp . "  You: "
+        else
+            let prompt = l:tstamp . "Local: "
+        endif
+        let lines = split(msg_j['content'], '\n')
+        for l in lines
+            if line('$') == 1 && getline(1) == ''
+                call setline(1, prompt . l)
             else
-                let prompt = l:tstamp . "Local: "
+                call append(line('$'), prompt . l)
             endif
-            let lines = split(msg_j['content'], '\n')
-            for l in lines
-                if line('$') == 1 && getline(1) == ''
-                    call setline(1, prompt . l)
-                else
-                    call append(line('$'), prompt . l)
-                endif
-                let prompt = ''
-            endfor
+            let prompt = ''
         endfor
-    endif
+    endfor
+endfunction
+
+function! s:new_session()
+    call s:clear_history()
+    call s:load_from_history()
 endfunction
 
 " -------------------------------------------------- "
 xnoremap <silent> QQ :<C-u>call <SID>start_prefetch()<CR>
 nnoremap <leader>qq :call ToggleChat()<CR>
 nnoremap <leader>ll :call <SID>load_from_history()<CR>
+nnoremap <leader>qn :call <SID>new_session()<CR>
 
 " Define your custom command
 command! -range -nargs=+ QQ call s:ask_with_context(<q-args>)
