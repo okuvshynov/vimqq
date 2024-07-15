@@ -219,20 +219,19 @@ function! s:load_from_history()
 
         for msg_j in msgs_j
             if msg_j['role'] == 'user'
-                let you_prompt = strftime("%H:%M:%S    You: ")
-                if line('$') == 1 && getline(1) == ''
-                    call setline(1, you_prompt . msg_j['content'])
-                else
-                    call append(line('$'), you_prompt . msg_j['content'])
-                endif
+                let prompt = strftime("%H:%M:%S   You: ")
             else
-                let you_prompt = strftime("%H:%M:%S Local: ")
-                if line('$') == 1 && getline(1) == ''
-                    call setline(1, you_prompt . msg_j['content'])
-                else
-                    call append(line('$'), you_prompt . msg_j['content'])
-                endif
+                let prompt = strftime("%H:%M:%S Local: ")
             endif
+            let lines = split(msg_j['content'], '\n')
+            for l in lines
+                if line('$') == 1 && getline(1) == ''
+                    call setline(1, prompt . l)
+                else
+                    call append(line('$'), prompt . l)
+                endif
+                let prompt = ''
+            endfor
         endfor
     endif
 endfunction
