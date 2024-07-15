@@ -38,3 +38,12 @@ source ~/projects/vim-qna/vqna.vim
 
 to your vimrc file
 
+
+## TODO
+
+Let's keep input simple - we can only type the question itself in command line (not in the buffer) and the history will be displayed separately. What more complicated things do we need:
+1. Command to show/hide history window
+2. Saving chats locally
+3. Adding to the history, so we can ask follow-up question. `:QQ something something` needs to append question to the current chat. 
+4. creating new chats. `:QQN something something` would be new?
+5. need to list and select chat to continue?

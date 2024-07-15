@@ -4,43 +4,47 @@ let g:qq_in_height = get(g:, 'qq_height', 10)
 let s:history_buf = -1
 let s:input_buf = -1
 
-function! SetupChatWindowEx()
-    " Save the current window number
-    let l:current_win = winnr()
+function! CreateChatWindowEx()
+    if s:history_buf == -1
+        " Create a new vertical split on the far left
+        execute 'topleft vertical' . g:qq_width . ' new'
+        silent! execute 'edit QQ_History'
+        setlocal buftype=nofile
+        setlocal noswapfile
+        setlocal nobuflisted
+        let s:history_buf = bufnr('%')
+        " Set custom statusline for history window
+        "setlocal statusline=Chat\ History
+        setlocal winfixwidth
 
-    " Create a new vertical split on the far left
-    execute 'topleft ' . g:qq_width . 'vnew'
-    setlocal buftype=nofile
-    setlocal noswapfile
-    setlocal nobuflisted
-    let s:history_buf = bufnr('%')
-    " Set custom statusline for history window
-    setlocal statusline=Chat\ History
+        " Create a new horizontal split below for input
+        rightbelow new
+        silent! execute 'edit QQ_Input'
+        setlocal buftype=nofile
+        setlocal noswapfile
+        setlocal nobuflisted
+        let s:input_buf = bufnr('%')
+        " Set custom statusline for input window
+        "setlocal statusline=Chat\ Input
+        setlocal winfixwidth
 
-    " Create a new horizontal split below for input
-    rightbelow new
-    setlocal buftype=nofile
-    setlocal noswapfile
-    setlocal nobuflisted
-    let s:input_buf = bufnr('%')
-    " Set custom statusline for input window
-    setlocal statusline=Chat\ Input
+        " Adjust window sizes
+        let total_height = winheight(0) + winheight(winnr('#'))
+        let input_height = g:qq_in_height
+        let history_height = total_height - input_height
 
-    " Adjust window sizes
-    let total_height = winheight(0) + winheight(winnr('#'))
-    let input_height = g:qq_in_height
-    let history_height = total_height - input_height
-
-    " Resize windows
-    execute 'resize ' . input_height
-    wincmd k
-    execute 'resize ' . history_height
+        " Resize windows
+        execute 'resize ' . input_height
+        wincmd k
+        execute 'resize ' . history_height
+    else
+        silent! execute 'topleft vertical ' . g:qq_width . ' split'
+        silent! execute 'buffer QQ_Sidebar'
+        
+    endif
 
     " Focus on the input window and enter insert mode
     call FocusInputWindow()
-
-    " Return to the original window
-    " execute l:current_win . 'wincmd w'
 endfunction
 
 " Function to focus on input window
@@ -81,5 +85,5 @@ function! SendMessage()
 endfunction
 
 " Set up key mappings
-nnoremap <Leader>c :call SetupChatWindowEx()<CR>
+nnoremap <Leader>c :call CreateChatWindowEx()<CR>
 nnoremap <Leader>s :call SendMessage()<CR>

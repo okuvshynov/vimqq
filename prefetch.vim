@@ -1,6 +1,5 @@
 " Copyright 2024 Oleksandr Kuvshynov
 
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " configuration one can do in vimrc
 " shared config
@@ -8,6 +7,8 @@ let g:vqna_max_tokens = get(g:, 'vqna_max_tokens', 1024)
 
 " local llama_duo server config
 let g:vqna_llama_duo = get(g:, 'vqna_llama_duo', "http://localhost:5555/query")
+
+let g:qq_width     = get(g:, 'qq_width', 80)
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " local state
@@ -41,8 +42,9 @@ function! s:on_out_token(channel, msg)
     if has_key(response.choices[0].delta, 'content')
         let next_token = response.choices[0].delta.content
         let curr_line = getbufoneline(bufnum, '$')
-        call setbufline(bufnum, '$', split(curr_line . next_token . "\n", '\n'))
+        silent! call setbufline(bufnum, '$', split(curr_line . next_token . "\n", '\n'))
     endif
+    silent! call win_execute(bufwinid('vim_qna_chat'), 'normal! G')
 endfunction
 
 function! s:prime_local(question)
@@ -73,8 +75,6 @@ function! s:ask_local(question)
     let curl_cmd  = "curl --no-buffer -s -X POST '" . g:vqna_llama_duo . "'"
     let curl_cmd .= " -H 'Content-Type: application/json'"
     let curl_cmd .= " -d '" . json_req . "'"
-
-    "let output = system('/bin/sh -c ' . shellescape(curl_cmd))
 
     let s:job_id = job_start(['/bin/sh', '-c', curl_cmd], {'out_cb': 's:on_out_token', 'err_cb': 's:on_out_token'})
 
@@ -116,11 +116,6 @@ function! s:ask_with_context(question)
     call s:ask_local(prompt)
 endfunction
 
-xnoremap <silent> QQ :<C-u>call <SID>start_prefetch()<CR>
-
-" Define your custom command
-command! -range -nargs=+ QQ call s:ask_with_context(<q-args>)
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " utilities for buffer/chat manipulation
 function! s:open_chat()
@@ -128,16 +123,33 @@ function! s:open_chat()
     let bufnum = bufnr('vim_qna_chat')
     if bufnum == -1
         " Create a new buffer in a vertical split
-        execute 'vsplit vim_qna_chat'
+        silent! execute 'topleft vertical ' . g:qq_width . ' new'
+        silent! execute 'edit vim_qna_chat'
         setlocal buftype=nofile
         setlocal bufhidden=hide
         setlocal noswapfile
     else
         let winnum = bufwinnr(bufnum)
         if winnum == -1
-            execute 'vsplit | buffer' bufnum
+            silent! execute 'topleft vertical ' . g:qq_width . ' split'
+            silent! execute 'buffer ' bufnum
         else
-            execute winnum . 'wincmd w'
+            silent! execute winnum . 'wincmd w'
+        endif
+    endif
+endfunction
+
+function! ToggleChat()
+    let bufnum = bufnr('vim_qna_chat')
+    if bufnum == -1
+        call s:open_chat()
+    else
+        let l:winid = bufwinid('vim_qna_chat')
+        if l:winid != -1
+            call win_gotoid(l:winid)
+            silent! execute 'hide'
+        else
+            call s:open_chat()
         endif
     endif
 endfunction
@@ -153,11 +165,25 @@ function! s:print_question(question)
     let backend_title = 'Local'
 
     if line('$') > 1
-        call append(line('$'), repeat('-', 80))
+        call append(line('$'), repeat('-', g:qq_width))
     endif
 
     let you_prompt = strftime("%H:%M:%S    You: @" . backend_title. " ")
-    call append(line('$'), you_prompt . a:question)
+    if line('$') == 1 && getline(1) == ''
+        call setline(1, you_prompt . a:question)
+    else
+        call append(line('$'), you_prompt . a:question)
+    endif
 
     normal! G
 endfunction
+
+
+" -------------------------------------------------- "
+xnoremap <silent> QQ :<C-u>call <SID>start_prefetch()<CR>
+nnoremap <leader>qq :call ToggleChat()<CR>
+
+" Define your custom command
+command! -range -nargs=+ QQ call s:ask_with_context(<q-args>)
+
+
