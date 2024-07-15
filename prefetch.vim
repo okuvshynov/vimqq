@@ -47,9 +47,14 @@ function! s:append_message(msg_j)
     let msgs   = join(readfile(s:history_file), '')
     let msgs_j = json_decode(msgs) 
 
-    call add(msgs_j, a:msg_j)
+    let l:msg  = copy(a:msg_j)
+    if !has_key(l:msg, 'timestamp')
+        let l:msg['timestamp'] = localtime()
+    endif
 
-    let msgs   = json_encode(msgs_j)
+    call add(msgs_j, l:msg)
+
+    let msgs = json_encode(msgs_j)
     silent! call writefile([msgs], s:history_file)
 endfunction
 
@@ -66,7 +71,8 @@ function! s:on_out_token(channel, msg)
         let s:current_reply = s:current_reply . next_token
         "silent! call writefile([next_token], s:history_file, 'a')
     endif
-    silent! call win_execute(bufwinid('vim_qna_chat'), 'normal! G')
+    " TODO: not move the cursor here so I can copy/paste?
+    "silent! call win_execute(bufwinid('vim_qna_chat'), 'normal! G')
 endfunction
 
 function! s:prime_local(question)
@@ -218,10 +224,14 @@ function! s:load_from_history()
         call s:open_chat()
 
         for msg_j in msgs_j
+            let l:tstamp = "        "
+            if has_key(msg_j, 'timestamp')
+                let l:tstamp = strftime("%H:%M:%S ", msg_j['timestamp'])
+            endif
             if msg_j['role'] == 'user'
-                let prompt = strftime("%H:%M:%S   You: ")
+                let prompt = l:tstamp . "  You: "
             else
-                let prompt = strftime("%H:%M:%S Local: ")
+                let prompt = l:tstamp . "Local: "
             endif
             let lines = split(msg_j['content'], '\n')
             for l in lines
