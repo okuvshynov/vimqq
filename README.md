@@ -53,3 +53,4 @@ Let's keep input simple - we can only type the question itself in command line (
 - [ ] multi-agent support - chat with multiple bots
 - [ ] change shortcuts, define commands the right way
 - [ ] code review. Ask to provide input without writing code itself. 
+- [ ] check what's with cache reuse and \n\n token.

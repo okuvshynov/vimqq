@@ -11,33 +11,17 @@ let g:qq_width        = get(g:, 'qq_width'       , 80)
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " should this be configurable?
-"
-let s:history_file    = expand('~/.vim/qq_history')
+" should each session have its own file?
+let s:history_file   = expand('~/.vim/qq_history')
+" cleanup dead jobs if list is longer than this
+let s:n_jobs_cleanup = 32
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " local state. This should be by session?
-let s:job_id = -1
+let s:active_jobs = []
+
 let s:current_reply = ""
 let s:history = []
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" basic color scheme setup
-function! s:setup_syntax()
-    syntax clear
-
-    syntax match localPrompt   "^\d\d:\d\d:\d\d\s*Local:"  nextgroup=restOfLine
-    syntax match sonnetPrompt  "^\d\d:\d\d:\d\d\s*Sonnet:" nextgroup=restOfLine
-
-    syntax match userTagPrompt "^\d\d:\d\d:\d\d\s*You:\s"  nextgroup=taggedBot
-    syntax match taggedBot     "\(@Local\|@Sonnet\)"       nextgroup=restOfLine
-
-    syntax match restOfLine ".*$" contained
-
-    highlight localPrompt   cterm=bold gui=bold
-    highlight sonnetPrompt  cterm=bold gui=bold
-    highlight userTagPrompt cterm=bold gui=bold
-    highlight taggedBot     ctermfg=DarkBlue guifg=DarkBlue
-endfunction
 
 function! s:load_history()
     if filereadable(s:history_file)
@@ -56,6 +40,19 @@ endfunction
 function! s:save_history()
     let l:history_text = json_encode(s:history)
     silent! call writefile([l:history_text], s:history_file)
+endfunction
+
+""""""
+" jobs
+function! s:save_job(job_id)
+  let s:active_jobs += [a:job_id]
+  if len(s:active_jobs) > s:n_jobs_cleanup
+    for job_id in s:active_jobs[:]
+        if job_info(job_id)['status'] == 'dead'
+            call remove(s:active_jobs, index(s:active_jobs, job_id))
+        endif
+    endfor
+  endif
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -104,7 +101,7 @@ function! s:prime_local(question)
     let curl_cmd .= " -H 'Content-Type: application/json'"
     let curl_cmd .= " -d '" . json_req . "'"
 
-    let s:prime_job_id = job_start(['/bin/sh', '-c', curl_cmd])
+    call s:save_job(job_start(['/bin/sh', '-c', curl_cmd]))
 endfunction
 
 function! s:on_close(channel)
@@ -133,7 +130,8 @@ function! s:ask_local()
     let curl_cmd .= " -d '" . json_req . "'"
 
     let s:current_reply = ""
-    let s:job_id = job_start(['/bin/sh', '-c', curl_cmd], {'out_cb': 's:on_out_token', 'err_cb': 's:on_err', 'close_cb': 's:on_close'})
+    let l:job_conf = {'out_cb': 's:on_out_token', 'err_cb': 's:on_err', 'close_cb': 's:on_close'}
+    call s:save_job(job_start(['/bin/sh', '-c', curl_cmd], l:job_conf))
 
     let bufnum = bufnr('vim_qna_chat')
 
@@ -223,11 +221,6 @@ function! s:toggle_chat_window()
     endif
 endfunction
 
-augroup VQQSyntax
-  autocmd!
-  autocmd BufRead,BufNewFile *vim_qna_chat* call s:setup_syntax()
-augroup END
-
 " appends a single message to the buffer
 function! s:print_message(open_chat, message)
     if a:open_chat
@@ -271,6 +264,32 @@ function! s:new_session()
     call s:clear_history()
     call s:load_from_history()
 endfunction
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" basic color scheme setup
+function! s:setup_syntax()
+    syntax clear
+
+    syntax match localPrompt   "^\d\d:\d\d:\d\d\s*Local:"  nextgroup=restOfLine
+    syntax match sonnetPrompt  "^\d\d:\d\d:\d\d\s*Sonnet:" nextgroup=restOfLine
+
+    syntax match userTagPrompt "^\d\d:\d\d:\d\d\s*You:\s"  nextgroup=taggedBot
+    syntax match taggedBot     "\(@Local\|@Sonnet\)"       nextgroup=restOfLine
+
+    syntax match restOfLine ".*$" contained
+
+    highlight localPrompt   cterm=bold gui=bold
+    highlight sonnetPrompt  cterm=bold gui=bold
+    highlight userTagPrompt cterm=bold gui=bold
+    highlight taggedBot     ctermfg=DarkBlue guifg=DarkBlue
+endfunction
+
+
+augroup VQQSyntax
+  autocmd!
+  autocmd BufRead,BufNewFile *vim_qna_chat* call s:setup_syntax()
+augroup END
+
 
 " -------------------------------------------------- "
 xnoremap <silent> QQ :<C-u>call <SID>qq_prepare()<CR>
