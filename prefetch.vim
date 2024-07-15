@@ -70,6 +70,8 @@ function! s:append_message(msg_j)
     call add(s:history, l:msg)
 
     call s:save_history()
+
+    return l:msg
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -93,6 +95,7 @@ function! s:prime_local(question)
     let req.n_predict = g:vqna_max_tokens
     let req.messages  = s:history + [{"role": "user", "content": a:question}]
     let req.complete  = v:false
+    let req.session_id = 10001
 
     let json_req = json_encode(req)
     let json_req = substitute(json_req, "'", "'\\\\''", "g")
@@ -112,12 +115,14 @@ endfunction
 function! s:on_err(channel, msg)
 endfunction
 
-function! s:ask_local(question)
-    call s:append_message({"role": "user", "content": a:question})
+" assumes the last message is already in history
+function! s:ask_local()
     let req = {}
     let req.n_predict = g:vqna_max_tokens
     let req.messages  = s:history
     let req.complete  = v:true
+    " TODO - server should not need that
+    let req.session_id = 10001
 
     let json_req = json_encode(req)
     let json_req = substitute(json_req, "'", "'\\\\''", "g")
@@ -130,13 +135,15 @@ function! s:ask_local(question)
     let s:job_id = job_start(['/bin/sh', '-c', curl_cmd], {'out_cb': 's:on_out_token', 'err_cb': 's:on_err', 'close_cb': 's:on_close'})
 
     let bufnum = bufnr('vim_qna_chat')
-    let prompt = strftime("%H:%M:%S  Local: ")
+
+    " we are not printing from history, but stream tokens one by one
+    let prompt = strftime("%H:%M:%S Local: ")
     call appendbufline(bufnum, line('$'), prompt)
 endfunction
 
 function! s:start_prefetch()
-    let s:visual_selection = s:get_visual_selection()
-    call timer_start(0, function('s:preprocess'))
+    let l:context = s:get_visual_selection()
+    call timer_start(0, { -> s:preprocess(l:context) })
     call feedkeys(":'<,'>QQ ", 'n')
 endfunction
 
@@ -156,15 +163,23 @@ function! s:fmt_question(context, question)
     return "Here's a code snippet: \n\n " . a:context . "\n\n" . a:question
 endfunction
 
-function! s:preprocess(timer)
-    let prompt = s:fmt_question(s:visual_selection, "")
-    call s:prime_local(prompt)
+function! s:preprocess(context)
+    let l:prompt = s:fmt_question(a:context, "")
+    call s:prime_local(l:prompt)
 endfunction
 
 function! s:ask_with_context(question)
-    let prompt = s:fmt_question(s:visual_selection, a:question)
-    call s:print_question(a:question)
-    call s:ask_local(prompt)
+    let l:context = s:get_visual_selection()
+    if l:context == ''
+        let l:question = a:question
+    else
+        let l:question = s:fmt_question(l:context, a:question)
+    endif
+    let l:message  = {"role": "user", "content": l:question}
+    " timestamp and other metadata might get appended here
+    let l:message  = s:append_message(l:message)
+    call s:print_message(v:true, l:message)
+    call s:ask_local()
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -211,21 +226,29 @@ augroup VQQSyntax
 augroup END
 
 " appends a single message to the buffer
-function! s:print_message(message)
-    call s:open_chat()
-
-    let backend_title = 'Local'
-
-    if line('$') > 1
-        call append(line('$'), repeat('-', g:qq_width))
+function! s:print_message(open_chat, message)
+    if a:open_chat
+        call s:open_chat()
     endif
 
-    let you_prompt = strftime("%H:%M:%S    You: @" . backend_title. " ")
-    if line('$') == 1 && getline(1) == ''
-        call setline(1, you_prompt . a:question)
+    let l:tstamp = "        "
+    if has_key(a:message, 'timestamp')
+        let l:tstamp = strftime("%H:%M:%S ", a:message['timestamp'])
+    endif
+    if a:message['role'] == 'user'
+        let prompt = l:tstamp . "  You: "
     else
-        call append(line('$'), you_prompt . a:question)
+        let prompt = l:tstamp . "Local: "
     endif
+    let lines = split(a:message['content'], '\n')
+    for l in lines
+        if line('$') == 1 && getline(1) == ''
+            call setline(1, prompt . l)
+        else
+            call append(line('$'), prompt . l)
+        endif
+        let prompt = ''
+    endfor
 
     normal! G
 endfunction
@@ -236,25 +259,8 @@ function! s:load_from_history()
 
     call deletebufline('%', 1, '$')
 
-    for msg_j in s:history
-        let l:tstamp = "        "
-        if has_key(msg_j, 'timestamp')
-            let l:tstamp = strftime("%H:%M:%S ", msg_j['timestamp'])
-        endif
-        if msg_j['role'] == 'user'
-            let prompt = l:tstamp . "  You: "
-        else
-            let prompt = l:tstamp . "Local: "
-        endif
-        let lines = split(msg_j['content'], '\n')
-        for l in lines
-            if line('$') == 1 && getline(1) == ''
-                call setline(1, prompt . l)
-            else
-                call append(line('$'), prompt . l)
-            endif
-            let prompt = ''
-        endfor
+    for msg in s:history
+        call s:print_message(v:false, msg)
     endfor
 endfunction
 
