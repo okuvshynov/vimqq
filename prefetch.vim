@@ -6,13 +6,18 @@
 let g:vqna_max_tokens = get(g:, 'vqna_max_tokens', 1024)
 
 " local llama_duo server config
-let g:vqna_llama_duo = get(g:, 'vqna_llama_duo', "http://localhost:5555/query")
+let g:vqna_llama_duo  = get(g:, 'vqna_llama_duo' , "http://localhost:5555/query")
+let g:qq_width        = get(g:, 'qq_width'       , 80)
 
-let g:qq_width     = get(g:, 'qq_width', 80)
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" should this be configurable?
+"
+let s:history_file    = expand('~/.vim/qq_history')
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " local state
-let s:job_id = 0
+let s:job_id = -1
+let s:current_reply = ""
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " basic color scheme setup
@@ -34,6 +39,21 @@ function! s:setup_syntax()
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+function! s:append_message(msg_j)
+    if !filereadable(s:history_file)
+        call writefile(['[]'], s:history_file)
+    endif
+
+    let msgs   = join(readfile(s:history_file), '')
+    let msgs_j = json_decode(msgs) 
+
+    call add(msgs_j, a:msg_j)
+
+    let msgs   = json_encode(msgs_j)
+    silent! call writefile([msgs], s:history_file)
+endfunction
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " llama_duo callbacks - with streaming
 function! s:on_out_token(channel, msg)
     let bufnum = bufnr('vim_qna_chat')
@@ -43,6 +63,8 @@ function! s:on_out_token(channel, msg)
         let next_token = response.choices[0].delta.content
         let curr_line = getbufoneline(bufnum, '$')
         silent! call setbufline(bufnum, '$', split(curr_line . next_token . "\n", '\n'))
+        let s:current_reply = s:current_reply . next_token
+        "silent! call writefile([next_token], s:history_file, 'a')
     endif
     silent! call win_execute(bufwinid('vim_qna_chat'), 'normal! G')
 endfunction
@@ -63,6 +85,11 @@ function! s:prime_local(question)
     let s:prime_job_id = job_start(['/bin/sh', '-c', curl_cmd])
 endfunction
 
+function! s:on_close(channel)
+    call s:append_message({"role": "assistant", "content": s:current_reply})
+    let s:current_reply = ""
+endfunction
+
 function! s:ask_local(question)
     let req = {}
     let req.n_predict = g:vqna_max_tokens
@@ -76,7 +103,8 @@ function! s:ask_local(question)
     let curl_cmd .= " -H 'Content-Type: application/json'"
     let curl_cmd .= " -d '" . json_req . "'"
 
-    let s:job_id = job_start(['/bin/sh', '-c', curl_cmd], {'out_cb': 's:on_out_token', 'err_cb': 's:on_out_token'})
+    let s:current_reply = ""
+    let s:job_id = job_start(['/bin/sh', '-c', curl_cmd], {'out_cb': 's:on_out_token', 'err_cb': 's:on_out_token', 'close_cb': 's:on_close'})
 
     let bufnum = bufnr('vim_qna_chat')
     let prompt = strftime("%H:%M:%S  Local: ")
@@ -113,6 +141,7 @@ endfunction
 function! s:ask_with_context(question)
     let prompt = s:fmt_question(s:visual_selection, a:question)
     call s:print_question(a:question)
+    call s:append_message({"role": "user", "content": prompt})
     call s:ask_local(prompt)
 endfunction
 
@@ -159,7 +188,9 @@ augroup VQQSyntax
   autocmd BufRead,BufNewFile *vim_qna_chat* call s:setup_syntax()
 augroup END
 
+" TODO: should we print the selection or not?
 function! s:print_question(question)
+    " save to local history
     call s:open_chat()
 
     let backend_title = 'Local'
@@ -178,12 +209,38 @@ function! s:print_question(question)
     normal! G
 endfunction
 
+" TODO: save/load timestamps
+function! s:load_from_history()
+    if filereadable(s:history_file)
+        let msgs   = join(readfile(s:history_file), '')
+        let msgs_j = json_decode(msgs) 
+
+        call s:open_chat()
+
+        for msg_j in msgs_j
+            if msg_j['role'] == 'user'
+                let you_prompt = strftime("%H:%M:%S    You: ")
+                if line('$') == 1 && getline(1) == ''
+                    call setline(1, you_prompt . msg_j['content'])
+                else
+                    call append(line('$'), you_prompt . msg_j['content'])
+                endif
+            else
+                let you_prompt = strftime("%H:%M:%S Local: ")
+                if line('$') == 1 && getline(1) == ''
+                    call setline(1, you_prompt . msg_j['content'])
+                else
+                    call append(line('$'), you_prompt . msg_j['content'])
+                endif
+            endif
+        endfor
+    endif
+endfunction
 
 " -------------------------------------------------- "
 xnoremap <silent> QQ :<C-u>call <SID>start_prefetch()<CR>
 nnoremap <leader>qq :call ToggleChat()<CR>
+nnoremap <leader>ll :call <SID>load_from_history()<CR>
 
 " Define your custom command
 command! -range -nargs=+ QQ call s:ask_with_context(<q-args>)
-
-
