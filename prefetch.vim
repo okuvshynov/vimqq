@@ -15,9 +15,8 @@ let g:qq_width        = get(g:, 'qq_width'       , 80)
 let s:history_file    = expand('~/.vim/qq_history')
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" local state
+" local state. This should be by session?
 let s:job_id = -1
-
 let s:current_reply = ""
 let s:history = []
 
@@ -95,6 +94,7 @@ function! s:prime_local(question)
     let req.n_predict = g:vqna_max_tokens
     let req.messages  = s:history + [{"role": "user", "content": a:question}]
     let req.complete  = v:false
+    " TODO - server should not need that
     let req.session_id = 10001
 
     let json_req = json_encode(req)
@@ -113,6 +113,7 @@ function! s:on_close(channel)
 endfunction
 
 function! s:on_err(channel, msg)
+    " TODO: logging
 endfunction
 
 " assumes the last message is already in history
@@ -141,12 +142,6 @@ function! s:ask_local()
     call appendbufline(bufnum, line('$'), prompt)
 endfunction
 
-function! s:start_prefetch()
-    let l:context = s:get_visual_selection()
-    call timer_start(0, { -> s:preprocess(l:context) })
-    call feedkeys(":'<,'>QQ ", 'n')
-endfunction
-
 function! s:get_visual_selection()
     let [line_start, column_start] = getpos("'<")[1:2]
     let [line_end, column_end] = getpos("'>")[1:2]
@@ -161,6 +156,14 @@ endfunction
 
 function! s:fmt_question(context, question)
     return "Here's a code snippet: \n\n " . a:context . "\n\n" . a:question
+endfunction
+
+function! s:qq_prepare()
+    let l:context = s:get_visual_selection()
+    if !empty(l:context)
+        call timer_start(0, { -> s:preprocess(l:context) })
+    endif
+    call feedkeys(":'<,'>QQ ", 'n')
 endfunction
 
 function! s:preprocess(context)
@@ -205,7 +208,7 @@ function! s:open_chat()
     endif
 endfunction
 
-function! ToggleChat()
+function! s:toggle_chat_window()
     let bufnum = bufnr('vim_qna_chat')
     if bufnum == -1
         call s:open_chat()
@@ -270,8 +273,8 @@ function! s:new_session()
 endfunction
 
 " -------------------------------------------------- "
-xnoremap <silent> QQ :<C-u>call <SID>start_prefetch()<CR>
-nnoremap <leader>qq :call ToggleChat()<CR>
+xnoremap <silent> QQ :<C-u>call <SID>qq_prepare()<CR>
+nnoremap <leader>qq :call <SID>toggle_chat_window()<CR>
 nnoremap <leader>ll :call <SID>load_from_history()<CR>
 nnoremap <leader>qn :call <SID>new_session()<CR>
 
