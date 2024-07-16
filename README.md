@@ -49,7 +49,8 @@ Let's keep input simple - we can only type the question itself in command line (
 - [ ] server status in chat window
 - [x] appending to the history, so we can ask follow-up question. `:QQ something something` needs to append question to the current chat. 
 - [x] creating new chats. `:QQN something something` would be new?
-- [ ] session selection/loading
+- [x] session selection/loading
+- [ ] session list
 - [ ] integration with fzf
 - [ ] change shortcuts, define commands the right way
 - [ ] check what's up with cache reuse and \n\n token.
