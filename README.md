@@ -44,13 +44,17 @@ to your vimrc file
 Let's keep input simple - we can only type the question itself in command line (not in the buffer) and the history will be displayed separately. What more complicated things do we need:
 - [x] Command to show/hide history window
 - [x] Saving chats locally
-- [ ] sessions support
+- [x] sessions support
 - [ ] work with llama.cpp chat
 - [ ] server status in chat window
 - [x] appending to the history, so we can ask follow-up question. `:QQ something something` needs to append question to the current chat. 
 - [x] creating new chats. `:QQN something something` would be new?
-- [ ] session selection, integration with fzf
-- [ ] multi-agent support - chat with multiple bots
+- [ ] session selection/loading
+- [ ] integration with fzf
 - [ ] change shortcuts, define commands the right way
+- [ ] check what's up with cache reuse and \n\n token.
+- [ ] deleting sessions. Currently if would shift ids and break everything
+
+Later
 - [ ] code review. Ask to provide input without writing code itself. 
-- [ ] check what's with cache reuse and \n\n token.
+- [ ] multi-agent support - chat with multiple bots

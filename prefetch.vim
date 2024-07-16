@@ -11,7 +11,7 @@ let g:qq_width        = get(g:, 'qq_width'       , 80)
 
 " -----------------------------------------------------------------------------
 " should each session have its own file?
-let s:sessions_file = expand('~/.vim/qq_sessions.json')
+let s:sessions_file  = expand('~/.vim/qq_sessions.json')
 " cleanup dead jobs if list is longer than this
 let s:n_jobs_cleanup = 32
 
@@ -35,6 +35,9 @@ function! s:load_sessions()
         let s:sessions = []
     endif
 endfunction
+
+" load sessions once
+call s:load_sessions()
 
 function! s:save_sessions()
     let l:sessions_text = json_encode(s:sessions)
@@ -197,6 +200,7 @@ function! s:qq_send_message(question)
         let l:question = s:fmt_question(l:context, a:question)
     endif
     let l:message  = {"role": "user", "content": l:question}
+
     " timestamp and other metadata might get appended here
     let l:message  = s:append_message(l:message)
     call s:print_message(v:true, l:message)
@@ -216,12 +220,17 @@ function! s:preprocess(context)
     call s:prime_local(l:prompt)
 endfunction
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" -----------------------------------------------------------------------------
 " utilities for buffer/chat window manipulation
+function s:update_status_line()
+    let l:bufnum = bufnr('vim_qna_chat')
+    execute l:bufnum . "bufdo" . " setlocal statusline=%#StatusLine#Chat" . s:current_session_id()
+endfunction
+
 function! s:open_chat()
     " Check if the buffer already exists
-    let bufnum = bufnr('vim_qna_chat')
-    if bufnum == -1
+    let l:bufnum = bufnr('vim_qna_chat')
+    if l:bufnum == -1
         " Create a new buffer in a vertical split
         silent! execute 'topleft vertical ' . g:qq_width . ' new'
         silent! execute 'edit vim_qna_chat'
@@ -229,14 +238,15 @@ function! s:open_chat()
         setlocal bufhidden=hide
         setlocal noswapfile
     else
-        let winnum = bufwinnr(bufnum)
+        let winnum = bufwinnr(l:bufnum)
         if winnum == -1
             silent! execute 'topleft vertical ' . g:qq_width . ' split'
-            silent! execute 'buffer ' bufnum
+            silent! execute 'buffer ' l:bufnum
         else
             silent! execute winnum . 'wincmd w'
         endif
     endif
+    call s:update_status_line()
 endfunction
 
 function! s:toggle_chat_window()
@@ -285,12 +295,14 @@ endfunction
 function! s:display_session(session_id)
     call s:load_sessions()
     call s:open_chat()
+    let s:current_session = a:session_id
 
-    call deletebufline('%', 1, '$')
+    silent! call deletebufline('%', 1, '$')
 
-    for msg in s:sessions[a:session_id].messages
-        call s:print_message(v:false, msg)
+    for l:msg in s:sessions[a:session_id].messages
+        call s:print_message(v:false, l:msg)
     endfor
+    call s:update_status_line()
 endfunction
 
 function! s:new_chat()
@@ -324,9 +336,9 @@ augroup END
 
 " -----------------------------------------------------------------------------
 "  commands and default key mappings
-xnoremap <silent> QQ :<C-u>call <SID>qq_prepare()<CR>
-nnoremap <leader>qq :call <SID>toggle_chat_window()<CR>
-nnoremap <leader>qn :call <SID>new_chat()<CR>
+xnoremap <silent>QQ :<C-u>call <SID>qq_prepare()<CR>
+nnoremap <leader>qq :call      <SID>toggle_chat_window()<CR>
 
-" Define your custom command
 command! -range -nargs=+ QQ call s:qq_send_message(<q-args>)
+command!        -nargs=1 QL call s:display_session(<f-args>)
+command!        -nargs=0 QN call s:new_chat()
