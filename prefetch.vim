@@ -5,15 +5,20 @@
 " how many tokens to generate for each message
 let g:qq_max_tokens = get(g:, 'qq_max_tokens', 1024)
 
-let g:qq_endpoint = get(g:, 'qq_endpoint', "http://localhost:8080/v1/chat/completions")
+let g:qq_server = get(g:, 'qq_server', "http://localhost:8080/")
 " default window width
 let g:qq_width    = get(g:, 'qq_width'   , 80)
 
 " -----------------------------------------------------------------------------
 " should each session have its own file?
-let s:sessions_file  = expand('~/.vim/qq_sessions.json')
+let s:sessions_file    = expand('~/.vim/qq_sessions.json')
 " cleanup dead jobs if list is longer than this
-let s:n_jobs_cleanup = 32
+let s:n_jobs_cleanup   = 32
+
+" prepare endpoints
+let s:qq_server          = substitute(g:qq_server, '/*$', '', '')
+let s:qq_chat_endpoint   = s:qq_server . '/v1/chat/completions'
+let s:qq_health_endpoint = s:qq_server . '/health'
 
 " -----------------------------------------------------------------------------
 " script-level mutable state
@@ -96,9 +101,35 @@ function! s:save_job(job_id)
   endif
 endfunction
 
+" -----------------------------------------------------------------------------
+"  server interactions
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" llama_duo callbacks - with streaming
+function s:send_query(req, job_conf)
+    let l:json_req = json_encode(a:req)
+    let l:json_req = substitute(l:json_req, "'", "'\\\\''", "g")
+
+    let l:curl_cmd  = "curl --no-buffer -s -X POST '" . s:qq_chat_endpoint . "'"
+    let l:curl_cmd .= " -H 'Content-Type: application/json'"
+    let l:curl_cmd .= " -d '" . l:json_req . "'"
+
+    call s:save_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
+endfunction
+
+" sync operation
+function s:server_status_impl()
+    let l:curl_cmd = "curl --max-time 5 -s '" . s:qq_health_endpoint . "'"
+    let l:output   = system(l:curl_cmd)
+    let l:status   = json_decode(l:output)
+    if empty(l:status)
+        let s:server_status = "unavailable"
+    else
+        let s:server_status = l:status.status
+    endif
+endfunction
+
+" -----------------------------------------------------------------------------
+"  llama_duo callbacks - with streaming
+
 function! s:on_out(channel, msg)
     if a:msg !~# '^data: '
         return
@@ -129,17 +160,9 @@ function! s:on_err(channel, msg)
     " TODO: logging
 endfunction
 
-function s:send_query(req, job_conf)
-    let l:json_req = json_encode(a:req)
-    let l:json_req = substitute(l:json_req, "'", "'\\\\''", "g")
 
-    let l:curl_cmd  = "curl --no-buffer -s -X POST '" . g:qq_endpoint . "'"
-    let l:curl_cmd .= " -H 'Content-Type: application/json'"
-    let l:curl_cmd .= " -d '" . l:json_req . "'"
-
-    call s:save_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
-
-endfunction
+" -----------------------------------------------------------------------------
+"  llama server requests preparation
 
 " query to pre-fill the cache
 function! s:prime_local(question)
@@ -224,8 +247,7 @@ endfunction
 " -----------------------------------------------------------------------------
 " utilities for buffer/chat window manipulation
 function s:update_status_line()
-    let l:bufnum = bufnr('vim_qna_chat')
-    execute l:bufnum . "bufdo" . " setlocal statusline=%#StatusLine#Chat" . s:current_session_id()
+  " TODO: fix this
 endfunction
 
 function! s:open_chat()
