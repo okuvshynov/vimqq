@@ -115,7 +115,7 @@ function s:send_query(req, job_conf)
     call s:save_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
 endfunction
 
-" sync operation
+" sync operation. currently unused.
 function s:server_status_impl()
     let l:curl_cmd = "curl --max-time 5 -s '" . s:qq_health_endpoint . "'"
     let l:output   = system(l:curl_cmd)
@@ -145,7 +145,7 @@ function! s:on_out(channel, msg)
         silent! call setbufline(bufnum, '$', split(curr_line . next_token . "\n", '\n'))
         let s:sessions[l:sid].current_reply = s:sessions[l:sid].current_reply . next_token
     endif
-    " TODO: not move the cursor here so I can copy/paste?
+    " TODO: not move the cursor here so I can copy/paste? Make it optional.
     "silent! call win_execute(bufwinid('vim_qna_chat'), 'normal! G')
 endfunction
 
@@ -224,9 +224,9 @@ function! s:qq_send_message(question)
         let l:question = s:fmt_question(l:context, a:question)
     endif
     let l:message  = {"role": "user", "content": l:question}
-
     " timestamp and other metadata might get appended here
     let l:message  = s:append_message(l:message)
+
     call s:print_message(v:true, l:message)
     call s:ask_local()
 endfunction
@@ -247,7 +247,7 @@ endfunction
 " -----------------------------------------------------------------------------
 " utilities for buffer/chat window manipulation
 function s:update_status_line()
-  " TODO: fix this
+  " TODO: show server status, chat id, etc.
 endfunction
 
 function! s:open_chat()
@@ -339,17 +339,13 @@ function! s:setup_syntax()
     syntax clear
 
     syntax match localPrompt   "^\d\d:\d\d:\d\d\s*Local:"  nextgroup=restOfLine
-    syntax match sonnetPrompt  "^\d\d:\d\d:\d\d\s*Sonnet:" nextgroup=restOfLine
 
-    syntax match userTagPrompt "^\d\d:\d\d:\d\d\s*You:\s"  nextgroup=taggedBot
-    syntax match taggedBot     "\(@Local\|@Sonnet\)"       nextgroup=restOfLine
+    syntax match userTagPrompt "^\d\d:\d\d:\d\d\s*You:"  nextgroup=restOfLine
 
     syntax match restOfLine ".*$" contained
 
     highlight localPrompt   cterm=bold gui=bold
-    highlight sonnetPrompt  cterm=bold gui=bold
     highlight userTagPrompt cterm=bold gui=bold
-    highlight taggedBot     ctermfg=DarkBlue guifg=DarkBlue
 endfunction
 
 augroup VQQSyntax
