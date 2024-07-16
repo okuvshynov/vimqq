@@ -1,49 +1,88 @@
 " Copyright 2024 Oleksandr Kuvshynov
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" -----------------------------------------------------------------------------
 " configuration one can do in vimrc
-" shared config
+" how many tokens to generate for each message
 let g:vqna_max_tokens = get(g:, 'vqna_max_tokens', 1024)
-
 " local llama_duo server config
 let g:vqna_llama_duo  = get(g:, 'vqna_llama_duo' , "http://localhost:5555/query")
+" default window width
 let g:qq_width        = get(g:, 'qq_width'       , 80)
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" should this be configurable?
+" -----------------------------------------------------------------------------
 " should each session have its own file?
-let s:history_file   = expand('~/.vim/qq_history')
+let s:sessions_file = expand('~/.vim/qq_sessions.json')
 " cleanup dead jobs if list is longer than this
 let s:n_jobs_cleanup = 32
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" local state. This should be by session?
+" -----------------------------------------------------------------------------
+" script-level mutable state
+
+" Dead tasks are getting cleaned up after list goes over n_jobs_cleanup
 let s:active_jobs = []
 
-let s:current_reply = ""
-let s:history = []
+"  Do we have one window for chat? Or can open as many as we wish?
 
-function! s:load_history()
-    if filereadable(s:history_file)
-        let l:history_s = join(readfile(s:history_file), '')
-        let s:history = json_decode(l:history_s) 
+" -----------------------------------------------------------------------------
+" history and sessions
+let s:sessions = []
+let s:current_session = -1 " this is the active session, all qq would go to it
+
+function! s:load_sessions()
+    if filereadable(s:sessions_file)
+        let s:sessions = json_decode(join(readfile(s:sessions_file), ''))
     else
-        let s:history = []
+        let s:sessions = []
     endif
 endfunction
 
-function! s:clear_history()
-    let s:history = []
-    call s:save_history()
+function! s:save_sessions()
+    let l:sessions_text = json_encode(s:sessions)
+    silent! call writefile([l:sessions_text], s:sessions_file)
 endfunction
 
-function! s:save_history()
-    let l:history_text = json_encode(s:history)
-    silent! call writefile([l:history_text], s:history_file)
+function! s:start_session()
+    let l:session = {}
+    let l:session.id = len(s:sessions)
+    let l:session.messages = []
+    let l:session.current_reply = ""
+
+    let s:sessions += [l:session]
+
+    let s:current_session = l:session.id
+    call s:save_sessions()
 endfunction
 
-""""""
-" jobs
+" get or create a new session if there isn't one
+function! s:current_session_id()
+    if s:current_session == -1
+        call s:start_session()
+    endif
+    return s:current_session
+endfunction
+
+function! s:current_messages()
+    let l:sid = s:current_session_id()
+    return s:sessions[l:sid].messages
+endfunction
+
+" appends message to current session and saves to file
+function! s:append_message(msg_j)
+    let l:msg = copy(a:msg_j)
+    if !has_key(l:msg, 'timestamp')
+        let l:msg['timestamp'] = localtime()
+    endif
+
+    let l:sid = s:current_session_id()
+
+    call add(s:sessions[l:sid].messages, l:msg)
+    call s:save_sessions()
+
+    return l:msg
+endfunction
+
+" -----------------------------------------------------------------------------
+" async jobs management
 function! s:save_job(job_id)
   let s:active_jobs += [a:job_id]
   if len(s:active_jobs) > s:n_jobs_cleanup
@@ -55,20 +94,6 @@ function! s:save_job(job_id)
   endif
 endfunction
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" appends message to local history and saves to file
-function! s:append_message(msg_j)
-    let l:msg  = copy(a:msg_j)
-    if !has_key(l:msg, 'timestamp')
-        let l:msg['timestamp'] = localtime()
-    endif
-
-    call add(s:history, l:msg)
-
-    call s:save_history()
-
-    return l:msg
-endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " llama_duo callbacks - with streaming
@@ -76,20 +101,33 @@ function! s:on_out_token(channel, msg)
     let bufnum = bufnr('vim_qna_chat')
     let json_string = substitute(a:msg, '^data: ', '', '')
     let response = json_decode(json_string)
+    let l:sid = s:current_session_id()
     if has_key(response.choices[0].delta, 'content')
         let next_token = response.choices[0].delta.content
         let curr_line = getbufoneline(bufnum, '$')
         silent! call setbufline(bufnum, '$', split(curr_line . next_token . "\n", '\n'))
-        let s:current_reply = s:current_reply . next_token
+        let s:sessions[l:sid].current_reply = s:sessions[l:sid].current_reply . next_token
     endif
     " TODO: not move the cursor here so I can copy/paste?
     "silent! call win_execute(bufwinid('vim_qna_chat'), 'normal! G')
 endfunction
 
+function! s:on_close(channel)
+    " appends to active session, creates new session if there's no sessions
+    let l:sid = s:current_session_id()
+    call s:append_message({"role": "assistant", "content": s:sessions[l:sid].current_reply})
+    s:sessions[l:sid].current_reply = ""
+endfunction
+
+function! s:on_err(channel, msg)
+    " TODO: logging
+endfunction
+
+" query to pre-fill the cache
 function! s:prime_local(question)
     let req = {}
     let req.n_predict = g:vqna_max_tokens
-    let req.messages  = s:history + [{"role": "user", "content": a:question}]
+    let req.messages  = s:current_messages() + [{"role": "user", "content": a:question}]
     let req.complete  = v:false
     " TODO - server should not need that
     let req.session_id = 10001
@@ -104,20 +142,12 @@ function! s:prime_local(question)
     call s:save_job(job_start(['/bin/sh', '-c', curl_cmd]))
 endfunction
 
-function! s:on_close(channel)
-    call s:append_message({"role": "assistant", "content": s:current_reply})
-    let s:current_reply = ""
-endfunction
-
-function! s:on_err(channel, msg)
-    " TODO: logging
-endfunction
-
-" assumes the last message is already in history
+" assumes the last message is already in the session 
 function! s:ask_local()
+    let l:sid = s:current_session_id()
     let req = {}
     let req.n_predict = g:vqna_max_tokens
-    let req.messages  = s:history
+    let req.messages  = s:current_messages()
     let req.complete  = v:true
     " TODO - server should not need that
     let req.session_id = 10001
@@ -129,13 +159,15 @@ function! s:ask_local()
     let curl_cmd .= " -H 'Content-Type: application/json'"
     let curl_cmd .= " -d '" . json_req . "'"
 
-    let s:current_reply = ""
+    let s:sessions[l:sid].current_reply = ""
+    " TODO: we need to pass session id to callbacks to make sure we append to
+    " the right message history in case of multiple queries.
     let l:job_conf = {'out_cb': 's:on_out_token', 'err_cb': 's:on_err', 'close_cb': 's:on_close'}
     call s:save_job(job_start(['/bin/sh', '-c', curl_cmd], l:job_conf))
 
     let bufnum = bufnr('vim_qna_chat')
 
-    " we are not printing from history, but stream tokens one by one
+    " we are not printing from session, but stream tokens one by one
     let prompt = strftime("%H:%M:%S Local: ")
     call appendbufline(bufnum, line('$'), prompt)
 endfunction
@@ -249,20 +281,20 @@ function! s:print_message(open_chat, message)
     normal! G
 endfunction
 
-function! s:load_from_history()
-    call s:load_history()
+function! s:display_session(session_id)
+    call s:load_sessions()
     call s:open_chat()
 
     call deletebufline('%', 1, '$')
 
-    for msg in s:history
+    for msg in s:sessions[a:session_id].messages
         call s:print_message(v:false, msg)
     endfor
 endfunction
 
-function! s:new_session()
-    call s:clear_history()
-    call s:load_from_history()
+function! s:new_chat()
+    call s:start_session()
+    call s:display_session(s:current_session)
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -294,8 +326,7 @@ augroup END
 " -------------------------------------------------- "
 xnoremap <silent> QQ :<C-u>call <SID>qq_prepare()<CR>
 nnoremap <leader>qq :call <SID>toggle_chat_window()<CR>
-nnoremap <leader>ll :call <SID>load_from_history()<CR>
-nnoremap <leader>qn :call <SID>new_session()<CR>
+nnoremap <leader>qn :call <SID>new_chat()<CR>
 
 " Define your custom command
 command! -range -nargs=+ QQ call s:ask_with_context(<q-args>)
