@@ -97,7 +97,7 @@ endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " llama_duo callbacks - with streaming
-function! s:on_out_token(channel, msg)
+function! s:on_out(channel, msg)
     let bufnum = bufnr('vim_qna_chat')
     let json_string = substitute(a:msg, '^data: ', '', '')
     let response = json_decode(json_string)
@@ -116,7 +116,7 @@ function! s:on_close(channel)
     " appends to active session, creates new session if there's no sessions
     let l:sid = s:current_session_id()
     call s:append_message({"role": "assistant", "content": s:sessions[l:sid].current_reply})
-    s:sessions[l:sid].current_reply = ""
+    let s:sessions[l:sid].current_reply = ""
 endfunction
 
 function! s:on_err(channel, msg)
@@ -125,12 +125,13 @@ endfunction
 
 " query to pre-fill the cache
 function! s:prime_local(question)
+    let l:sid = s:current_session_id()
     let req = {}
     let req.n_predict = g:vqna_max_tokens
     let req.messages  = s:current_messages() + [{"role": "user", "content": a:question}]
     let req.complete  = v:false
     " TODO - server should not need that
-    let req.session_id = 10001
+    let req.session_id = l:sid
 
     let json_req = json_encode(req)
     let json_req = substitute(json_req, "'", "'\\\\''", "g")
@@ -150,7 +151,7 @@ function! s:ask_local()
     let req.messages  = s:current_messages()
     let req.complete  = v:true
     " TODO - server should not need that
-    let req.session_id = 10001
+    let req.session_id = l:sid
 
     let json_req = json_encode(req)
     let json_req = substitute(json_req, "'", "'\\\\''", "g")
@@ -162,7 +163,7 @@ function! s:ask_local()
     let s:sessions[l:sid].current_reply = ""
     " TODO: we need to pass session id to callbacks to make sure we append to
     " the right message history in case of multiple queries.
-    let l:job_conf = {'out_cb': 's:on_out_token', 'err_cb': 's:on_err', 'close_cb': 's:on_close'}
+    let l:job_conf = {'out_cb': 's:on_out', 'err_cb': 's:on_err', 'close_cb': 's:on_close'}
     call s:save_job(job_start(['/bin/sh', '-c', curl_cmd], l:job_conf))
 
     let bufnum = bufnr('vim_qna_chat')
@@ -188,20 +189,7 @@ function! s:fmt_question(context, question)
     return "Here's a code snippet: \n\n " . a:context . "\n\n" . a:question
 endfunction
 
-function! s:qq_prepare()
-    let l:context = s:get_visual_selection()
-    if !empty(l:context)
-        call timer_start(0, { -> s:preprocess(l:context) })
-    endif
-    call feedkeys(":'<,'>QQ ", 'n')
-endfunction
-
-function! s:preprocess(context)
-    let l:prompt = s:fmt_question(a:context, "")
-    call s:prime_local(l:prompt)
-endfunction
-
-function! s:ask_with_context(question)
+function! s:qq_send_message(question)
     let l:context = s:get_visual_selection()
     if l:context == ''
         let l:question = a:question
@@ -215,8 +203,21 @@ function! s:ask_with_context(question)
     call s:ask_local()
 endfunction
 
+function! s:qq_prepare()
+    let l:context = s:get_visual_selection()
+    if !empty(l:context)
+        call timer_start(0, { -> s:preprocess(l:context) })
+    endif
+    call feedkeys(":'<,'>QQ ", 'n')
+endfunction
+
+function! s:preprocess(context)
+    let l:prompt = s:fmt_question(a:context, "")
+    call s:prime_local(l:prompt)
+endfunction
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" utilities for buffer/chat manipulation
+" utilities for buffer/chat window manipulation
 function! s:open_chat()
     " Check if the buffer already exists
     let bufnum = bufnr('vim_qna_chat')
@@ -297,7 +298,7 @@ function! s:new_chat()
     call s:display_session(s:current_session)
 endfunction
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" -----------------------------------------------------------------------------
 " basic color scheme setup
 function! s:setup_syntax()
     syntax clear
@@ -316,17 +317,16 @@ function! s:setup_syntax()
     highlight taggedBot     ctermfg=DarkBlue guifg=DarkBlue
 endfunction
 
-
 augroup VQQSyntax
   autocmd!
   autocmd BufRead,BufNewFile *vim_qna_chat* call s:setup_syntax()
 augroup END
 
-
-" -------------------------------------------------- "
+" -----------------------------------------------------------------------------
+"  commands and default key mappings
 xnoremap <silent> QQ :<C-u>call <SID>qq_prepare()<CR>
 nnoremap <leader>qq :call <SID>toggle_chat_window()<CR>
 nnoremap <leader>qn :call <SID>new_chat()<CR>
 
 " Define your custom command
-command! -range -nargs=+ QQ call s:ask_with_context(<q-args>)
+command! -range -nargs=+ QQ call s:qq_send_message(<q-args>)
