@@ -1,13 +1,13 @@
 " Copyright 2024 Oleksandr Kuvshynov
 
 " -----------------------------------------------------------------------------
-" configuration one can do in vimrc
+" configuration
 " how many tokens to generate for each message
-let g:vqna_max_tokens = get(g:, 'vqna_max_tokens', 1024)
-" local llama_duo server config
-let g:vqna_llama_duo  = get(g:, 'vqna_llama_duo' , "http://localhost:5555/query")
+let g:qq_max_tokens = get(g:, 'qq_max_tokens', 1024)
+
+let g:qq_endpoint = get(g:, 'qq_endpoint', "http://localhost:8080/v1/chat/completions")
 " default window width
-let g:qq_width        = get(g:, 'qq_width'       , 80)
+let g:qq_width    = get(g:, 'qq_width'   , 80)
 
 " -----------------------------------------------------------------------------
 " should each session have its own file?
@@ -22,17 +22,16 @@ let s:n_jobs_cleanup = 32
 let s:active_jobs = []
 
 "  Do we have one window for chat? Or can open as many as we wish?
-
-" -----------------------------------------------------------------------------
-" history and sessions
 let s:sessions = []
 let s:current_session = -1 " this is the active session, all qq would go to it
 
+" -----------------------------------------------------------------------------
+" history and sessions
+
 function! s:load_sessions()
+    let s:sessions = []
     if filereadable(s:sessions_file)
         let s:sessions = json_decode(join(readfile(s:sessions_file), ''))
-    else
-        let s:sessions = []
     endif
 endfunction
 
@@ -101,8 +100,12 @@ endfunction
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " llama_duo callbacks - with streaming
 function! s:on_out(channel, msg)
-    let bufnum = bufnr('vim_qna_chat')
+    if a:msg !~# '^data: '
+        return
+    endif
     let json_string = substitute(a:msg, '^data: ', '', '')
+
+    let bufnum = bufnr('vim_qna_chat')
     let response = json_decode(json_string)
     let l:sid = s:current_session_id()
     if has_key(response.choices[0].delta, 'content')
@@ -130,16 +133,15 @@ endfunction
 function! s:prime_local(question)
     let l:sid = s:current_session_id()
     let req = {}
-    let req.n_predict = g:vqna_max_tokens
     let req.messages  = s:current_messages() + [{"role": "user", "content": a:question}]
-    let req.complete  = v:false
-    " TODO - server should not need that
-    let req.session_id = l:sid
+    let req.n_predict = 0
+    let req.stream = v:true
+    let req.cache_prompt = v:true
 
     let json_req = json_encode(req)
     let json_req = substitute(json_req, "'", "'\\\\''", "g")
 
-    let curl_cmd  = "curl --no-buffer -s -X POST '" . g:vqna_llama_duo . "'"
+    let curl_cmd  = "curl --no-buffer -s -X POST '" . g:qq_endpoint . "'"
     let curl_cmd .= " -H 'Content-Type: application/json'"
     let curl_cmd .= " -d '" . json_req . "'"
 
@@ -150,23 +152,24 @@ endfunction
 function! s:ask_local()
     let l:sid = s:current_session_id()
     let req = {}
-    let req.n_predict = g:vqna_max_tokens
-    let req.messages  = s:current_messages()
-    let req.complete  = v:true
-    " TODO - server should not need that
-    let req.session_id = l:sid
+    let req.messages     = s:current_messages()
+    let req.n_predict    = g:qq_max_tokens
+    let req.stream       = v:true
+    let req.cache_prompt = v:true
+
+    let s:sessions[l:sid].current_reply = ""
+
+    " TODO: we need to pass session id to callbacks to make sure we append to
+    " the right message history in case of multiple queries.
+    let l:job_conf = {'out_cb': 's:on_out', 'err_cb': 's:on_err', 'close_cb': 's:on_close'}
 
     let json_req = json_encode(req)
     let json_req = substitute(json_req, "'", "'\\\\''", "g")
 
-    let curl_cmd  = "curl --no-buffer -s -X POST '" . g:vqna_llama_duo . "'"
+    let curl_cmd  = "curl --no-buffer -s -X POST '" . g:qq_endpoint . "'"
     let curl_cmd .= " -H 'Content-Type: application/json'"
     let curl_cmd .= " -d '" . json_req . "'"
 
-    let s:sessions[l:sid].current_reply = ""
-    " TODO: we need to pass session id to callbacks to make sure we append to
-    " the right message history in case of multiple queries.
-    let l:job_conf = {'out_cb': 's:on_out', 'err_cb': 's:on_err', 'close_cb': 's:on_close'}
     call s:save_job(job_start(['/bin/sh', '-c', curl_cmd], l:job_conf))
 
     let bufnum = bufnr('vim_qna_chat')
@@ -330,8 +333,8 @@ function! s:setup_syntax()
 endfunction
 
 augroup VQQSyntax
-  autocmd!
-  autocmd BufRead,BufNewFile *vim_qna_chat* call s:setup_syntax()
+    autocmd!
+    autocmd BufRead,BufNewFile *vim_qna_chat* call s:setup_syntax()
 augroup END
 
 " -----------------------------------------------------------------------------
