@@ -129,6 +129,18 @@ function! s:on_err(channel, msg)
     " TODO: logging
 endfunction
 
+function s:send_query(req, job_conf)
+    let l:json_req = json_encode(a:req)
+    let l:json_req = substitute(l:json_req, "'", "'\\\\''", "g")
+
+    let l:curl_cmd  = "curl --no-buffer -s -X POST '" . g:qq_endpoint . "'"
+    let l:curl_cmd .= " -H 'Content-Type: application/json'"
+    let l:curl_cmd .= " -d '" . l:json_req . "'"
+
+    call s:save_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
+
+endfunction
+
 " query to pre-fill the cache
 function! s:prime_local(question)
     let l:sid = s:current_session_id()
@@ -138,14 +150,7 @@ function! s:prime_local(question)
     let req.stream = v:true
     let req.cache_prompt = v:true
 
-    let json_req = json_encode(req)
-    let json_req = substitute(json_req, "'", "'\\\\''", "g")
-
-    let curl_cmd  = "curl --no-buffer -s -X POST '" . g:qq_endpoint . "'"
-    let curl_cmd .= " -H 'Content-Type: application/json'"
-    let curl_cmd .= " -d '" . json_req . "'"
-
-    call s:save_job(job_start(['/bin/sh', '-c', curl_cmd]))
+    call s:send_query(req, {})
 endfunction
 
 " assumes the last message is already in the session 
@@ -163,18 +168,11 @@ function! s:ask_local()
     " the right message history in case of multiple queries.
     let l:job_conf = {'out_cb': 's:on_out', 'err_cb': 's:on_err', 'close_cb': 's:on_close'}
 
-    let json_req = json_encode(req)
-    let json_req = substitute(json_req, "'", "'\\\\''", "g")
-
-    let curl_cmd  = "curl --no-buffer -s -X POST '" . g:qq_endpoint . "'"
-    let curl_cmd .= " -H 'Content-Type: application/json'"
-    let curl_cmd .= " -d '" . json_req . "'"
-
-    call s:save_job(job_start(['/bin/sh', '-c', curl_cmd], l:job_conf))
-
-    let bufnum = bufnr('vim_qna_chat')
+    call s:send_query(req, l:job_conf)
 
     " we are not printing from session, but stream tokens one by one
+    " So we append prompt here
+    let bufnum = bufnr('vim_qna_chat')
     let prompt = strftime("%H:%M:%S Local: ")
     call appendbufline(bufnum, line('$'), prompt)
 endfunction
@@ -339,8 +337,8 @@ augroup END
 
 " -----------------------------------------------------------------------------
 "  commands and default key mappings
-xnoremap <silent>QQ :<C-u>call <SID>qq_prepare()<CR>
-nnoremap <leader>qq :call      <SID>toggle_chat_window()<CR>
+xnoremap <silent> QQ         :<C-u>call <SID>qq_prepare()<CR>
+nnoremap <silent> <leader>qq :call      <SID>toggle_chat_window()<CR>
 
 command! -range -nargs=+ QQ call s:qq_send_message(<q-args>)
 command!        -nargs=1 QL call s:display_session(<f-args>)

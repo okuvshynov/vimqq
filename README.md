@@ -45,7 +45,7 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] Command to show/hide history window
 - [x] Saving chats locally
 - [x] sessions support
-- [ ] work with llama.cpp chat
+- [x] work with llama.cpp chat
 - [ ] server status in chat window
 - [x] appending to the history, so we can ask follow-up question. `:QQ something something` needs to append question to the current chat. 
 - [x] creating new chats. `:QQN something something` would be new?
@@ -54,6 +54,7 @@ Let's keep input simple - we can only type the question itself in command line (
 - [ ] change shortcuts, define commands the right way
 - [ ] check what's up with cache reuse and \n\n token.
 - [ ] deleting sessions. Currently if would shift ids and break everything
+- [ ] generating title for chat
 
 Later
 - [ ] code review. Ask to provide input without writing code itself. 
