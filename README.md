@@ -56,6 +56,7 @@ Let's keep input simple - we can only type the question itself in command line (
 - [ ] deleting sessions. Currently if would shift ids and break everything
 - [x] generating title for chat
 - [x] visual selection is incorrect
+- [x] use popup similar to fzf
 
 Later
 - [ ] integration with fzf

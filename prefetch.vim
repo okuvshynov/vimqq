@@ -17,6 +17,8 @@ let s:sessions_file    = expand('~/.vim/qq_sessions.json')
 let s:n_jobs_cleanup   = 32
 " auto-generated title length
 let s:qq_title_tokens  = 16
+" pause between healthchecks
+let s:healthcheck_ms   = 10000
 
 " prepare endpoints
 let s:qq_server          = substitute(g:qq_server, '/*$', '', '')
@@ -107,17 +109,10 @@ function! s:save_job(job_id)
 endfunction
 
 " -----------------------------------------------------------------------------
-"  server interactions
-function s:send_query(req, job_conf)
-    let l:json_req = json_encode(a:req)
-    let l:json_req = substitute(l:json_req, "'", "'\\\\''", "g")
+"  llama server server interactions
 
-    let l:curl_cmd  = "curl --no-buffer -s -X POST '" . s:qq_chat_endpoint . "'"
-    let l:curl_cmd .= " -H 'Content-Type: application/json'"
-    let l:curl_cmd .= " -d '" . l:json_req . "'"
-
-    call s:save_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
-endfunction
+" -----------------------------------------------------------------------------
+"  server healthchecks
 
 function s:on_status_exit(job, exit_status)
     if a:exit_status != 0
@@ -125,7 +120,7 @@ function s:on_status_exit(job, exit_status)
     endif
     call s:redraw_status()
     " restart again. 
-    call timer_start(5000, { -> s:get_server_status() })
+    call timer_start(s:healthcheck_ms, { -> s:get_server_status() })
 endfunction
 
 function s:on_status(channel, msg)
@@ -196,7 +191,18 @@ function! s:on_title_out(session_id, msg)
 endfunction
 
 " -----------------------------------------------------------------------------
-"  llama server requests preparation
+"  llama server 
+
+function s:send_query(req, job_conf)
+    let l:json_req = json_encode(a:req)
+    let l:json_req = substitute(l:json_req, "'", "'\\\\''", "g")
+
+    let l:curl_cmd  = "curl --no-buffer -s -X POST '" . s:qq_chat_endpoint . "'"
+    let l:curl_cmd .= " -H 'Content-Type: application/json'"
+    let l:curl_cmd .= " -d '" . l:json_req . "'"
+
+    call s:save_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
+endfunction
 
 " Priming query to pre-fill the cache on the server.
 " We ask for 0 tokens and ignore the response.
@@ -302,8 +308,9 @@ endfunction
 " utilities for buffer/chat window manipulation
 
 function! s:redraw_status()
-    " TODO: redraw too much? 
-    redraws!
+    " TODO: redraw too much? What if one of the buffers has expensive function
+    " in its statusline?
+    redrawstatus!
 endfunction
 
 function! s:open_chat()
