@@ -376,7 +376,6 @@ function! s:display_session(session_id)
     for l:msg in s:sessions[a:session_id].messages
         call s:print_message(v:false, l:msg)
     endfor
-    call s:update_status_line()
 endfunction
 
 function! s:new_chat()
