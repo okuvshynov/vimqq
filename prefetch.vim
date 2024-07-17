@@ -109,7 +109,6 @@ endfunction
 
 " -----------------------------------------------------------------------------
 "  server interactions
-
 function s:send_query(req, job_conf)
     let l:json_req = json_encode(a:req)
     let l:json_req = substitute(l:json_req, "'", "'\\\\''", "g")
@@ -244,6 +243,7 @@ function! s:get_visual_selection()
     endif
     let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
     let lines[0] = lines[0][column_start - 1:]
+    echo lines
     return join(lines, "\n")
 endfunction
 
@@ -251,12 +251,12 @@ function! s:fmt_question(context, question)
     return "Here's a code snippet: \n\n " . a:context . "\n\n" . a:question
 endfunction
 
-function! s:qq_send_message(question)
+function! s:qq_send_message(question, use_context)
     let l:context = s:get_visual_selection()
-    if l:context == ''
-        let l:question = a:question
-    else
+    if a:use_context
         let l:question = s:fmt_question(l:context, a:question)
+    else
+        let l:question = a:question
     endif
     let l:message  = {"role": "user", "content": l:question}
     " timestamp and other metadata might get appended here
@@ -424,7 +424,8 @@ augroup END
 xnoremap <silent> QQ         :<C-u>call <SID>qq_prepare()<CR>
 nnoremap <silent> <leader>qq :call      <SID>toggle_chat_window()<CR>
 
-command! -range -nargs=+ QQ call s:qq_send_message(<q-args>)
+command! -range -nargs=+ QQ call s:qq_send_message(<q-args>, v:true)
+command!        -nargs=+ Q  call s:qq_send_message(<q-args>, v:false)
 command!        -nargs=1 QL call s:display_session(<f-args>)
 command!        -nargs=0 QN call s:new_chat()
 command!        -nargs=0 QP call s:pick_session()
