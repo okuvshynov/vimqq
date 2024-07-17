@@ -10,23 +10,29 @@ let g:qq_server = get(g:, 'qq_server', "http://localhost:8080/")
 let g:qq_width    = get(g:, 'qq_width'   , 80)
 
 " -----------------------------------------------------------------------------
+"  constants 
 " should each session have its own file?
 let s:sessions_file    = expand('~/.vim/qq_sessions.json')
 " cleanup dead jobs if list is longer than this
 let s:n_jobs_cleanup   = 32
+" auto-generated title length
+let s:qq_title_tokens  = 16
 
 " prepare endpoints
 let s:qq_server          = substitute(g:qq_server, '/*$', '', '')
 let s:qq_chat_endpoint   = s:qq_server . '/v1/chat/completions'
 let s:qq_health_endpoint = s:qq_server . '/health'
 
+
 " -----------------------------------------------------------------------------
 " script-level mutable state
 
-" Dead tasks are getting cleaned up after list goes over n_jobs_cleanup
+" Dead jobs are getting cleaned up after list goes over n_jobs_cleanup
 let s:active_jobs = []
 
 "  Do we have one window for chat? Or can open as many as we wish?
+"  sessions need to be a dictionary, not a list and ids need to be assigned
+"  differently. This way we can delete it.
 let s:sessions = []
 let s:current_session = -1 " this is the active session, all qq would go to it
 
@@ -39,9 +45,6 @@ function! s:load_sessions()
         let s:sessions = json_decode(join(readfile(s:sessions_file), ''))
     endif
 endfunction
-
-" load sessions once
-call s:load_sessions()
 
 function! s:save_sessions()
     let l:sessions_text = json_encode(s:sessions)
@@ -88,17 +91,20 @@ function! s:append_message(msg_j)
     return l:msg
 endfunction
 
+" load sessions once
+call s:load_sessions()
+
 " -----------------------------------------------------------------------------
 " async jobs management
 function! s:save_job(job_id)
-  let s:active_jobs += [a:job_id]
-  if len(s:active_jobs) > s:n_jobs_cleanup
-    for job_id in s:active_jobs[:]
-        if job_info(job_id)['status'] == 'dead'
-            call remove(s:active_jobs, index(s:active_jobs, job_id))
-        endif
-    endfor
-  endif
+    let s:active_jobs += [a:job_id]
+    if len(s:active_jobs) > s:n_jobs_cleanup
+        for job_id in s:active_jobs[:]
+            if job_info(job_id)['status'] == 'dead'
+                call remove(s:active_jobs, index(s:active_jobs, job_id))
+            endif
+        endfor
+    endif
 endfunction
 
 " -----------------------------------------------------------------------------
@@ -128,7 +134,7 @@ function s:server_status_impl()
 endfunction
 
 " -----------------------------------------------------------------------------
-"  llama_duo callbacks - with streaming
+"  llama server callbacks with token streaming
 
 function! s:on_out(channel, msg)
     if a:msg !~# '^data: '
@@ -154,17 +160,30 @@ function! s:on_close(channel)
     let l:sid = s:current_session_id()
     call s:append_message({"role": "assistant", "content": s:sessions[l:sid].current_reply})
     let s:sessions[l:sid].current_reply = ""
+
+    if !has_key(s:sessions[l:sid], 'title')
+        call s:prepare_title(l:sid, s:sessions[l:sid].messages[0].content)
+    endif
 endfunction
 
 function! s:on_err(channel, msg)
     " TODO: logging
 endfunction
 
+function! s:on_title_out(session_id, msg)
+    let json_string = substitute(a:msg, '^data: ', '', '')
+
+    let response = json_decode(json_string)
+    if has_key(response.choices[0].message, 'content')
+        let title = response.choices[0].message.content
+        let s:sessions[a:session_id].title = title
+    endif
+endfunction
 
 " -----------------------------------------------------------------------------
 "  llama server requests preparation
 
-" query to pre-fill the cache
+" priming query to pre-fill the cache
 function! s:prime_local(question)
     let l:sid = s:current_session_id()
     let req = {}
@@ -188,18 +207,33 @@ function! s:ask_local()
     let s:sessions[l:sid].current_reply = ""
 
     " TODO: we need to pass session id to callbacks to make sure we append to
-    " the right message history in case of multiple queries.
+    " the right message history in case of multiple concurrent queries.
     let l:job_conf = {'out_cb': 's:on_out', 'err_cb': 's:on_err', 'close_cb': 's:on_close'}
 
     call s:send_query(req, l:job_conf)
 
     " we are not printing from session, but stream tokens one by one
-    " So we append prompt here
+    " So we append prompt here.
     let bufnum = bufnr('vim_qna_chat')
     let prompt = strftime("%H:%M:%S Local: ")
     call appendbufline(bufnum, line('$'), prompt)
 endfunction
 
+" create a title we'll use in UI. message text is just a text.
+function! s:prepare_title(session_id, message_text)
+    let req = {}
+    let req.messages  = [{"role": "user", "content": "Write a title with a few words summarizing the following paragraph. Reply only with title itself.\n\n" . a:message_text}]
+    let req.n_predict    = s:qq_title_tokens
+    let req.stream       = v:false
+    let req.cache_prompt = v:true
+
+    let l:job_conf = {'out_cb': {channel, msg -> s:on_title_out(a:session_id, msg)}}
+
+    call s:send_query(req, l:job_conf)
+endfunction
+
+" -----------------------------------------------------------------------------
+"  utility function to get visual selection
 function! s:get_visual_selection()
     let [line_start, column_start] = getpos("'<")[1:2]
     let [line_end, column_end] = getpos("'>")[1:2]
