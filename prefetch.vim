@@ -10,7 +10,8 @@ let g:qq_server = get(g:, 'qq_server', "http://localhost:8080/")
 let g:qq_width  = get(g:, 'qq_width'   , 80)
 
 " -----------------------------------------------------------------------------
-" constants 
+" script-level constants 
+
 " should each session have its own file?
 let s:sessions_file    = expand('~/.vim/qq_sessions.json')
 " cleanup dead jobs if list is longer than this
@@ -29,6 +30,7 @@ let s:qq_health_endpoint = s:qq_server . '/health'
 " script-level mutable state
 
 " Dead jobs are getting cleaned up after list goes over n_jobs_cleanup
+" TODO: make this a dictionary
 let s:active_jobs = []
 
 "  sessions need to be a dictionary, not a list and ids need to be assigned
@@ -97,7 +99,7 @@ call s:load_sessions()
 
 " -----------------------------------------------------------------------------
 " async jobs management
-function! s:save_job(job_id)
+function! s:keep_job(job_id)
     let s:active_jobs += [a:job_id]
     if len(s:active_jobs) > s:n_jobs_cleanup
         for job_id in s:active_jobs[:]
@@ -107,9 +109,6 @@ function! s:save_job(job_id)
         endfor
     endif
 endfunction
-
-" -----------------------------------------------------------------------------
-"  llama server server interactions
 
 " -----------------------------------------------------------------------------
 "  server healthchecks
@@ -132,12 +131,11 @@ function s:on_status(channel, msg)
     endif
 endfunction
 
-" sync operation. currently unused.
 function s:get_server_status()
     let l:curl_cmd = ["curl", "--max-time", "5", s:qq_health_endpoint]
     let l:job_conf = {'out_cb': 's:on_status', 'exit_cb': 's:on_status_exit'}
-    
-    call s:save_job(job_start(l:curl_cmd, l:job_conf))
+
+    call s:keep_job(job_start(l:curl_cmd, l:job_conf))
 endfunction
 
 call s:get_server_status()
@@ -201,7 +199,7 @@ function s:send_query(req, job_conf)
     let l:curl_cmd .= " -H 'Content-Type: application/json'"
     let l:curl_cmd .= " -d '" . l:json_req . "'"
 
-    call s:save_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
+    call s:keep_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
 endfunction
 
 " Priming query to pre-fill the cache on the server.
