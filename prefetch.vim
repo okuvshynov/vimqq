@@ -7,10 +7,10 @@ let g:qq_max_tokens = get(g:, 'qq_max_tokens', 1024)
 
 let g:qq_server = get(g:, 'qq_server', "http://localhost:8080/")
 " default window width
-let g:qq_width    = get(g:, 'qq_width'   , 80)
+let g:qq_width  = get(g:, 'qq_width'   , 80)
 
 " -----------------------------------------------------------------------------
-"  constants 
+" constants 
 " should each session have its own file?
 let s:sessions_file    = expand('~/.vim/qq_sessions.json')
 " cleanup dead jobs if list is longer than this
@@ -23,14 +23,12 @@ let s:qq_server          = substitute(g:qq_server, '/*$', '', '')
 let s:qq_chat_endpoint   = s:qq_server . '/v1/chat/completions'
 let s:qq_health_endpoint = s:qq_server . '/health'
 
-
 " -----------------------------------------------------------------------------
 " script-level mutable state
 
 " Dead jobs are getting cleaned up after list goes over n_jobs_cleanup
 let s:active_jobs = []
 
-"  Do we have one window for chat? Or can open as many as we wish?
 "  sessions need to be a dictionary, not a list and ids need to be assigned
 "  differently. This way we can delete it.
 let s:sessions = []
@@ -369,7 +367,7 @@ function! s:new_chat()
 endfunction
 
 " -----------------------------------------------------------------------------
-" session selection in UI
+" session selection TUI
 function! s:select_title()
   let l:session_id = s:session_id_map[line('.')]
   bwipeout!
@@ -423,6 +421,7 @@ augroup END
 "  commands and default key mappings
 xnoremap <silent> QQ         :<C-u>call <SID>qq_prepare()<CR>
 nnoremap <silent> <leader>qq :call      <SID>toggle_chat_window()<CR>
+nnoremap <silent> <leader>qp :call      <SID>pick_session()<CR>
 
 command! -range -nargs=+ QQ call s:qq_send_message(<q-args>, v:true)
 command!        -nargs=+ Q  call s:qq_send_message(<q-args>, v:false)

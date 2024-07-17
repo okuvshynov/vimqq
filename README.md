@@ -55,7 +55,7 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] check what's up with cache reuse and \n\n token.
 - [ ] deleting sessions. Currently if would shift ids and break everything
 - [x] generating title for chat
-- [ ] visual selection is incorrect
+- [x] visual selection is incorrect
 
 Later
 - [ ] integration with fzf
