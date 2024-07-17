@@ -58,7 +58,9 @@ function! s:start_session()
     let l:session = {}
     let l:session.id = len(s:sessions)
     let l:session.messages = []
-    let l:session.current_reply = ""
+    let l:session.partial_reply = []
+    let l:session.title = "new chat"
+    let l:session.title_computed = v:false
 
     let s:sessions += [l:session]
 
@@ -79,16 +81,13 @@ function! s:current_messages()
     return s:sessions[l:sid].messages
 endfunction
 
-" appends message to current session and saves to file
-function! s:append_message(msg_j)
+function! s:append_message(session_id, msg_j)
     let l:msg = copy(a:msg_j)
     if !has_key(l:msg, 'timestamp')
         let l:msg['timestamp'] = localtime()
     endif
 
-    let l:sid = s:current_session_id()
-
-    call add(s:sessions[l:sid].messages, l:msg)
+    call add(s:sessions[a:session_id].messages, l:msg)
     call s:save_sessions()
 
     return l:msg
@@ -143,37 +142,34 @@ call s:get_server_status()
 " -----------------------------------------------------------------------------
 "  llama server callbacks with token streaming
 
-function! s:on_out(channel, msg)
+function! s:on_out(session_id, msg)
     if a:msg !~# '^data: '
         return
     endif
     let json_string = substitute(a:msg, '^data: ', '', '')
 
-    let bufnum = bufnr('vim_qna_chat')
     let response = json_decode(json_string)
-    let l:sid = s:current_session_id()
     if has_key(response.choices[0].delta, 'content')
         let next_token = response.choices[0].delta.content
-        let curr_line = getbufoneline(bufnum, '$')
-        silent! call setbufline(bufnum, '$', split(curr_line . next_token . "\n", '\n'))
-        let s:sessions[l:sid].current_reply = s:sessions[l:sid].current_reply . next_token
+        call add(s:sessions[a:session_id].partial_reply, next_token)
+        call s:maybe_append_token(a:session_id, next_token)
+        call s:save_sessions()
     endif
     " TODO: not move the cursor here so I can copy/paste? Make it optional.
     "silent! call win_execute(bufwinid('vim_qna_chat'), 'normal! G')
 endfunction
 
-function! s:on_close(channel)
-    " appends to active session, creates new session if there's no sessions
-    let l:sid = s:current_session_id()
-    call s:append_message({"role": "assistant", "content": s:sessions[l:sid].current_reply})
-    let s:sessions[l:sid].current_reply = ""
+function! s:on_close(session_id)
+    let l:reply = join(s:sessions[a:session_id].partial_reply, '')
+    call s:append_message(a:session_id, {"role": "assistant", "content": l:reply})
+    let s:sessions[a:session_id].partial_reply = []
 
-    if !has_key(s:sessions[l:sid], 'title')
-        call s:prepare_title(l:sid, s:sessions[l:sid].messages[0].content)
+    if !s:sessions[a:session_id].title_computed
+        call s:prepare_title(a:session_id, s:sessions[a:session_id].messages[0].content)
     endif
 endfunction
 
-function! s:on_err(channel, msg)
+function! s:on_err(session_id, msg)
     " TODO: logging
 endfunction
 
@@ -184,6 +180,7 @@ function! s:on_title_out(session_id, msg)
     if has_key(response.choices[0].message, 'content')
         let title = response.choices[0].message.content
         let s:sessions[a:session_id].title = title
+        let s:sessions[a:session_id].title_computed = v:true
         call s:save_sessions()
     endif
 endfunction
@@ -224,19 +221,18 @@ function! s:ask_local()
     let req.stream       = v:true
     let req.cache_prompt = v:true
 
-    let s:sessions[l:sid].current_reply = ""
+    let s:sessions[l:sid].partial_reply = []
 
-    " TODO: we need to pass session id to callbacks to make sure we append to
-    " the right message history in case of multiple concurrent queries.
-    let l:job_conf = {'out_cb': 's:on_out', 'err_cb': 's:on_err', 'close_cb': 's:on_close'}
+    let l:job_conf = {
+          \ 'out_cb'  : {channel, msg -> s:on_out(l:sid, msg)}, 
+          \ 'err_cb'  : {channel, msg -> s:on_err(l:sid, msg)},
+          \ 'close_cb': {channel      -> s:on_close(l:sid)}
+    \ }
 
+    " just display the prompt maybe?
+    call s:display_partial_response(l:sid)
     call s:send_query(req, l:job_conf)
 
-    " we are not printing from session, but stream tokens one by one
-    " So we append prompt here.
-    let bufnum = bufnr('vim_qna_chat')
-    let prompt = strftime("%H:%M:%S Local: ")
-    call appendbufline(bufnum, line('$'), prompt)
 endfunction
 
 " create a title we'll use in UI. message text is just a text.
@@ -278,8 +274,9 @@ function! s:qq_send_message(question, use_context)
         let l:question = a:question
     endif
     let l:message  = {"role": "user", "content": l:question}
+    let l:session_id = s:current_session_id() 
     " timestamp and other metadata might get appended here
-    let l:message  = s:append_message(l:message)
+    let l:message    = s:append_message(l:session_id, l:message)
 
     call s:print_message(v:true, l:message)
     call s:ask_local()
@@ -383,6 +380,22 @@ function! s:print_message(open_chat, message)
     normal! G
 endfunction
 
+function! s:maybe_append_token(session_id, token)
+    if s:current_session == a:session_id
+        let l:bufnum    = bufnr('vim_qna_chat')
+        let l:curr_line = getbufoneline(bufnum, '$')
+        silent! call setbufline(l:bufnum, '$', split(l:curr_line . a:token . "\n", '\n'))
+    endif
+endfunction
+
+function! s:display_partial_response(session_id)
+    let l:partial = join(s:sessions[a:session_id].partial_reply, '')
+    let l:bufnum = bufnr('vim_qna_chat')
+    let l:msg = strftime("%H:%M:%S Local: ") . l:partial
+    let l:lines = split(l:msg, '\n')
+    call appendbufline(l:bufnum, line('$'), l:lines)
+endfunction
+
 function! s:display_session(session_id)
     call s:load_sessions()
     call s:open_chat()
@@ -395,6 +408,14 @@ function! s:display_session(session_id)
     for l:msg in s:sessions[a:session_id].messages
         call s:print_message(v:false, l:msg)
     endfor
+
+    " display in progress streamed response
+    let l:partial = join(s:sessions[a:session_id].partial_reply, '')
+    if !empty(l:partial)
+        let l:msg = strftime("%H:%M:%S Local: ") . l:partial
+        let l:lines = split(l:msg, '\n')
+        call append(line('$'), l:lines)
+    endif
 endfunction
 
 function! s:new_chat()
@@ -405,32 +426,32 @@ endfunction
 " -----------------------------------------------------------------------------
 " session selection TUI
 function! s:select_title()
-  let l:session_id = s:session_id_map[line('.')]
-  call s:display_session(l:session_id)
+    let l:session_id = s:session_id_map[line('.')]
+    call s:display_session(l:session_id)
 endfunction
 
 function! s:pick_session()
-  let l:titles = []
-  let s:session_id_map = {}
-  for i in range(len(s:sessions))
-      if has_key(s:sessions[i], 'title')
-          call add(titles, s:sessions[i].title)
-          let  s:session_id_map[len(titles)] = i
-      endif
-  endfor
+    let l:titles = []
+    let s:session_id_map = {}
+    for i in range(len(s:sessions))
+        if has_key(s:sessions[i], 'title')
+            call add(titles, s:sessions[i].title)
+            let  s:session_id_map[len(titles)] = i
+        endif
+    endfor
 
-  call s:open_chat()
+    call s:open_chat()
 
-  setlocal modifiable
-  silent! call deletebufline('%', 1, '$')
-  call setline(1, l:titles)
-  setlocal cursorline
-  setlocal nomodifiable
-  
-  call s:clear_mappings()
-  nnoremap <silent> <buffer> <CR> :call <SID>select_title()<CR>
-  nnoremap <silent> <buffer> q    :call <SID>toggle_chat_window()<CR>
-
+    setlocal modifiable
+    silent! call deletebufline('%', 1, '$')
+    call setline(1, l:titles)
+    " TODO - turn it off when viewing the individual chat
+    setlocal cursorline
+    setlocal nomodifiable
+    
+    call s:clear_mappings()
+    nnoremap <silent> <buffer> <CR> :call <SID>select_title()<CR>
+    nnoremap <silent> <buffer> q    :call <SID>toggle_chat_window()<CR>
 endfunction
 
 " -----------------------------------------------------------------------------
