@@ -135,7 +135,6 @@ function s:on_status(channel, msg)
     else
         let g:qq_server_status = l:status.status
     endif
-    call s:redraw_status()
 endfunction
 
 " sync operation. currently unused.
@@ -145,6 +144,8 @@ function s:get_server_status()
     
     call s:save_job(job_start(l:curl_cmd, l:job_conf))
 endfunction
+
+call s:get_server_status()
 
 " -----------------------------------------------------------------------------
 "  llama server callbacks with token streaming
@@ -197,13 +198,13 @@ endfunction
 " -----------------------------------------------------------------------------
 "  llama server requests preparation
 
-" priming query to pre-fill the cache
+" Priming query to pre-fill the cache on the server.
+" We ask for 0 tokens and ignore the response.
 function! s:prime_local(question)
-    let l:sid = s:current_session_id()
-    let req = {}
-    let req.messages  = s:current_messages() + [{"role": "user", "content": a:question}]
-    let req.n_predict = 0
-    let req.stream = v:true
+    let req          = {}
+    let req.messages = s:current_messages() + [{"role": "user", "content": a:question}]
+    let req.n_predict    = 0
+    let req.stream       = v:true
     let req.cache_prompt = v:true
 
     call s:send_query(req, {})
@@ -212,6 +213,7 @@ endfunction
 " assumes the last message is already in the session 
 function! s:ask_local()
     let l:sid = s:current_session_id()
+
     let req = {}
     let req.messages     = s:current_messages()
     let req.n_predict    = g:qq_max_tokens
@@ -250,14 +252,13 @@ endfunction
 "  utility function to get visual selection
 function! s:get_visual_selection()
     let [line_start, column_start] = getpos("'<")[1:2]
-    let [line_end, column_end] = getpos("'>")[1:2]
+    let [line_end  , column_end  ] = getpos("'>")[1:2]
     let lines = getline(line_start, line_end)
     if len(lines) == 0
         return ''
     endif
     let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
-    let lines[0] = lines[0][column_start - 1:]
-    echo lines
+    let lines[0]  = lines[0][column_start - 1:]
     return join(lines, "\n")
 endfunction
 
@@ -280,7 +281,11 @@ function! s:qq_send_message(question, use_context)
     call s:ask_local()
 endfunction
 
-function! s:qq_prepare()
+function! s:qq_prepare(in_new_chat)
+    if a:in_new_chat
+        call s:start_session()
+        call s:display_session(s:current_session)
+    endif
     let l:context = s:get_visual_selection()
     if !empty(l:context)
         call timer_start(0, { -> s:preprocess(l:context) })
@@ -417,7 +422,7 @@ function! s:pick_session()
 endfunction
 
 " -----------------------------------------------------------------------------
-" basic color scheme setup
+" basic chat syntax setup
 function! s:setup_syntax()
     syntax clear
 
@@ -436,7 +441,8 @@ augroup END
 
 " -----------------------------------------------------------------------------
 "  commands and default key mappings
-xnoremap <silent> QQ         :<C-u>call <SID>qq_prepare()<CR>
+xnoremap <silent> QQ         :<C-u>call <SID>qq_prepare(v:false)<CR>
+xnoremap <silent> QN         :<C-u>call <SID>qq_prepare(v:true)<CR>
 nnoremap <silent> <leader>qq :call      <SID>toggle_chat_window()<CR>
 nnoremap <silent> <leader>qp :call      <SID>pick_session()<CR>
 
