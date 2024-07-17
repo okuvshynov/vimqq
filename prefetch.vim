@@ -331,6 +331,13 @@ function! s:open_chat()
             silent! execute winnum . 'wincmd w'
         endif
     endif
+    return l:bufnum
+endfunction
+
+" -----------------------------------------------------------------------------
+" clear buffer-local mappings
+function! s:clear_mappings()
+    mapclear <buffer>
 endfunction
 
 function! s:toggle_chat_window()
@@ -381,6 +388,8 @@ function! s:display_session(session_id)
     call s:open_chat()
     let s:current_session = a:session_id
 
+    call s:clear_mappings()
+    setlocal modifiable
     silent! call deletebufline('%', 1, '$')
 
     for l:msg in s:sessions[a:session_id].messages
@@ -397,12 +406,7 @@ endfunction
 " session selection TUI
 function! s:select_title()
   let l:session_id = s:session_id_map[line('.')]
-  bwipeout!
   call s:display_session(l:session_id)
-endfunction
-
-function! s:close_picker()
-  bwipeout!
 endfunction
 
 function! s:pick_session()
@@ -415,14 +419,17 @@ function! s:pick_session()
       endif
   endfor
 
-  new
-  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nowrap
+  call s:open_chat()
+
+  setlocal modifiable
+  silent! call deletebufline('%', 1, '$')
   call setline(1, l:titles)
   setlocal cursorline
   setlocal nomodifiable
-
+  
+  call s:clear_mappings()
   nnoremap <silent> <buffer> <CR> :call <SID>select_title()<CR>
-  nnoremap <silent> <buffer> q    :call <SID>close_picker()<CR>
+  nnoremap <silent> <buffer> q    :call <SID>toggle_chat_window()<CR>
 
 endfunction
 

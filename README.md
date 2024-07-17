@@ -51,14 +51,14 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] creating new chats. `:QQN something something` would be new?
 - [x] session selection/loading
 - [x] session list
-- [ ] change shortcuts, define commands the right way
+- [ ] change shortcuts, define commands the right way, now it is a mess
 - [x] check what's up with cache reuse and \n\n token.
 - [ ] deleting sessions. Currently if would shift ids and break everything
 - [x] generating title for chat
 - [x] visual selection is incorrect
-- [?] use popup similar to fzf
+- [-] use popup similar to fzf -- let's just use same window
 
 Later
+- [ ] multi-agent support - chat with multiple bots
 - [ ] integration with fzf
 - [ ] code review. Ask to provide input without writing code itself. 
-- [ ] multi-agent support - chat with multiple bots
