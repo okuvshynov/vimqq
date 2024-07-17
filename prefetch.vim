@@ -177,6 +177,7 @@ function! s:on_title_out(session_id, msg)
     if has_key(response.choices[0].message, 'content')
         let title = response.choices[0].message.content
         let s:sessions[a:session_id].title = title
+        call s:save_sessions()
     endif
 endfunction
 
@@ -368,14 +369,45 @@ function! s:new_chat()
 endfunction
 
 " -----------------------------------------------------------------------------
+" session selection in UI
+function! s:select_title()
+  let l:session_id = s:session_id_map[line('.')]
+  bwipeout!
+  call s:display_session(l:session_id)
+endfunction
+
+function! s:close_picker()
+  bwipeout!
+endfunction
+
+function! s:pick_session()
+  let l:titles = []
+  let s:session_id_map = {}
+  for i in range(len(s:sessions))
+      if has_key(s:sessions[i], 'title')
+          call add(titles, s:sessions[i].title)
+          let  s:session_id_map[len(titles)] = i
+      endif
+  endfor
+
+  new
+  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nowrap
+  call setline(1, l:titles)
+  setlocal cursorline
+  setlocal nomodifiable
+
+  nnoremap <silent> <buffer> <CR> :call <SID>select_title()<CR>
+  nnoremap <silent> <buffer> q    :call <SID>close_picker()<CR>
+
+endfunction
+
+" -----------------------------------------------------------------------------
 " basic color scheme setup
 function! s:setup_syntax()
     syntax clear
 
     syntax match localPrompt   "^\d\d:\d\d:\d\d\s*Local:"  nextgroup=restOfLine
-
     syntax match userTagPrompt "^\d\d:\d\d:\d\d\s*You:"  nextgroup=restOfLine
-
     syntax match restOfLine ".*$" contained
 
     highlight localPrompt   cterm=bold gui=bold
@@ -395,3 +427,4 @@ nnoremap <silent> <leader>qq :call      <SID>toggle_chat_window()<CR>
 command! -range -nargs=+ QQ call s:qq_send_message(<q-args>)
 command!        -nargs=1 QL call s:display_session(<f-args>)
 command!        -nargs=0 QN call s:new_chat()
+command!        -nargs=0 QP call s:pick_session()

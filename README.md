@@ -50,13 +50,14 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] appending to the history, so we can ask follow-up question. `:QQ something something` needs to append question to the current chat. 
 - [x] creating new chats. `:QQN something something` would be new?
 - [x] session selection/loading
-- [ ] session list
-- [ ] integration with fzf
+- [x] session list
 - [ ] change shortcuts, define commands the right way
-- [ ] check what's up with cache reuse and \n\n token.
+- [x] check what's up with cache reuse and \n\n token.
 - [ ] deleting sessions. Currently if would shift ids and break everything
-- [ ] generating title for chat
+- [x] generating title for chat
+- [ ] visual selection is incorrect
 
 Later
+- [ ] integration with fzf
 - [ ] code review. Ask to provide input without writing code itself. 
 - [ ] multi-agent support - chat with multiple bots
