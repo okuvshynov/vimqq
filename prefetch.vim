@@ -33,9 +33,10 @@ let s:active_jobs = []
 "  differently. This way we can delete it.
 let s:sessions = []
 let s:current_session = -1 " this is the active session, all qq would go to it
+let g:qq_server_status = "unknown"
 
 " -----------------------------------------------------------------------------
-" history and sessions
+" rename these to chats?
 
 function! s:load_sessions()
     let s:sessions = []
@@ -118,16 +119,31 @@ function s:send_query(req, job_conf)
     call s:save_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
 endfunction
 
-" sync operation. currently unused.
-function s:server_status_impl()
-    let l:curl_cmd = "curl --max-time 5 -s '" . s:qq_health_endpoint . "'"
-    let l:output   = system(l:curl_cmd)
-    let l:status   = json_decode(l:output)
-    if empty(l:status)
-        let s:server_status = "unavailable"
-    else
-        let s:server_status = l:status.status
+function s:on_status_exit(job, exit_status)
+    if a:exit_status != 0
+        let g:qq_server_status = "unavailable"
     endif
+    call s:redraw_status()
+    " restart again. 
+    call timer_start(5000, { -> s:get_server_status() })
+endfunction
+
+function s:on_status(channel, msg)
+    let l:status = json_decode(a:msg)
+    if empty(l:status)
+        let g:qq_server_status = "unavailable"
+    else
+        let g:qq_server_status = l:status.status
+    endif
+    call s:redraw_status()
+endfunction
+
+" sync operation. currently unused.
+function s:get_server_status()
+    let l:curl_cmd = ["curl", "--max-time", "5", s:qq_health_endpoint]
+    let l:job_conf = {'out_cb': 's:on_status', 'exit_cb': 's:on_status_exit'}
+    
+    call s:save_job(job_start(l:curl_cmd, l:job_conf))
 endfunction
 
 " -----------------------------------------------------------------------------
@@ -279,8 +295,10 @@ endfunction
 
 " -----------------------------------------------------------------------------
 " utilities for buffer/chat window manipulation
-function s:update_status_line()
-  " TODO: show server status, chat id, etc.
+
+function! s:redraw_status()
+    " TODO: redraw too much? 
+    redraws!
 endfunction
 
 function! s:open_chat()
@@ -293,6 +311,7 @@ function! s:open_chat()
         setlocal buftype=nofile
         setlocal bufhidden=hide
         setlocal noswapfile
+        setlocal statusline=server\ status:\ %{qq_server_status}
     else
         let winnum = bufwinnr(l:bufnum)
         if winnum == -1
@@ -302,7 +321,6 @@ function! s:open_chat()
             silent! execute winnum . 'wincmd w'
         endif
     endif
-    call s:update_status_line()
 endfunction
 
 function! s:toggle_chat_window()
@@ -423,8 +441,9 @@ xnoremap <silent> QQ         :<C-u>call <SID>qq_prepare()<CR>
 nnoremap <silent> <leader>qq :call      <SID>toggle_chat_window()<CR>
 nnoremap <silent> <leader>qp :call      <SID>pick_session()<CR>
 
-command! -range -nargs=+ QQ call s:qq_send_message(<q-args>, v:true)
-command!        -nargs=+ Q  call s:qq_send_message(<q-args>, v:false)
-command!        -nargs=1 QL call s:display_session(<f-args>)
-command!        -nargs=0 QN call s:new_chat()
-command!        -nargs=0 QP call s:pick_session()
+command! -range -nargs=+ QQ  call s:qq_send_message(<q-args>, v:true)
+command!        -nargs=+ Q   call s:qq_send_message(<q-args>, v:false)
+command!        -nargs=1 QL  call s:display_session(<f-args>)
+command!        -nargs=0 QN  call s:new_chat()
+command!        -nargs=0 QP  call s:pick_session()
+command!        -nargs=0 QS  call s:get_server_status()

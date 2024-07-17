@@ -46,7 +46,7 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] Saving chats locally
 - [x] sessions support
 - [x] work with llama.cpp chat
-- [ ] server status in chat window
+- [x] server status in chat window
 - [x] appending to the history, so we can ask follow-up question. `:QQ something something` needs to append question to the current chat. 
 - [x] creating new chats. `:QQN something something` would be new?
 - [x] session selection/loading
