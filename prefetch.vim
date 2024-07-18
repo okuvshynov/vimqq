@@ -9,6 +9,8 @@ let g:qq_server = get(g:, 'qq_server', "http://localhost:8080/")
 " default window width
 let g:qq_width  = get(g:, 'qq_width'   , 80)
 
+let g:qq_timefmt = get(g:, 'qq_timefmt', "%Y-%m-%d %H:%M:%S ")
+
 " -----------------------------------------------------------------------------
 " script-level constants 
 
@@ -61,6 +63,7 @@ function! s:start_session()
     let l:session.partial_reply = []
     let l:session.title = "new chat"
     let l:session.title_computed = v:false
+    let l:session.timestamp = localtime()
 
     let s:sessions += [l:session]
 
@@ -283,11 +286,11 @@ function! s:qq_send_message(question, use_context)
 endfunction
 
 function! s:qq_prepare(in_new_chat)
+    let l:context = s:get_visual_selection()
     if a:in_new_chat
         call s:start_session()
         call s:display_session(s:current_session)
     endif
-    let l:context = s:get_visual_selection()
     if !empty(l:context)
         call timer_start(0, { -> s:preprocess(l:context) })
     endif
@@ -360,7 +363,7 @@ function! s:print_message(open_chat, message)
 
     let l:tstamp = "        "
     if has_key(a:message, 'timestamp')
-        let l:tstamp = strftime("%H:%M:%S ", a:message['timestamp'])
+        let l:tstamp = strftime(g:qq_timefmt . " ", a:message['timestamp'])
     endif
     if a:message['role'] == 'user'
         let prompt = l:tstamp . "  You: "
@@ -391,7 +394,7 @@ endfunction
 function! s:display_partial_response(session_id)
     let l:partial = join(s:sessions[a:session_id].partial_reply, '')
     let l:bufnum = bufnr('vim_qna_chat')
-    let l:msg = strftime("%H:%M:%S Local: ") . l:partial
+    let l:msg = strftime(g:qq_timefmt . " Local: ") . l:partial
     let l:lines = split(l:msg, '\n')
     call appendbufline(l:bufnum, line('$'), l:lines)
 endfunction
@@ -412,7 +415,7 @@ function! s:display_session(session_id)
     " display in progress streamed response
     let l:partial = join(s:sessions[a:session_id].partial_reply, '')
     if !empty(l:partial)
-        let l:msg = strftime("%H:%M:%S Local: ") . l:partial
+        let l:msg = strftime(g:qq_timefmt . " Local: ") . l:partial
         let l:lines = split(l:msg, '\n')
         call append(line('$'), l:lines)
     endif
@@ -435,8 +438,26 @@ function! s:pick_session()
     let s:session_id_map = {}
     for i in range(len(s:sessions))
         if has_key(s:sessions[i], 'title')
-            call add(titles, s:sessions[i].title)
-            let  s:session_id_map[len(titles)] = i
+            let l:title = s:sessions[i].title
+            if has_key(s:sessions[i], 'timestamp')
+                let l:time  = s:sessions[i].timestamp
+            endif
+            for l:msg in reverse(s:sessions[i].messages)
+                if has_key(l:msg, 'timestamp')
+                    let l:time = l:msg.timestamp
+                    break
+                endif
+            endfor
+            if exists('l:time')
+                call add(titles, strftime(g:qq_timefmt . " " . l:title, l:time))
+            else
+                let default_time = repeat('-', strlen(strftime(g:qq_timefmt, 0)))
+                call add(titles, default_time . " " . l:title)
+            endif
+            let s:session_id_map[len(titles)] = i
+            if s:current_session == i
+                let l:selected_line = len(titles)
+            endif 
         endif
     endfor
 
@@ -445,6 +466,9 @@ function! s:pick_session()
     setlocal modifiable
     silent! call deletebufline('%', 1, '$')
     call setline(1, l:titles)
+    if exists('l:selected_line')
+        call cursor(l:selected_line, 1)
+    endif
     " TODO - turn it off when viewing the individual chat
     setlocal cursorline
     setlocal nomodifiable
@@ -455,26 +479,9 @@ function! s:pick_session()
 endfunction
 
 " -----------------------------------------------------------------------------
-" basic chat syntax setup
-function! s:setup_syntax()
-    syntax clear
-
-    syntax match localPrompt   "^\d\d:\d\d:\d\d\s*Local:"  nextgroup=restOfLine
-    syntax match userTagPrompt "^\d\d:\d\d:\d\d\s*You:"  nextgroup=restOfLine
-    syntax match restOfLine ".*$" contained
-
-    highlight localPrompt   cterm=bold gui=bold
-    highlight userTagPrompt cterm=bold gui=bold
-endfunction
-
-augroup VQQSyntax
-    autocmd!
-    autocmd BufRead,BufNewFile *vim_qna_chat* call s:setup_syntax()
-augroup END
-
-" -----------------------------------------------------------------------------
 "  commands and default key mappings
 xnoremap <silent> QQ         :<C-u>call <SID>qq_prepare(v:false)<CR>
+" TODO: this seems broken
 xnoremap <silent> QN         :<C-u>call <SID>qq_prepare(v:true)<CR>
 nnoremap <silent> <leader>qq :call      <SID>toggle_chat_window()<CR>
 nnoremap <silent> <leader>qp :call      <SID>pick_session()<CR>
