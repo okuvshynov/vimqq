@@ -35,11 +35,8 @@ let s:qq_health_endpoint = s:qq_server . '/health'
 " Dead jobs are getting cleaned up after list goes over n_jobs_cleanup
 let s:active_jobs = []
 
-"  sessions need to be a dictionary, not a list and ids need to be assigned
-"  differently. This way we can delete sessions, otherwise indexing gets
-"  messed up
-let s:sessions = []
-" this is the active session. New queries would go to this session by default
+let s:sessions = {}
+" this is the active session id. New queries would go to this session by default
 let s:current_session = -1 
 " latest healthcheck result
 let g:qq_server_status = "unknown"
@@ -48,7 +45,6 @@ let g:qq_server_status = "unknown"
 " rename sessions to chats?
 
 function! s:load_sessions()
-    let s:sessions = []
     if filereadable(s:sessions_file)
         let s:sessions = json_decode(join(readfile(s:sessions_file), ''))
     endif
@@ -61,16 +57,17 @@ endfunction
 
 function! s:start_session()
     let l:session = {}
-    let l:session.id = len(s:sessions)
+    let l:session.id = empty(s:sessions) ? 1 : max(keys(s:sessions)) + 1
     let l:session.messages = []
     let l:session.partial_reply = []
     let l:session.title = "new chat"
     let l:session.title_computed = v:false
     let l:session.timestamp = localtime()
 
-    let s:sessions += [l:session]
+    let s:sessions[l:session.id] = l:session
 
     " TODO: this should be moved. current session is the one we show
+    " or not? current one is the one we work on.
     let s:current_session = l:session.id
     call s:save_sessions()
 endfunction
@@ -439,9 +436,9 @@ function! s:select_title()
     call s:display_session(l:session_id)
 endfunction
 
-function! s:session_last_tstamp(session_id)
-    let l:time  = s:sessions[a:session_id].timestamp
-    for l:msg in reverse(copy(s:sessions[a:session_id].messages))
+function! s:session_last_tstamp(session)
+    let l:time = a:session.timestamp
+    for l:msg in reverse(copy(a:session.messages))
         if has_key(l:msg, 'timestamp')
             let l:time = l:msg.timestamp
             break
@@ -451,17 +448,21 @@ function! s:session_last_tstamp(session_id)
 endfunction
 
 function! s:pick_session()
+    let session_list = []
+    for [key, session] in items(s:sessions)
+        let session_list += [{'title': session.title, 'id': session.id, 'time': s:session_last_tstamp(session)}]
+    endfor
+
+    let ordered = sort(session_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
+
     let l:titles = []
     let s:session_id_map = {}
-    for i in range(len(s:sessions))
-        if has_key(s:sessions[i], 'title')
-            let l:title = s:sessions[i].title
-            let l:time  = s:session_last_tstamp(i)
-            call add(titles, strftime(g:qq_timefmt . " " . l:title, l:time))
-            let s:session_id_map[len(titles)] = i
-            if s:current_session == i
-                let l:selected_line = len(titles)
-            endif 
+
+    for item in ordered
+        call add(l:titles, strftime(g:qq_timefmt . " " . item.title, item.time))
+        let s:session_id_map[len(titles)] = item.id
+        if s:current_session == item.id
+            let l:selected_line = len(titles)
         endif
     endfor
 
