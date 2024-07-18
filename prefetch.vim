@@ -39,8 +39,7 @@ let s:active_jobs = []
 "  differently. This way we can delete sessions, otherwise indexing gets
 "  messed up
 let s:sessions = []
-" this is the active session, visible on the screen. 
-" conceptually we should only use it when we query and not when we render
+" this is the active session. New queries would go to this session by default
 let s:current_session = -1 
 " latest healthcheck result
 let g:qq_server_status = "unknown"
@@ -431,27 +430,25 @@ function! s:select_title()
     call s:display_session(l:session_id)
 endfunction
 
+function! s:session_last_tstamp(session_id)
+    let l:time  = s:sessions[a:session_id].timestamp
+    for l:msg in reverse(copy(s:sessions[a:session_id].messages))
+        if has_key(l:msg, 'timestamp')
+            let l:time = l:msg.timestamp
+            break
+        endif
+    endfor
+    return l:time
+endfunction
+
 function! s:pick_session()
     let l:titles = []
     let s:session_id_map = {}
     for i in range(len(s:sessions))
         if has_key(s:sessions[i], 'title')
             let l:title = s:sessions[i].title
-            if has_key(s:sessions[i], 'timestamp')
-                let l:time  = s:sessions[i].timestamp
-            endif
-            for l:msg in reverse(copy(s:sessions[i].messages))
-                if has_key(l:msg, 'timestamp')
-                    let l:time = l:msg.timestamp
-                    break
-                endif
-            endfor
-            if exists('l:time')
-                call add(titles, strftime(g:qq_timefmt . " " . l:title, l:time))
-            else
-                let default_time = repeat('-', strlen(strftime(g:qq_timefmt, 0)))
-                call add(titles, default_time . " " . l:title)
-            endif
+            let l:time  = s:session_last_tstamp(i)
+            call add(titles, strftime(g:qq_timefmt . " " . l:title, l:time))
             let s:session_id_map[len(titles)] = i
             if s:current_session == i
                 let l:selected_line = len(titles)
