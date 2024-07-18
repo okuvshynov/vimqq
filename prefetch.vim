@@ -285,12 +285,8 @@ function! s:qq_send_message(question, use_context)
     call s:ask_local()
 endfunction
 
-function! s:qq_prepare(in_new_chat)
+function! s:qq_prepare()
     let l:context = s:get_visual_selection()
-    if a:in_new_chat
-        call s:start_session()
-        call s:display_session(s:current_session)
-    endif
     if !empty(l:context)
         call timer_start(0, { -> s:preprocess(l:context) })
     endif
@@ -335,11 +331,6 @@ function! s:open_chat()
 endfunction
 
 " -----------------------------------------------------------------------------
-" clear buffer-local mappings
-function! s:clear_mappings()
-    mapclear <buffer>
-endfunction
-
 function! s:toggle_chat_window()
     let bufnum = bufnr('vim_qna_chat')
     if bufnum == -1
@@ -404,7 +395,7 @@ function! s:display_session(session_id)
     call s:open_chat()
     let s:current_session = a:session_id
 
-    call s:clear_mappings()
+    mapclear <buffer>
     setlocal modifiable
     silent! call deletebufline('%', 1, '$')
 
@@ -442,7 +433,7 @@ function! s:pick_session()
             if has_key(s:sessions[i], 'timestamp')
                 let l:time  = s:sessions[i].timestamp
             endif
-            for l:msg in reverse(s:sessions[i].messages)
+            for l:msg in reverse(copy(s:sessions[i].messages))
                 if has_key(l:msg, 'timestamp')
                     let l:time = l:msg.timestamp
                     break
@@ -473,16 +464,14 @@ function! s:pick_session()
     setlocal cursorline
     setlocal nomodifiable
     
-    call s:clear_mappings()
+    mapclear <buffer>
     nnoremap <silent> <buffer> <CR> :call <SID>select_title()<CR>
     nnoremap <silent> <buffer> q    :call <SID>toggle_chat_window()<CR>
 endfunction
 
 " -----------------------------------------------------------------------------
 "  commands and default key mappings
-xnoremap <silent> QQ         :<C-u>call <SID>qq_prepare(v:false)<CR>
-" TODO: this seems broken
-xnoremap <silent> QN         :<C-u>call <SID>qq_prepare(v:true)<CR>
+xnoremap <silent> QQ         :<C-u>call <SID>qq_prepare()<CR>
 nnoremap <silent> <leader>qq :call      <SID>toggle_chat_window()<CR>
 nnoremap <silent> <leader>qp :call      <SID>pick_session()<CR>
 
