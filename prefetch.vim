@@ -29,11 +29,6 @@ let s:qq_server          = substitute(g:qq_server, '/*$', '', '')
 let s:qq_chat_endpoint   = s:qq_server . '/v1/chat/completions'
 let s:qq_health_endpoint = s:qq_server . '/health'
 
-" used for navigation and syntax highlight. 
-" are concealed by syntax rules and not shown on the screen.
-let s:msg_start_mark     = 'QQ_MSG_START'
-let s:prompt_end_mark    = 'QQ_PROMPT_END'
-
 " -----------------------------------------------------------------------------
 " script-level mutable state
 
@@ -211,7 +206,7 @@ function! s:on_out(session_id, msg)
     if has_key(response.choices[0].delta, 'content')
         let next_token = response.choices[0].delta.content
         call s:Chats.append_partial(a:session_id, next_token)
-        " TODO: rather than doing this, our UI subscribes to updates from DB
+        " TODO: rather than doing this, our UI subscribes to updates from DB?
         call s:maybe_append_token(a:session_id, next_token)
 
     endif
@@ -373,9 +368,6 @@ function! s:open_chat_window()
         setlocal bufhidden=hide
         setlocal noswapfile
         setlocal statusline=server\ status:\ %{qq_server_status}
-        setlocal syntax=vimqq
-        setlocal conceallevel=3
-        setlocal concealcursor=nvic
     else
         let winnum = bufwinnr(l:bufnum)
         if winnum == -1
@@ -405,7 +397,7 @@ function! s:toggle_chat_window()
 endfunction
 
 function! s:wrap_prompt(prompt)
-    return s:msg_start_mark . a:prompt . s:prompt_end_mark
+    return a:prompt
 endfunction
 
 " appends a single message to the buffer
@@ -446,37 +438,11 @@ function! s:maybe_append_token(session_id, token)
 endfunction
 
 function! s:display_prompt()
+    " do that only if chat is open?
     let l:bufnum  = bufnr('vim_qna_chat')
     let l:msg     = s:wrap_prompt(strftime(g:qq_timefmt . " Local: "))
     let l:lines   = split(l:msg, '\n')
     call appendbufline(l:bufnum, line('$'), l:lines)
-endfunction
-
-function! s:next_message()
-    let l:pattern = '^' . s:msg_start_mark
-    " Save the current position
-    let l:save_cursor = getpos(".")
-    if search(l:pattern, 'W') == 0
-        " If not found, try searching from the beginning of the file
-        call cursor(1, 1)
-        if search(l:pattern, 'W') == 0
-            " Restore the cursor position
-            call setpos('.', l:save_cursor)
-        endif
-    endif
-endfunction
-
-function! s:prev_message()
-    let l:pattern = '^' . s:msg_start_mark
-    " Save the current position
-    let l:save_cursor = getpos(".")
-    if search(l:pattern, 'bW') == 0
-        " If not found, try searching from the end of the file
-        call cursor(line('$'), 1)
-        if search(l:pattern, 'bW') == 0
-            call setpos('.', l:save_cursor)
-        endif
-    endif
 endfunction
 
 function! s:display_session(session_id)
@@ -500,8 +466,6 @@ function! s:display_session(session_id)
     endif
 
     nnoremap <silent> <buffer> q  :call <SID>show_chat_list()<CR>
-    nnoremap <silent> <buffer> ]] :call <SID>next_message()<CR>
-    nnoremap <silent> <buffer> [[ :call <SID>prev_message()<CR>
 endfunction
 
 function! s:new_chat()
