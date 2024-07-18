@@ -41,7 +41,7 @@ let s:prompt_end_mark    = 'QQ_PROMPT_END'
 let s:active_jobs = []
 " this is the active session id. New queries would go to this session by default
 let s:current_session = -1 
-" latest healthcheck result
+" latest healthcheck result. global so that statusline can access it
 let g:qq_server_status = "unknown"
 
 " -----------------------------------------------------------------------------
@@ -140,9 +140,6 @@ function! s:Chats.new_chat()
 
     let self._chats[l:session.id] = l:session
 
-    " TODO: this should be moved. Chats would be only the messages themselves,
-    " not current state of the editor (e.g. what is open)
-    let s:current_session = l:session.id
     call s:Chats._save()
 
     return l:session.id
@@ -151,7 +148,7 @@ endfunction
 " get or create a new session if there isn't one
 function! s:current_session_id()
     if s:current_session == -1
-        call s:Chats.new_chat()
+        let s:current_session = s:Chats.new_chat()
     endif
     return s:current_session
 endfunction
@@ -497,7 +494,7 @@ function! s:display_session(session_id)
     " display streamed partial response
     let l:partial = s:Chats.get_partial(a:session_id)
     if !empty(l:partial)
-        let l:msg = strftime(g:qq_timefmt . " Local: ") . l:partial
+        let l:msg = s:wrap_prompt(strftime(g:qq_timefmt . " Local: ")) . l:partial
         let l:lines = split(l:msg, '\n')
         call append(line('$'), l:lines)
     endif
@@ -508,8 +505,8 @@ function! s:display_session(session_id)
 endfunction
 
 function! s:new_chat()
-    let l:chat_id = s:Chats.new_chat()
-    call s:display_session(l:chat_id)
+    let s:current_session = s:Chats.new_chat()
+    call s:display_session(s:current_session)
 endfunction
 
 " -----------------------------------------------------------------------------
