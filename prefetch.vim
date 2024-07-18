@@ -322,6 +322,9 @@ function! s:open_chat()
         setlocal bufhidden=hide
         setlocal noswapfile
         setlocal statusline=server\ status:\ %{qq_server_status}
+        setlocal syntax=vimqq
+        setlocal conceallevel=3
+        setlocal concealcursor=nvic
     else
         let winnum = bufwinnr(l:bufnum)
         if winnum == -1
@@ -365,6 +368,7 @@ function! s:print_message(open_chat, message)
     else
         let prompt = l:tstamp . "Local: "
     endif
+    let prompt = 'QQ_MSG_START' . prompt . 'QQ_PROMPT_END'
     let lines = split(a:message['content'], '\n')
     for l in lines
         if line('$') == 1 && getline(1) == ''
