@@ -48,16 +48,48 @@ let g:qq_server_status = "unknown"
 
 " -----------------------------------------------------------------------------
 " rename sessions to chats?
+" - create new API and move all calls one by one
 
-function! s:load_sessions()
+let s:Chats = {}
+
+function! s:Chats.init() dict
     if filereadable(s:sessions_file)
         let s:sessions = json_decode(join(readfile(s:sessions_file), ''))
     endif
 endfunction
 
-function! s:save_sessions()
+function! s:Chats._save() dict
     let l:sessions_text = json_encode(s:sessions)
     silent! call writefile([l:sessions_text], s:sessions_file)
+endfunction
+
+function! s:Chats.append_partial(session_id, part) dict
+    call add(s:sessions[a:session_id].partial_reply, a:part)
+    call s:Chats._save()
+endfunction
+
+function! s:Chats.set_title(session_id, title) dict
+    let s:sessions[a:session_id].title          = a:title
+    let s:sessions[a:session_id].title_computed = v:true
+    call s:Chats._save()
+endfunction
+
+function! s:Chats.append_message(session_id, message) dict
+    let l:message = copy(a:message)
+    if !has_key(l:message, 'timestamp')
+        let l:message['timestamp'] = localtime()
+    endif
+
+    call add(s:sessions[a:session_id].messages, l:message)
+    call s:Chats._save()
+
+    return l:message
+endfunction
+
+function! s:Chats.partial_done(session_id) dict
+    let l:reply = join(s:sessions[a:session_id].partial_reply, '')
+    call s:Chats.append_message(a:session_id, {"role": "assistant", "content": l:reply})
+    let s:sessions[a:session_id].partial_reply = []
 endfunction
 
 function! s:start_session()
@@ -74,7 +106,7 @@ function! s:start_session()
     " TODO: this should be moved. current session is the one we show
     " or not? current one is the one we work on.
     let s:current_session = l:session.id
-    call s:save_sessions()
+    call s:Chats._save()
 endfunction
 
 " get or create a new session if there isn't one
@@ -90,20 +122,7 @@ function! s:current_messages()
     return s:sessions[l:sid].messages
 endfunction
 
-function! s:append_message(session_id, msg_j)
-    let l:msg = copy(a:msg_j)
-    if !has_key(l:msg, 'timestamp')
-        let l:msg['timestamp'] = localtime()
-    endif
-
-    call add(s:sessions[a:session_id].messages, l:msg)
-    call s:save_sessions()
-
-    return l:msg
-endfunction
-
-" load sessions once
-call s:load_sessions()
+call s:Chats.init()
 
 " -----------------------------------------------------------------------------
 " async jobs management
@@ -160,19 +179,19 @@ function! s:on_out(session_id, msg)
     let response = json_decode(json_string)
     if has_key(response.choices[0].delta, 'content')
         let next_token = response.choices[0].delta.content
-        call add(s:sessions[a:session_id].partial_reply, next_token)
+        call s:Chats.append_partial(a:session_id, next_token)
+        " TODO: rather than doing this, our UI subscribes to updates from DB
         call s:maybe_append_token(a:session_id, next_token)
-        call s:save_sessions()
+
     endif
     " TODO: not move the cursor here so I can copy/paste? Make it optional.
     "silent! call win_execute(bufwinid('vim_qna_chat'), 'normal! G')
 endfunction
 
 function! s:on_close(session_id)
-    let l:reply = join(s:sessions[a:session_id].partial_reply, '')
-    call s:append_message(a:session_id, {"role": "assistant", "content": l:reply})
-    let s:sessions[a:session_id].partial_reply = []
+    call s:Chats.partial_done(a:session_id)
 
+    " TODO - need to subscribe to something here as well
     if !s:sessions[a:session_id].title_computed
         call s:prepare_title(a:session_id, s:sessions[a:session_id].messages[0].content)
     endif
@@ -188,9 +207,7 @@ function! s:on_title_out(session_id, msg)
     let response = json_decode(json_string)
     if has_key(response.choices[0].message, 'content')
         let title = response.choices[0].message.content
-        let s:sessions[a:session_id].title = title
-        let s:sessions[a:session_id].title_computed = v:true
-        call s:save_sessions()
+        call s:Chats.set_title(a:session_id, title)
     endif
 endfunction
 
@@ -286,7 +303,7 @@ function! s:qq_send_message(question, use_context)
     let l:message  = {"role": "user", "content": l:question}
     let l:session_id = s:current_session_id() 
     " timestamp and other metadata might get appended here
-    let l:message    = s:append_message(l:session_id, l:message)
+    let l:message    = s:Chats.append_message(l:session_id, l:message)
 
     call s:print_message(v:true, l:message)
     call s:ask_local()
@@ -433,7 +450,6 @@ function! s:prev_message()
 endfunction
 
 function! s:display_session(session_id)
-    call s:load_sessions()
     call s:open_chat()
     let s:current_session = a:session_id
 
