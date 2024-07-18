@@ -124,7 +124,7 @@ function! s:Chats.partial_done(session_id) dict
     let s:sessions[a:session_id].partial_reply = []
 endfunction
 
-function! s:start_session()
+function! s:Chats.new_chat()
     let l:session = {}
     let l:session.id = empty(s:sessions) ? 1 : max(keys(s:sessions)) + 1
     let l:session.messages = []
@@ -135,16 +135,18 @@ function! s:start_session()
 
     let s:sessions[l:session.id] = l:session
 
-    " TODO: this should be moved. current session is the one we show
-    " or not? current one is the one we work on.
+    " TODO: this should be moved. Chats would be only the messages themselves,
+    " not current state of the editor (e.g. what is open)
     let s:current_session = l:session.id
     call s:Chats._save()
+
+    return l:session.id
 endfunction
 
 " get or create a new session if there isn't one
 function! s:current_session_id()
     if s:current_session == -1
-        call s:start_session()
+        call s:Chats.new_chat()
     endif
     return s:current_session
 endfunction
@@ -357,7 +359,7 @@ function! s:redraw_status()
     redrawstatus!
 endfunction
 
-function! s:open_chat()
+function! s:open_chat_window()
     " Check if the buffer already exists
     let l:bufnum = bufnr('vim_qna_chat')
     if l:bufnum == -1
@@ -387,14 +389,14 @@ endfunction
 function! s:toggle_chat_window()
     let bufnum = bufnr('vim_qna_chat')
     if bufnum == -1
-        call s:open_chat()
+        call s:open_chat_window()
     else
         let l:winid = bufwinid('vim_qna_chat')
         if l:winid != -1
             call win_gotoid(l:winid)
             silent! execute 'hide'
         else
-            call s:open_chat()
+            call s:open_chat_window()
         endif
     endif
 endfunction
@@ -406,7 +408,7 @@ endfunction
 " appends a single message to the buffer
 function! s:print_message(open_chat, message)
     if a:open_chat
-        call s:open_chat()
+        call s:open_chat_window()
     endif
 
     let l:tstamp = "        "
@@ -475,7 +477,7 @@ function! s:prev_message()
 endfunction
 
 function! s:display_session(session_id)
-    call s:open_chat()
+    call s:open_chat_window()
     let s:current_session = a:session_id
 
     mapclear <buffer>
@@ -500,8 +502,8 @@ function! s:display_session(session_id)
 endfunction
 
 function! s:new_chat()
-    call s:start_session()
-    call s:display_session(s:current_session)
+    let l:chat_id = s:Chats.new_chat()
+    call s:display_session(l:chat_id)
 endfunction
 
 " -----------------------------------------------------------------------------
@@ -523,7 +525,7 @@ function! s:show_chat_list()
         endif
     endfor
 
-    call s:open_chat()
+    call s:open_chat_window()
 
     setlocal modifiable
     silent! call deletebufline('%', 1, '$')
