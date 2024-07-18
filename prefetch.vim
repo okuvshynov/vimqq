@@ -36,8 +36,7 @@ let s:current_session = -1
 " latest healthcheck result. global so that statusline can access it
 let g:qq_server_status = "unknown"
 
-" -----------------------------------------------------------------------------
-" Chats - DB-like layer for chats/messages
+" {{{ Chats - DB-like layer for chats/messages 
 
 let s:Chats = {}
 
@@ -139,6 +138,8 @@ endfunction
 
 call s:Chats.init()
 
+" }}}
+
 " get or create a new session if there isn't one
 function! s:current_session_id()
     if s:current_session == -1
@@ -161,8 +162,7 @@ function! s:keep_job(job_id)
     endif
 endfunction
 
-" -----------------------------------------------------------------------------
-"  LLAMA Server
+" {{{  llama server client
 let s:Server = {}
 
 function s:Server._on_status_exit(exit_status) dict
@@ -301,7 +301,7 @@ endfunction
 
 call s:Server.init()
 
-
+" }}}
 
 " -----------------------------------------------------------------------------
 "  utility function to get visual selection
@@ -321,6 +321,7 @@ function! s:fmt_question(context, question)
     return "Here's a code snippet: \n\n " . a:context . "\n\n" . a:question
 endfunction
 
+
 function! s:qq_send_message(question, use_context)
     let l:context = s:get_visual_selection()
     if a:use_context
@@ -338,7 +339,7 @@ function! s:qq_send_message(question, use_context)
     call s:Server.send_chat(l:session_id)
 endfunction
 
-function! s:qq_prepare()
+function! s:qq_warmup()
     let l:context = s:get_visual_selection()
     if !empty(l:context)
         call timer_start(0, { -> s:preprocess(l:context) })
@@ -515,7 +516,7 @@ endfunction
 
 " -----------------------------------------------------------------------------
 "  commands and default key mappings
-xnoremap <silent> QQ         :<C-u>call <SID>qq_prepare()<CR>
+xnoremap <silent> QQ         :<C-u>call <SID>qq_warmup()<CR>
 nnoremap <silent> <leader>qq :call      <SID>toggle_chat_window()<CR>
 nnoremap <silent> <leader>qp :call      <SID>show_chat_list()<CR>
 
