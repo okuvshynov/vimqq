@@ -39,39 +39,44 @@ let s:prompt_end_mark    = 'QQ_PROMPT_END'
 
 " Dead jobs are getting cleaned up after list goes over n_jobs_cleanup
 let s:active_jobs = []
-" mapping session_id -> session
-let s:sessions = {}
 " this is the active session id. New queries would go to this session by default
 let s:current_session = -1 
 " latest healthcheck result
 let g:qq_server_status = "unknown"
 
 " -----------------------------------------------------------------------------
-" rename sessions to chats?
-" - create new API and move all calls one by one
+" Chats - DB-like layer for chats/messages
 
 let s:Chats = {}
 
 function! s:Chats.init() dict
     if filereadable(s:sessions_file)
-        let s:sessions = json_decode(join(readfile(s:sessions_file), ''))
+        let self._chats = json_decode(join(readfile(s:sessions_file), ''))
     endif
 endfunction
 
 function! s:Chats._save() dict
-    let l:sessions_text = json_encode(s:sessions)
+    let l:sessions_text = json_encode(self._chats)
     silent! call writefile([l:sessions_text], s:sessions_file)
 endfunction
 
 function! s:Chats.append_partial(session_id, part) dict
-    call add(s:sessions[a:session_id].partial_reply, a:part)
+    call add(self._chats[a:session_id].partial_reply, a:part)
     call s:Chats._save()
 endfunction
 
+function! s:Chats.has_title(session_id) dict
+    return self._chats[a:session_id].title_computed
+endfunction
+
 function! s:Chats.set_title(session_id, title) dict
-    let s:sessions[a:session_id].title          = a:title
-    let s:sessions[a:session_id].title_computed = v:true
+    let self._chats[a:session_id].title          = a:title
+    let self._chats[a:session_id].title_computed = v:true
     call s:Chats._save()
+endfunction
+
+function! s:Chats.get_first_message(session_id) dict
+    return self._chats[a:session_id].messages[0].content
 endfunction
 
 function! s:Chats.append_message(session_id, message) dict
@@ -80,7 +85,7 @@ function! s:Chats.append_message(session_id, message) dict
         let l:message['timestamp'] = localtime()
     endif
 
-    call add(s:sessions[a:session_id].messages, l:message)
+    call add(self._chats[a:session_id].messages, l:message)
     call s:Chats._save()
 
     return l:message
@@ -99,7 +104,7 @@ endfunction
 
 function! s:Chats.get_ordered_chats() dict
     let l:session_list = []
-    for [key, session] in items(s:sessions)
+    for [key, session] in items(self._chats)
         let l:session_list += [{'title': session.title, 'id': session.id, 'time': s:Chats._last_updated(session)}]
     endfor
     return sort(l:session_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
@@ -107,33 +112,33 @@ endfunction
 
 " TODO - should we return a copy just in case?
 function! s:Chats.get_messages(session_id) dict
-    return s:sessions[a:session_id].messages
+    return self._chats[a:session_id].messages
 endfunction
 
 function! s:Chats.get_partial(session_id) dict
-    return join(s:sessions[a:session_id].partial_reply, '')
+    return join(self._chats[a:session_id].partial_reply, '')
 endfunction
 
 function! s:Chats.clear_partial(session_id) dict
-    let s:sessions[a:session_id].partial_reply = []
+    let self._chats[a:session_id].partial_reply = []
 endfunction
 
 function! s:Chats.partial_done(session_id) dict
-    let l:reply = join(s:sessions[a:session_id].partial_reply, '')
+    let l:reply = join(self._chats[a:session_id].partial_reply, '')
     call s:Chats.append_message(a:session_id, {"role": "assistant", "content": l:reply})
-    let s:sessions[a:session_id].partial_reply = []
+    let self._chats[a:session_id].partial_reply = []
 endfunction
 
 function! s:Chats.new_chat()
     let l:session = {}
-    let l:session.id = empty(s:sessions) ? 1 : max(keys(s:sessions)) + 1
+    let l:session.id = empty(self._chats) ? 1 : max(keys(self._chats)) + 1
     let l:session.messages = []
     let l:session.partial_reply = []
     let l:session.title = "new chat"
     let l:session.title_computed = v:false
     let l:session.timestamp = localtime()
 
-    let s:sessions[l:session.id] = l:session
+    let self._chats[l:session.id] = l:session
 
     " TODO: this should be moved. Chats would be only the messages themselves,
     " not current state of the editor (e.g. what is open)
@@ -221,8 +226,8 @@ function! s:on_close(session_id)
     call s:Chats.partial_done(a:session_id)
 
     " TODO - need to subscribe to something here as well
-    if !s:sessions[a:session_id].title_computed
-        call s:prepare_title(a:session_id, s:sessions[a:session_id].messages[0].content)
+    if !s:Chats.has_title(a:session_id)
+        call s:prepare_title(a:session_id, s:Chats.get_first_message(a:session_id))
     endif
 endfunction
 
@@ -285,6 +290,7 @@ function! s:ask_local()
           \ 'close_cb': {channel      -> s:on_close(l:session_id)}
     \ }
 
+    " TODO: test this more
     call s:display_prompt()
     call s:send_query(req, l:job_conf)
 endfunction
