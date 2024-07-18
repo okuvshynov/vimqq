@@ -86,6 +86,38 @@ function! s:Chats.append_message(session_id, message) dict
     return l:message
 endfunction
 
+function! s:Chats._last_updated(session) dict
+    let l:time = a:session.timestamp
+    for l:message in reverse(copy(a:session.messages))
+        if has_key(l:message, 'timestamp')
+            let l:time = l:message.timestamp
+            break
+        endif
+    endfor
+    return l:time
+endfunction
+
+function! s:Chats.get_ordered_chats() dict
+    let l:session_list = []
+    for [key, session] in items(s:sessions)
+        let l:session_list += [{'title': session.title, 'id': session.id, 'time': s:Chats._last_updated(session)}]
+    endfor
+    return sort(l:session_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
+endfunction
+
+" TODO - should we return a copy just in case?
+function! s:Chats.get_messages(session_id) dict
+    return s:sessions[a:session_id].messages
+endfunction
+
+function! s:Chats.get_partial(session_id) dict
+    return join(s:sessions[a:session_id].partial_reply, '')
+endfunction
+
+function! s:Chats.clear_partial(session_id) dict
+    let s:sessions[a:session_id].partial_reply = []
+endfunction
+
 function! s:Chats.partial_done(session_id) dict
     let l:reply = join(s:sessions[a:session_id].partial_reply, '')
     call s:Chats.append_message(a:session_id, {"role": "assistant", "content": l:reply})
@@ -115,11 +147,6 @@ function! s:current_session_id()
         call s:start_session()
     endif
     return s:current_session
-endfunction
-
-function! s:current_messages()
-    let l:sid = s:current_session_id()
-    return s:sessions[l:sid].messages
 endfunction
 
 call s:Chats.init()
@@ -228,8 +255,9 @@ endfunction
 " Priming query to pre-fill the cache on the server.
 " We ask for 0 tokens and ignore the response.
 function! s:prime_local(question)
+    let l:session_id = s:current_session_id()
     let req          = {}
-    let req.messages = s:current_messages() + [{"role": "user", "content": a:question}]
+    let req.messages = s:Chats.get_messages(l:session_id) + [{"role": "user", "content": a:question}]
     let req.n_predict    = 0
     let req.stream       = v:true
     let req.cache_prompt = v:true
@@ -239,26 +267,24 @@ endfunction
 
 " assumes the last message is already in the session 
 function! s:ask_local()
-    let l:sid = s:current_session_id()
+    let l:session_id = s:current_session_id()
 
     let req = {}
-    let req.messages     = s:current_messages()
+    let req.messages     = s:Chats.get_messages(l:session_id)
     let req.n_predict    = g:qq_max_tokens
     let req.stream       = v:true
     let req.cache_prompt = v:true
 
-    let s:sessions[l:sid].partial_reply = []
+    call s:Chats.clear_partial(l:session_id)
 
     let l:job_conf = {
-          \ 'out_cb'  : {channel, msg -> s:on_out(l:sid, msg)}, 
-          \ 'err_cb'  : {channel, msg -> s:on_err(l:sid, msg)},
-          \ 'close_cb': {channel      -> s:on_close(l:sid)}
+          \ 'out_cb'  : {channel, msg -> s:on_out  (l:session_id, msg)}, 
+          \ 'err_cb'  : {channel, msg -> s:on_err  (l:session_id, msg)},
+          \ 'close_cb': {channel      -> s:on_close(l:session_id)}
     \ }
 
-    " just display the prompt maybe?
-    call s:display_partial_response(l:sid)
+    call s:display_prompt()
     call s:send_query(req, l:job_conf)
-
 endfunction
 
 " create a title we'll use in UI. message text is just a text.
@@ -414,10 +440,9 @@ function! s:maybe_append_token(session_id, token)
     endif
 endfunction
 
-function! s:display_partial_response(session_id)
-    let l:partial = join(s:sessions[a:session_id].partial_reply, '')
+function! s:display_prompt()
     let l:bufnum  = bufnr('vim_qna_chat')
-    let l:msg     = s:wrap_prompt(strftime(g:qq_timefmt . " Local: ")) . l:partial
+    let l:msg     = s:wrap_prompt(strftime(g:qq_timefmt . " Local: "))
     let l:lines   = split(l:msg, '\n')
     call appendbufline(l:bufnum, line('$'), l:lines)
 endfunction
@@ -457,12 +482,12 @@ function! s:display_session(session_id)
     setlocal modifiable
     silent! call deletebufline('%', 1, '$')
 
-    for l:msg in s:sessions[a:session_id].messages
-        call s:print_message(v:false, l:msg)
+    for l:message in s:Chats.get_messages(a:session_id)
+        call s:print_message(v:false, l:message)
     endfor
 
-    " display in progress streamed response
-    let l:partial = join(s:sessions[a:session_id].partial_reply, '')
+    " display streamed partial response
+    let l:partial = s:Chats.get_partial(a:session_id)
     if !empty(l:partial)
         let l:msg = strftime(g:qq_timefmt . " Local: ") . l:partial
         let l:lines = split(l:msg, '\n')
@@ -481,34 +506,16 @@ endfunction
 
 " -----------------------------------------------------------------------------
 " session selection TUI
-function! s:select_title()
+function! s:select_chat()
     let l:session_id = s:session_id_map[line('.')]
     call s:display_session(l:session_id)
 endfunction
 
-function! s:session_last_tstamp(session)
-    let l:time = a:session.timestamp
-    for l:msg in reverse(copy(a:session.messages))
-        if has_key(l:msg, 'timestamp')
-            let l:time = l:msg.timestamp
-            break
-        endif
-    endfor
-    return l:time
-endfunction
-
 function! s:show_chat_list()
-    let session_list = []
-    for [key, session] in items(s:sessions)
-        let session_list += [{'title': session.title, 'id': session.id, 'time': s:session_last_tstamp(session)}]
-    endfor
-
-    let ordered = sort(session_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
-
     let l:titles = []
     let s:session_id_map = {}
 
-    for item in ordered
+    for item in s:Chats.get_ordered_chats()
         call add(l:titles, strftime(g:qq_timefmt . " " . item.title, item.time))
         let s:session_id_map[len(titles)] = item.id
         if s:current_session == item.id
@@ -529,7 +536,7 @@ function! s:show_chat_list()
     setlocal nomodifiable
     
     mapclear <buffer>
-    nnoremap <silent> <buffer> <CR> :call <SID>select_title()<CR>
+    nnoremap <silent> <buffer> <CR> :call <SID>select_chat()<CR>
     nnoremap <silent> <buffer> q    :call <SID>toggle_chat_window()<CR>
 endfunction
 
