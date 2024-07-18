@@ -53,14 +53,21 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] session list
 - [ ] change shortcuts, define commands the right way, now it is a mess
 - [x] check what's up with cache reuse and \n\n token.
-- [ ] deleting sessions. Currently if would shift ids and break everything
+- [x] session dictionary
+- [ ] deleting sessions.
 - [x] generating title for chat
 - [x] visual selection is incorrect
-- [-] use popup similar to fzf -- let's just use same window
 - [x] date/time of last message in chat selection
-- [ ] ordering in chat selection
+- [x] ordering in chat selection
+- [ ] navigating within chat session
+- [ ] improve status line - show number of tokens, chat name and server addr? make configurable
+- [ ] installation/distribution
+- [ ] recording some feedback (e.g. good answer, bad answer, wrong answer, etc)
 
 Later
 - [ ] multi-agent support - chat with multiple bots
-- [ ] integration with fzf
 - [ ] code review. Ask to provide input without writing code itself. 
+
+Maybe never
+- [ ] integration with fzf
+- [ ] use popup similar to fzf

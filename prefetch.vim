@@ -2,14 +2,14 @@
 
 " -----------------------------------------------------------------------------
 " configuration
+
 " how many tokens to generate for each message
 let g:qq_max_tokens = get(g:, 'qq_max_tokens', 1024)
-
 " llama.cpp (or compatible) server
 let g:qq_server = get(g:, 'qq_server', "http://localhost:8080/")
-" default window width
+" default chat window width
 let g:qq_width  = get(g:, 'qq_width'   , 80)
-" format to use for time
+" format to use for datetime
 let g:qq_timefmt = get(g:, 'qq_timefmt', "%Y-%m-%d %H:%M:%S ")
 
 " -----------------------------------------------------------------------------
@@ -29,12 +29,17 @@ let s:qq_server          = substitute(g:qq_server, '/*$', '', '')
 let s:qq_chat_endpoint   = s:qq_server . '/v1/chat/completions'
 let s:qq_health_endpoint = s:qq_server . '/health'
 
+" used for navigation and syntax highlight. 
+" are concealed by syntax rules and not shown on the screen.
+let s:msg_start_mark     = 'QQ_MSG_START'
+let s:prompt_end_mark    = 'QQ_PROMPT_END'
+
 " -----------------------------------------------------------------------------
 " script-level mutable state
 
 " Dead jobs are getting cleaned up after list goes over n_jobs_cleanup
 let s:active_jobs = []
-
+" mapping session_id -> session
 let s:sessions = {}
 " this is the active session id. New queries would go to this session by default
 let s:current_session = -1 
@@ -352,7 +357,7 @@ function! s:toggle_chat_window()
 endfunction
 
 function! s:wrap_prompt(prompt)
-    return 'QQ_MSG_START' . a:prompt . 'QQ_PROMPT_END'
+    return s:msg_start_mark . a:prompt . s:prompt_end_mark
 endfunction
 
 " appends a single message to the buffer
@@ -400,6 +405,33 @@ function! s:display_partial_response(session_id)
     call appendbufline(l:bufnum, line('$'), l:lines)
 endfunction
 
+function! s:next_message()
+    let l:pattern = '^' . s:msg_start_mark
+    " Save the current position
+    let l:save_cursor = getpos(".")
+    if search(l:pattern, 'W') == 0
+        " If not found, try searching from the beginning of the file
+        call cursor(1, 1)
+        if search(l:pattern, 'W') == 0
+            " Restore the cursor position
+            call setpos('.', l:save_cursor)
+        endif
+    endif
+endfunction
+
+function! s:prev_message()
+    let l:pattern = '^' . s:msg_start_mark
+    " Save the current position
+    let l:save_cursor = getpos(".")
+    if search(l:pattern, 'bW') == 0
+        " If not found, try searching from the end of the file
+        call cursor(line('$'), 1)
+        if search(l:pattern, 'bW') == 0
+            call setpos('.', l:save_cursor)
+        endif
+    endif
+endfunction
+
 function! s:display_session(session_id)
     call s:load_sessions()
     call s:open_chat()
@@ -421,7 +453,9 @@ function! s:display_session(session_id)
         call append(line('$'), l:lines)
     endif
 
-    nnoremap <silent> <buffer> q    :call <SID>pick_session()<CR>
+    nnoremap <silent> <buffer> q  :call <SID>show_chat_list()<CR>
+    nnoremap <silent> <buffer> ]] :call <SID>next_message()<CR>
+    nnoremap <silent> <buffer> [[ :call <SID>prev_message()<CR>
 endfunction
 
 function! s:new_chat()
@@ -447,7 +481,7 @@ function! s:session_last_tstamp(session)
     return l:time
 endfunction
 
-function! s:pick_session()
+function! s:show_chat_list()
     let session_list = []
     for [key, session] in items(s:sessions)
         let session_list += [{'title': session.title, 'id': session.id, 'time': s:session_last_tstamp(session)}]
@@ -487,11 +521,11 @@ endfunction
 "  commands and default key mappings
 xnoremap <silent> QQ         :<C-u>call <SID>qq_prepare()<CR>
 nnoremap <silent> <leader>qq :call      <SID>toggle_chat_window()<CR>
-nnoremap <silent> <leader>qp :call      <SID>pick_session()<CR>
+nnoremap <silent> <leader>qp :call      <SID>show_chat_list()<CR>
 
 command! -range -nargs=+ QQ  call s:qq_send_message(<q-args>, v:true)
 command!        -nargs=+ Q   call s:qq_send_message(<q-args>, v:false)
 command!        -nargs=1 QL  call s:display_session(<f-args>)
 command!        -nargs=0 QN  call s:new_chat()
-command!        -nargs=0 QP  call s:pick_session()
+command!        -nargs=0 QP  call s:show_chat_list()
 command!        -nargs=0 QS  call s:get_server_status()
