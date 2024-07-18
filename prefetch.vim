@@ -148,8 +148,6 @@ function! s:current_session_id()
     return s:current_session
 endfunction
 
-
-" -----------------------------------------------------------------------------
 " async jobs management
 function! s:keep_job(job_id)
     let s:active_jobs += [a:job_id]
@@ -160,6 +158,22 @@ function! s:keep_job(job_id)
             endif
         endfor
     endif
+endfunction
+
+function! s:get_visual_selection()
+    let [line_start, column_start] = getpos("'<")[1:2]
+    let [line_end  , column_end  ] = getpos("'>")[1:2]
+    let lines = getline(line_start, line_end)
+    if len(lines) == 0
+        return ''
+    endif
+    let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
+    let lines[0]  = lines[0][column_start - 1:]
+    return join(lines, "\n")
+endfunction
+
+function! s:fmt_question(context, question)
+    return "Here's a code snippet: \n\n " . a:context . "\n\n" . a:question
 endfunction
 
 " {{{  llama server client
@@ -303,25 +317,7 @@ call s:Server.init()
 
 " }}}
 
-" -----------------------------------------------------------------------------
-"  utility function to get visual selection
-function! s:get_visual_selection()
-    let [line_start, column_start] = getpos("'<")[1:2]
-    let [line_end  , column_end  ] = getpos("'>")[1:2]
-    let lines = getline(line_start, line_end)
-    if len(lines) == 0
-        return ''
-    endif
-    let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
-    let lines[0]  = lines[0][column_start - 1:]
-    return join(lines, "\n")
-endfunction
-
-function! s:fmt_question(context, question)
-    return "Here's a code snippet: \n\n " . a:context . "\n\n" . a:question
-endfunction
-
-
+" Public API
 function! s:qq_send_message(question, use_context)
     let l:context = s:get_visual_selection()
     if a:use_context
@@ -342,19 +338,15 @@ endfunction
 function! s:qq_warmup()
     let l:context = s:get_visual_selection()
     if !empty(l:context)
-        call timer_start(0, { -> s:preprocess(l:context) })
+        call s:Server.send_warmup(s:current_session_id(), s:fmt_question(l:context, ""))
     endif
     call feedkeys(":'<,'>QQ ", 'n')
 endfunction
 
-function! s:preprocess(context)
-    let l:prompt = s:fmt_question(a:context, "")
-    let l:session_id = s:current_session_id() 
-    call s:Server.send_warmup(l:session_id, l:prompt)
-endfunction
-
 " -----------------------------------------------------------------------------
 " utilities for buffer/chat window manipulation
+
+let s:UI = {}
 
 function! s:redraw_status()
     " TODO: redraw too much? What if one of the buffers has expensive function
@@ -401,10 +393,6 @@ function! s:toggle_chat_window()
     endif
 endfunction
 
-function! s:wrap_prompt(prompt)
-    return a:prompt
-endfunction
-
 " appends a single message to the buffer
 function! s:print_message(open_chat, message)
     if a:open_chat
@@ -420,7 +408,6 @@ function! s:print_message(open_chat, message)
     else
         let prompt = l:tstamp . "Local: "
     endif
-    let prompt = s:wrap_prompt(prompt)
     let lines = split(a:message['content'], '\n')
     for l in lines
         if line('$') == 1 && getline(1) == ''
@@ -445,7 +432,7 @@ endfunction
 function! s:display_prompt()
     " do that only if chat is open?
     let l:bufnum  = bufnr('vim_qna_chat')
-    let l:msg     = s:wrap_prompt(strftime(g:qq_timefmt . " Local: "))
+    let l:msg     = strftime(g:qq_timefmt . " Local: ")
     let l:lines   = split(l:msg, '\n')
     call appendbufline(l:bufnum, line('$'), l:lines)
 endfunction
@@ -465,7 +452,7 @@ function! s:display_session(session_id)
     " display streamed partial response
     let l:partial = s:Chats.get_partial(a:session_id)
     if !empty(l:partial)
-        let l:msg = s:wrap_prompt(strftime(g:qq_timefmt . " Local: ")) . l:partial
+        let l:msg = strftime(g:qq_timefmt . " Local: ") . l:partial
         let l:lines = split(l:msg, '\n')
         call append(line('$'), l:lines)
     endif
@@ -480,7 +467,7 @@ endfunction
 
 " -----------------------------------------------------------------------------
 " session selection TUI
-function! s:select_chat()
+function! s:pick_chat()
     let l:session_id = s:session_id_map[line('.')]
     call s:display_session(l:session_id)
 endfunction
@@ -510,7 +497,7 @@ function! s:show_chat_list()
     setlocal nomodifiable
     
     mapclear <buffer>
-    nnoremap <silent> <buffer> <CR> :call <SID>select_chat()<CR>
+    nnoremap <silent> <buffer> <CR> :call <SID>pick_chat()<CR>
     nnoremap <silent> <buffer> q    :call <SID>toggle_chat_window()<CR>
 endfunction
 
