@@ -245,7 +245,8 @@ endfunction
 " create a title we'll use in UI. message text is just a text.
 function! s:prepare_title(session_id, message_text)
     let req = {}
-    let req.messages  = [{"role": "user", "content": "Write a title with a few words summarizing the following paragraph. Reply only with title itself.\n\n" . a:message_text}]
+    let prompt = "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
+    let req.messages  = [{"role": "user", "content": prompt . a:message_text}]
     let req.n_predict    = s:qq_title_tokens
     let req.stream       = v:false
     let req.cache_prompt = v:true
@@ -353,6 +354,10 @@ function! s:toggle_chat_window()
     endif
 endfunction
 
+function! s:wrap_prompt(prompt)
+    return 'QQ_MSG_START' . a:prompt . 'QQ_PROMPT_END'
+endfunction
+
 " appends a single message to the buffer
 function! s:print_message(open_chat, message)
     if a:open_chat
@@ -368,7 +373,7 @@ function! s:print_message(open_chat, message)
     else
         let prompt = l:tstamp . "Local: "
     endif
-    let prompt = 'QQ_MSG_START' . prompt . 'QQ_PROMPT_END'
+    let prompt = s:wrap_prompt(prompt)
     let lines = split(a:message['content'], '\n')
     for l in lines
         if line('$') == 1 && getline(1) == ''
@@ -392,9 +397,9 @@ endfunction
 
 function! s:display_partial_response(session_id)
     let l:partial = join(s:sessions[a:session_id].partial_reply, '')
-    let l:bufnum = bufnr('vim_qna_chat')
-    let l:msg = strftime(g:qq_timefmt . " Local: ") . l:partial
-    let l:lines = split(l:msg, '\n')
+    let l:bufnum  = bufnr('vim_qna_chat')
+    let l:msg     = s:wrap_prompt(strftime(g:qq_timefmt . " Local: ")) . l:partial
+    let l:lines   = split(l:msg, '\n')
     call appendbufline(l:bufnum, line('$'), l:lines)
 endfunction
 

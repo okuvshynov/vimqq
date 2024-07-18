@@ -58,6 +58,7 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] visual selection is incorrect
 - [-] use popup similar to fzf -- let's just use same window
 - [x] date/time of last message in chat selection
+- [ ] ordering in chat selection
 
 Later
 - [ ] multi-agent support - chat with multiple bots
