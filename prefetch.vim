@@ -5,10 +5,11 @@
 " how many tokens to generate for each message
 let g:qq_max_tokens = get(g:, 'qq_max_tokens', 1024)
 
+" llama.cpp (or compatible) server
 let g:qq_server = get(g:, 'qq_server', "http://localhost:8080/")
 " default window width
 let g:qq_width  = get(g:, 'qq_width'   , 80)
-
+" format to use for time
 let g:qq_timefmt = get(g:, 'qq_timefmt', "%Y-%m-%d %H:%M:%S ")
 
 " -----------------------------------------------------------------------------
@@ -16,14 +17,14 @@ let g:qq_timefmt = get(g:, 'qq_timefmt', "%Y-%m-%d %H:%M:%S ")
 
 " should each session have its own file?
 let s:sessions_file    = expand('~/.vim/qq_sessions.json')
-" cleanup dead jobs if list is longer than this
+" cleanup dead async jobs if list is longer than this
 let s:n_jobs_cleanup   = 32
-" auto-generated title length
+" auto-generated title max length
 let s:qq_title_tokens  = 16
-" pause between healthchecks
+" delay between healthchecks
 let s:healthcheck_ms   = 10000
 
-" prepare endpoints
+" prepare endpoints for chat completion and healthcheck
 let s:qq_server          = substitute(g:qq_server, '/*$', '', '')
 let s:qq_chat_endpoint   = s:qq_server . '/v1/chat/completions'
 let s:qq_health_endpoint = s:qq_server . '/health'
@@ -32,17 +33,20 @@ let s:qq_health_endpoint = s:qq_server . '/health'
 " script-level mutable state
 
 " Dead jobs are getting cleaned up after list goes over n_jobs_cleanup
-" TODO: make this a dictionary
 let s:active_jobs = []
 
 "  sessions need to be a dictionary, not a list and ids need to be assigned
-"  differently. This way we can delete it.
+"  differently. This way we can delete sessions, otherwise indexing gets
+"  messed up
 let s:sessions = []
-let s:current_session = -1 " this is the active session, all qq would go to it
+" this is the active session, visible on the screen. 
+" conceptually we should only use it when we query and not when we render
+let s:current_session = -1 
+" latest healthcheck result
 let g:qq_server_status = "unknown"
 
 " -----------------------------------------------------------------------------
-" rename these to chats?
+" rename sessions to chats?
 
 function! s:load_sessions()
     let s:sessions = []
@@ -67,6 +71,7 @@ function! s:start_session()
 
     let s:sessions += [l:session]
 
+    " TODO: this should be moved. current session is the one we show
     let s:current_session = l:session.id
     call s:save_sessions()
 endfunction
@@ -410,6 +415,8 @@ function! s:display_session(session_id)
         let l:lines = split(l:msg, '\n')
         call append(line('$'), l:lines)
     endif
+
+    nnoremap <silent> <buffer> q    :call <SID>pick_session()<CR>
 endfunction
 
 function! s:new_chat()
