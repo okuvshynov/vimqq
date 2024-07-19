@@ -444,11 +444,11 @@ function! s:qq_send_message(question, use_context)
 endfunction
 
 function! s:qq_warmup()
-    let l:context = s:get_visual_selection()
+    let l:context = s:UI.get_visual_selection()
     if !empty(l:context)
         call s:Client.send_warmup(s:current_session_id(), s:fmt_question(l:context, ""))
+        call feedkeys(":'<,'>QQ ", 'n')
     endif
-    call feedkeys(":'<,'>QQ ", 'n')
 endfunction
 
 function! s:qq_toggle_window()
@@ -467,7 +467,7 @@ function! s:qq_show_chat_list()
         let l:sep = ' '
         if s:current_session == item.id
             let l:selected_line = len(titles) + 1
-            let l:sep = '*'
+            let l:sep = '>'
         endif
 
         call add(l:titles, strftime(g:qq_timefmt . l:sep . item.title, item.time))
