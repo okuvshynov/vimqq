@@ -57,18 +57,6 @@ function! s:keep_job(job_id)
     endif
 endfunction
 
-function! s:get_visual_selection()
-    let [line_start, column_start] = getpos("'<")[1:2]
-    let [line_end  , column_end  ] = getpos("'>")[1:2]
-    let lines = getline(line_start, line_end)
-    if len(lines) == 0
-        return ''
-    endif
-    let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
-    let lines[0]  = lines[0][column_start - 1:]
-    return join(lines, "\n")
-endfunction
-
 function! s:fmt_question(context, question)
     return "Here's a code snippet: \n\n " . a:context . "\n\n" . a:question
 endfunction
@@ -179,25 +167,43 @@ call s:Chats.init()
 " }}}
 
 " {{{  Client for llama.cpp server or compatible
-let s:Client = {}
+let s:Client = {} 
+
+function! s:Client.init() dict
+    let l:server = substitute(g:qq_server, '/*$', '', '')
+    let self._chat_endpoint   = l:server . '/v1/chat/completions'
+    let self._status_endpoint = l:server . '/health'
+    let self._status    = "unknown"
+    let self._callbacks = {} 
+    call s:Client._get_status()
+endfunction
+
+function s:Client.set_callback(key, fn) dict
+    let self._callbacks[a:key] = a:fn
+endfunction
+
+function s:Client._on_server_status(status) dict
+    if a:status != self._status
+        let self._server_status = a:status
+        if has_key(self._callbacks, 'status_cb')
+            call self._callbacks['status_cb'](a:status) 
+        endif
+    endif
+endfunction
 
 function s:Client._on_status_exit(exit_status) dict
     if a:exit_status != 0
-        " this should modify local variable, and call some fn
-        let g:qq_server_status = "unavailable"
+        call self._on_server_status("unavailable")
     endif
-    " TODO: call some callback instead, no direct dependency
-    call s:UI.redraw_statusline()
-    " restart again. 
     call timer_start(s:healthcheck_ms, { -> s:Client._get_status() })
 endfunction
 
 function s:Client._on_status_out(msg) dict
     let l:status = json_decode(a:msg)
     if empty(l:status)
-        let g:qq_server_status = "unavailable"
+        call self._on_server_status("unavailable")
     else
-        let g:qq_server_status = l:status.status
+        call self._on_server_status(l:status.status)
     endif
 endfunction
 
@@ -209,13 +215,6 @@ function s:Client._get_status() dict
     \}
 
     call s:keep_job(job_start(l:curl_cmd, l:job_conf))
-endfunction
-
-function! s:Client.init() dict
-    let l:server = substitute(g:qq_server, '/*$', '', '')
-    let self._chat_endpoint   = l:server . '/v1/chat/completions'
-    let self._status_endpoint = l:server . '/health'
-    call s:Client._get_status()
 endfunction
 
 function s:Client._send_chat_query(req, job_conf) dict
@@ -238,9 +237,9 @@ function! s:Client._on_stream_out(session_id, msg) dict
     let response = json_decode(json_string)
     if has_key(response.choices[0].delta, 'content')
         let next_token = response.choices[0].delta.content
-        call s:Chats.append_partial(a:session_id, next_token)
-        " TODO: rather than doing this, our UI subscribes to updates from DB?
-        call s:UI.maybe_append(a:session_id, next_token)
+        if has_key(self._callbacks, 'token_cb')
+            call self._callbacks['token_cb'](a:session_id, next_token)
+        endif
     endif
 endfunction
 
@@ -322,8 +321,8 @@ call s:Client.init()
 " {{{ User interface, buffer/window manipulation
 let s:UI = {}
 
-function! s:UI.redraw_statusline() dict
-    " TODO: limit redraw to one buffer
+function! s:UI.update_statusline(status) dict
+    let g:qq_server_status = a:status
     redrawstatus!
 endfunction
 
@@ -385,7 +384,7 @@ function! s:UI.maybe_append(session_id, token) dict
     endif
 endfunction
 
-function! s:display_prompt()
+function! s:UI.display_prompt() dict
     "TODO: do that only if chat is open, not selection view
     let l:bufnum  = bufnr('vim_qna_chat')
     let l:msg     = strftime(g:qq_timefmt . " Local: ")
@@ -393,18 +392,42 @@ function! s:display_prompt()
     call appendbufline(l:bufnum, line('$'), l:lines)
 endfunction
 
-" -- these functions are used in mappings, need to use wrappers
-function! s:pick_chat_session()
-    let l:session_id = s:session_id_map[line('.')]
-    call s:qq_display_session(l:session_id)
+function! s:UI.toggle() dict
+    let bufnum = bufnr('vim_qna_chat')
+    if bufnum == -1
+        call self.open_window()
+    else
+        let l:winid = bufwinid('vim_qna_chat')
+        if l:winid != -1
+            call win_gotoid(l:winid)
+            silent! execute 'hide'
+        else
+            call self.open_window()
+        endif
+    endif
+endfunction
+
+function! s:UI.get_visual_selection() dict
+    let [line_start, column_start] = getpos("'<")[1:2]
+    let [line_end  , column_end  ] = getpos("'>")[1:2]
+    let lines = getline(line_start, line_end)
+    if len(lines) == 0
+        return ''
+    endif
+    let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
+    let lines[0]  = lines[0][column_start - 1:]
+    return join(lines, "\n")
 endfunction
 
 
 " }}}
 
+call s:Client.set_callback('status_cb', {status -> s:UI.update_statusline(status)})
+call s:Client.set_callback('token_cb', {session_id, msg -> [s:Chats.append_partial(session_id, msg), s:UI.maybe_append(session_id, msg)][-1]})
+
 " {{{ API for commands
 function! s:qq_send_message(question, use_context)
-    let l:context = s:get_visual_selection()
+    let l:context = s:UI.get_visual_selection()
     if a:use_context
         let l:question = s:fmt_question(l:context, a:question)
     else
@@ -416,7 +439,7 @@ function! s:qq_send_message(question, use_context)
     let l:message    = s:Chats.append_message(l:session_id, l:message)
 
     call s:UI.append_message(v:true, l:message)
-    call s:display_prompt()
+    call s:UI.display_prompt()
     call s:Client.send_chat(l:session_id)
 endfunction
 
@@ -429,28 +452,16 @@ function! s:qq_warmup()
 endfunction
 
 function! s:qq_toggle_window()
-    let bufnum = bufnr('vim_qna_chat')
-    if bufnum == -1
-        call s:UI.open_window()
-    else
-        let l:winid = bufwinid('vim_qna_chat')
-        if l:winid != -1
-            call win_gotoid(l:winid)
-            silent! execute 'hide'
-        else
-            call s:UI.open_window()
-        endif
-    endif
+    call s:UI.toggle()
 endfunction
 
 function! s:qq_new_chat()
-    let s:current_session = s:Chats.new_chat()
-    call s:qq_display_session(s:current_session)
+    call s:qq_show_chat(s:Chats.new_chat())
 endfunction
 
 function! s:qq_show_chat_list()
     let l:titles = []
-    let s:session_id_map = {}
+    let l:session_id_map = {}
 
     for item in s:Chats.get_ordered_chats()
         let l:sep = ' '
@@ -460,7 +471,7 @@ function! s:qq_show_chat_list()
         endif
 
         call add(l:titles, strftime(g:qq_timefmt . l:sep . item.title, item.time))
-        let s:session_id_map[len(titles)] = item.id
+        let l:session_id_map[len(titles)] = item.id
     endfor
 
     call s:UI.open_window()
@@ -476,11 +487,15 @@ function! s:qq_show_chat_list()
     setlocal nomodifiable
     
     mapclear <buffer>
-    nnoremap <silent> <buffer> <CR> :call <SID>pick_chat_session()<CR>
+
+    function! ActivateChat() closure
+        call s:qq_show_chat(l:session_id_map[line('.')])
+    endfunction
+    nnoremap <silent> <buffer> <CR> :call ActivateChat()<CR>
     nnoremap <silent> <buffer> q    :call <SID>qq_toggle_window()<CR>
 endfunction
 
-function! s:qq_display_session(session_id)
+function! s:qq_show_chat(session_id)
     call s:UI.open_window()
 
     let s:current_session = a:session_id
@@ -512,7 +527,7 @@ xnoremap <silent> QQ :<C-u>call <SID>qq_warmup()<CR>
 
 command! -range -nargs=+ QQ  call s:qq_send_message(<q-args>, v:true)
 command!        -nargs=+ Q   call s:qq_send_message(<q-args>, v:false)
-command!        -nargs=1 QL  call s:qq_display_session(<f-args>)
+command!        -nargs=1 QL  call s:qq_show_chat(<f-args>)
 command!        -nargs=0 QN  call s:qq_new_chat()
 command!        -nargs=0 QP  call s:qq_show_chat_list()
 command!        -nargs=0 QT  call s:qq_toggle_window()
