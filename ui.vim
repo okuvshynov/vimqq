@@ -4,17 +4,16 @@ let g:qq_width  = get(g:, 'qq_width', 80)
 " User interface, buffer/window manipulation
 let g:vqq#UI = {}
 
+source vqq_module.vim
+
 function! g:vqq#UI.new() dict
-    let l:instance = copy(self)
+    " poor man inheritance 
+    let l:instance = g:vqq#Base.new()
+    call extend(l:instance, copy(self))
+
     let l:instance._server_status = "unknown"
-    let l:instance._callbacks = {} 
     return l:instance
 endfunction
-
-function g:vqq#UI.set_callback(key, fn) dict
-    let self._callbacks[a:key] = a:fn
-endfunction
-
 
 function! g:vqq#UI.update_statusline(status) dict
     if a:status != self._server_status
@@ -122,9 +121,7 @@ function! g:vqq#UI.display_chat_history(history, current_chat) dict
     mapclear <buffer>
 
     function! ShowChat() closure
-        if has_key(self._callbacks, 'chat_select_cb')
-            call self._callbacks['chat_select_cb'](l:chat_id_map[line('.')])
-        endif
+        call self.call_cb('chat_select_cb', l:chat_id_map[line('.')])
     endfunction
 
     function! Toggle() closure
@@ -153,9 +150,7 @@ function g:vqq#UI.display_chat(messages, partial) dict
     endif
 
     function! ShowChatList() closure
-        if has_key(self._callbacks, 'chat_list_cb')
-            call self._callbacks['chat_list_cb']()
-        endif
+        call self.call_cb('chat_list_cb')
     endfunction
 
     nnoremap <silent> <buffer> q  :call ShowChatList()<CR>

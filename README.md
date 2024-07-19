@@ -61,6 +61,8 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] ordering in chat selection
 - [x] navigating within chat session
 - [x] encapsulate all access to session data. For all updates have callbacks from chat store, do not append anything directly.
+- [x] refactor to something mvc-like (ui, db, client, main logic)
+- [ ] prefetch on chat selection
 - [ ] improve status line - show number of tokens, chat name and server addr? make configurable
 - [ ] installation/distribution
 - [ ] recording some feedback (e.g. good answer, bad answer, wrong answer, etc)

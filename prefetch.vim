@@ -41,10 +41,10 @@ let s:chatsdb = g:vqq#ChatsDB.new(s:chats_file)
 let s:client = g:vqq#LlamaClient.new()
 
 " -----------------------------------------------------------------------------
-" Setting up wiring between module
+" Setting up wiring between modules
 
 " When server updates health status, we update status line
-call s:client.set_callback('status_cb', {status -> s:ui.update_statusline(status)})
+call s:client.set_cb('status_cb', {status -> s:ui.update_statusline(status)})
 
 " When server produces new streamed token, we update db and maybe update ui, 
 " if the chat we show is the one updated
@@ -54,7 +54,7 @@ function! s:_on_token_done(chat_id, token)
         call s:ui.append_partial(a:token)
     endif
 endfunction
-call s:client.set_callback('token_cb', {chat_id, token -> s:_on_token_done(chat_id, token)})
+call s:client.set_cb('token_cb', {chat_id, token -> s:_on_token_done(chat_id, token)})
 
 " When the streaming is done and entire message is received, we mark it as
 " complete and kick off title generation if it is not computed yet
@@ -64,17 +64,17 @@ function! s:_on_stream_done(chat_id)
         call s:client.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
     endif
 endfunction
-call s:client.set_callback('stream_done_cb', {chat_id -> s:_on_stream_done(chat_id)})
+call s:client.set_cb('stream_done_cb', {chat_id -> s:_on_stream_done(chat_id)})
 
 " When title call is done, we update title in the db. 
 " TODO: also update in UI
-call s:client.set_callback('title_done_cb', {chat_id, title -> s:chatsdb.set_title(chat_id, title)})
+call s:client.set_cb('title_done_cb', {chat_id, title -> s:chatsdb.set_title(chat_id, title)})
 
 " If chat is selected in UI, show it
-call s:ui.set_callback('chat_select_cb', {chat_id -> s:qq_show_chat(chat_id)})
+call s:ui.set_cb('chat_select_cb', {chat_id -> s:qq_show_chat(chat_id)})
 
 " If UI wants to show chat selection list, we need to get fresh list
-call s:ui.set_callback('chat_list_cb', { -> s:qq_show_chat_list()})
+call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
 
 " Sends new message to the server
 function! s:qq_send_message(question, use_context)
@@ -132,8 +132,6 @@ function! s:qq_show_chat(chat_id)
 
     call s:ui.display_chat(l:messages, l:partial)
 endfunction
-
-" }}}
 
 " -----------------------------------------------------------------------------
 "  commands and default key mappings

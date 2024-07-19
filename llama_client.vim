@@ -25,30 +25,24 @@ function! s:keep_job(job_id)
     endif
 endfunction
 
+source vqq_module.vim
+
 function! g:vqq#LlamaClient.new() dict
-    let l:instance = copy(self)
+    " poor man inheritance 
+    let l:instance = g:vqq#Base.new()
+    call extend(l:instance, copy(self))
+
     let l:server = substitute(g:qq_server, '/*$', '', '')
     let l:instance._chat_endpoint   = l:server . '/v1/chat/completions'
     let l:instance._status_endpoint = l:server . '/health'
-    let l:instance._callbacks = {} 
     call l:instance._get_status()
 
     return l:instance
 endfunction
 
-function g:vqq#LlamaClient.set_callback(key, fn) dict
-    let self._callbacks[a:key] = a:fn
-endfunction
-
-function g:vqq#LlamaClient._on_server_status(status) dict
-    if has_key(self._callbacks, 'status_cb')
-        call self._callbacks['status_cb'](a:status) 
-    endif
-endfunction
-
 function g:vqq#LlamaClient._on_status_exit(exit_status) dict
     if a:exit_status != 0
-        call self._on_server_status("unavailable")
+        call self.call_cb('status_cb', "unavailable")
     endif
     call timer_start(s:healthcheck_ms, { -> self._get_status() })
 endfunction
@@ -56,9 +50,9 @@ endfunction
 function g:vqq#LlamaClient._on_status_out(msg) dict
     let l:status = json_decode(a:msg)
     if empty(l:status)
-        call self._on_server_status("unavailable")
+        call self.call_cb('status_cb', "unavailable")
     else
-        call self._on_server_status(l:status.status)
+        call self.call_cb('status_cb', l:status.status)
     endif
 endfunction
 
@@ -92,16 +86,12 @@ function! g:vqq#LlamaClient._on_stream_out(chat_id, msg) dict
     let response = json_decode(json_string)
     if has_key(response.choices[0].delta, 'content')
         let next_token = response.choices[0].delta.content
-        if has_key(self._callbacks, 'token_cb')
-            call self._callbacks['token_cb'](a:chat_id, next_token)
-        endif
+        call self.call_cb('token_cb', a:chat_id, next_token)
     endif
 endfunction
 
 function! g:vqq#LlamaClient._on_stream_close(chat_id)
-    if has_key(self._callbacks, 'stream_done_cb')
-        call self._callbacks['stream_done_cb'](a:chat_id)
-    endif
+    call self.call_cb('stream_done_cb', a:chat_id)
 endfunction
 
 function! g:vqq#LlamaClient._on_err(chat_id, msg)
@@ -114,9 +104,7 @@ function! g:vqq#LlamaClient._on_title_out(chat_id, msg)
     let response = json_decode(json_string)
     if has_key(response.choices[0].message, 'content')
         let title = response.choices[0].message.content
-        if has_key(self._callbacks, 'title_done_cb')
-            call self._callbacks['title_done_cb'](a:chat_id, title)
-        endif
+        call self.call_cb('title_done_cb', a:chat_id, title)
     endif
 endfunction
 
