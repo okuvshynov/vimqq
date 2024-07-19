@@ -34,7 +34,6 @@ let s:active_jobs = []
 " this is the active session id. New queries would go to this session by default
 let s:current_session = -1 
 " latest healthcheck result. global so that statusline can access it
-let g:qq_server_status = "unknown"
 
 " {{{ Utilities, local state
 " get or create a new session if there isn't one
@@ -173,7 +172,6 @@ function! s:Client.init() dict
     let l:server = substitute(g:qq_server, '/*$', '', '')
     let self._chat_endpoint   = l:server . '/v1/chat/completions'
     let self._status_endpoint = l:server . '/health'
-    let self._status    = "unknown"
     let self._callbacks = {} 
     call s:Client._get_status()
 endfunction
@@ -183,11 +181,8 @@ function s:Client.set_callback(key, fn) dict
 endfunction
 
 function s:Client._on_server_status(status) dict
-    if a:status != self._status
-        let self._server_status = a:status
-        if has_key(self._callbacks, 'status_cb')
-            call self._callbacks['status_cb'](a:status) 
-        endif
+    if has_key(self._callbacks, 'status_cb')
+        call self._callbacks['status_cb'](a:status) 
     endif
 endfunction
 
@@ -297,7 +292,7 @@ function! s:Client.send_chat(session_id) dict
     call self._send_chat_query(req, l:job_conf)
 endfunction
 
-" ask for a title we'll use in UI. Uses first message in a chat session
+" ask for a title we'll use. Uses first message in a chat session
 " TODO: this actually pollutes the kv cache for next messages.
 function! s:Client.send_gen_title(session_id, message_text)
     let req = {}
@@ -321,9 +316,15 @@ call s:Client.init()
 " {{{ User interface, buffer/window manipulation
 let s:UI = {}
 
+function! s:UI.init() dict
+    let self._server_status = "unknown"
+endfunction
+
 function! s:UI.update_statusline(status) dict
-    let g:qq_server_status = a:status
-    redrawstatus!
+    if a:status != self._server_status
+        let self._server_status = a:status
+        redrawstatus!
+    endif
 endfunction
 
 function! s:UI.open_window() dict
@@ -336,7 +337,11 @@ function! s:UI.open_window() dict
         setlocal buftype=nofile
         setlocal bufhidden=hide
         setlocal noswapfile
-        setlocal statusline=server\ status:\ %{qq_server_status}
+        function GetStatus() closure
+            return self._server_status
+        endfunction
+
+        setlocal statusline=server\ status:\ %{GetStatus()}
     else
         let winnum = bufwinnr(l:bufnum)
         if winnum == -1
@@ -419,6 +424,7 @@ function! s:UI.get_visual_selection() dict
     return join(lines, "\n")
 endfunction
 
+call s:UI.init()
 
 " }}}
 
