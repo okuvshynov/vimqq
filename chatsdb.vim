@@ -1,10 +1,11 @@
 let g:vqq#ChatsDB = {}
 
-function! g:vqq#ChatsDB.new(sessions_file) dict
+function! g:vqq#ChatsDB.new(chats_file) dict
     let l:instance = copy(self)
-    let l:instance._file = a:sessions_file
-    if filereadable(a:sessions_file)
-        let l:instance._chats = json_decode(join(readfile(a:sessions_file), ''))
+    let l:instance._file = a:chats_file
+    let l:instance._chats = {}
+    if filereadable(a:chats_file)
+        let l:instance._chats = json_decode(join(readfile(a:chats_file), ''))
     endif
     return l:instance
 endfunction
@@ -13,44 +14,44 @@ function! g:vqq#ChatsDB.init() dict
 endfunction
 
 function! g:vqq#ChatsDB._save() dict
-    let l:sessions_text = json_encode(self._chats)
-    silent! call writefile([l:sessions_text], self._file)
+    let l:chats_text = json_encode(self._chats)
+    silent! call writefile([l:chats_text], self._file)
 endfunction
 
-function! g:vqq#ChatsDB.append_partial(session_id, part) dict
-    call add(self._chats[a:session_id].partial_reply, a:part)
+function! g:vqq#ChatsDB.append_partial(chat_id, part) dict
+    call add(self._chats[a:chat_id].partial_reply, a:part)
     call self._save()
 endfunction
 
-function! g:vqq#ChatsDB.has_title(session_id) dict
-    return self._chats[a:session_id].title_computed
+function! g:vqq#ChatsDB.has_title(chat_id) dict
+    return self._chats[a:chat_id].title_computed
 endfunction
 
-function! g:vqq#ChatsDB.set_title(session_id, title) dict
-    let self._chats[a:session_id].title          = a:title
-    let self._chats[a:session_id].title_computed = v:true
+function! g:vqq#ChatsDB.set_title(chat_id, title) dict
+    let self._chats[a:chat_id].title          = a:title
+    let self._chats[a:chat_id].title_computed = v:true
     call self._save()
 endfunction
 
-function! g:vqq#ChatsDB.get_first_message(session_id) dict
-    return self._chats[a:session_id].messages[0].content
+function! g:vqq#ChatsDB.get_first_message(chat_id) dict
+    return self._chats[a:chat_id].messages[0].content
 endfunction
 
-function! g:vqq#ChatsDB.append_message(session_id, message) dict
+function! g:vqq#ChatsDB.append_message(chat_id, message) dict
     let l:message = copy(a:message)
     if !has_key(l:message, 'timestamp')
         let l:message['timestamp'] = localtime()
     endif
 
-    call add(self._chats[a:session_id].messages, l:message)
+    call add(self._chats[a:chat_id].messages, l:message)
     call self._save()
 
     return l:message
 endfunction
 
-function! g:vqq#ChatsDB._last_updated(session) dict
-    let l:time = a:session.timestamp
-    for l:message in reverse(copy(a:session.messages))
+function! g:vqq#ChatsDB._last_updated(chat) dict
+    let l:time = a:chat.timestamp
+    for l:message in reverse(copy(a:chat.messages))
         if has_key(l:message, 'timestamp')
             let l:time = l:message.timestamp
             break
@@ -60,45 +61,45 @@ function! g:vqq#ChatsDB._last_updated(session) dict
 endfunction
 
 function! g:vqq#ChatsDB.get_ordered_chats() dict
-    let l:session_list = []
-    for [key, session] in items(self._chats)
-        let l:session_list += [{'title': session.title, 'id': session.id, 'time': self._last_updated(session)}]
+    let l:chat_list = []
+    for [key, chat] in items(self._chats)
+        let l:chat_list += [{'title': chat.title, 'id': chat.id, 'time': self._last_updated(chat)}]
     endfor
-    return sort(l:session_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
+    return sort(l:chat_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
 endfunction
 
 " TODO - should we return a copy and not a reference?
-function! g:vqq#ChatsDB.get_messages(session_id) dict
-    return self._chats[a:session_id].messages
+function! g:vqq#ChatsDB.get_messages(chat_id) dict
+    return self._chats[a:chat_id].messages
 endfunction
 
-function! g:vqq#ChatsDB.get_partial(session_id) dict
-    return join(self._chats[a:session_id].partial_reply, '')
+function! g:vqq#ChatsDB.get_partial(chat_id) dict
+    return join(self._chats[a:chat_id].partial_reply, '')
 endfunction
 
-function! g:vqq#ChatsDB.clear_partial(session_id) dict
-    let self._chats[a:session_id].partial_reply = []
+function! g:vqq#ChatsDB.clear_partial(chat_id) dict
+    let self._chats[a:chat_id].partial_reply = []
 endfunction
 
-function! g:vqq#ChatsDB.partial_done(session_id) dict
-    let l:reply = join(self._chats[a:session_id].partial_reply, '')
-    call self.append_message(a:session_id, {"role": "assistant", "content": l:reply})
-    let self._chats[a:session_id].partial_reply = []
+function! g:vqq#ChatsDB.partial_done(chat_id) dict
+    let l:reply = join(self._chats[a:chat_id].partial_reply, '')
+    call self.append_message(a:chat_id, {"role": "assistant", "content": l:reply})
+    let self._chats[a:chat_id].partial_reply = []
 endfunction
 
 function! g:vqq#ChatsDB.new_chat()
-    let l:session = {}
-    let l:session.id = empty(self._chats) ? 1 : max(keys(self._chats)) + 1
-    let l:session.messages = []
-    let l:session.partial_reply = []
-    let l:session.title = "new chat"
-    let l:session.title_computed = v:false
-    let l:session.timestamp = localtime()
+    let l:chat = {}
+    let l:chat.id = empty(self._chats) ? 1 : max(keys(self._chats)) + 1
+    let l:chat.messages = []
+    let l:chat.partial_reply = []
+    let l:chat.title = "new chat"
+    let l:chat.title_computed = v:false
+    let l:chat.timestamp = localtime()
 
-    let self._chats[l:session.id] = l:session
+    let self._chats[l:chat.id] = l:chat
 
     call self._save()
 
-    return l:session.id
+    return l:chat.id
 endfunction
 

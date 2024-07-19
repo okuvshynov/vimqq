@@ -25,7 +25,6 @@ function! s:keep_job(job_id)
     endif
 endfunction
 
-
 function! g:vqq#LlamaClient.new() dict
     let l:instance = copy(self)
     let l:server = substitute(g:qq_server, '/*$', '', '')
@@ -84,7 +83,7 @@ function g:vqq#LlamaClient._send_chat_query(req, job_conf) dict
     call s:keep_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
 endfunction
 
-function! g:vqq#LlamaClient._on_stream_out(session_id, msg) dict
+function! g:vqq#LlamaClient._on_stream_out(chat_id, msg) dict
     if a:msg !~# '^data: '
         return
     endif
@@ -94,36 +93,36 @@ function! g:vqq#LlamaClient._on_stream_out(session_id, msg) dict
     if has_key(response.choices[0].delta, 'content')
         let next_token = response.choices[0].delta.content
         if has_key(self._callbacks, 'token_cb')
-            call self._callbacks['token_cb'](a:session_id, next_token)
+            call self._callbacks['token_cb'](a:chat_id, next_token)
         endif
     endif
 endfunction
 
-function! g:vqq#LlamaClient._on_stream_close(session_id)
+function! g:vqq#LlamaClient._on_stream_close(chat_id)
     if has_key(self._callbacks, 'stream_done_cb')
-        call self._callbacks['stream_done_cb'](a:session_id)
+        call self._callbacks['stream_done_cb'](a:chat_id)
     endif
 endfunction
 
-function! g:vqq#LlamaClient._on_err(session_id, msg)
+function! g:vqq#LlamaClient._on_err(chat_id, msg)
     " TODO: logging
 endfunction
 
-function! g:vqq#LlamaClient._on_title_out(session_id, msg)
+function! g:vqq#LlamaClient._on_title_out(chat_id, msg)
     let json_string = substitute(a:msg, '^data: ', '', '')
 
     let response = json_decode(json_string)
     if has_key(response.choices[0].message, 'content')
         let title = response.choices[0].message.content
         if has_key(self._callbacks, 'title_done_cb')
-            call self._callbacks['title_done_cb'](a:session_id, title)
+            call self._callbacks['title_done_cb'](a:chat_id, title)
         endif
     endif
 endfunction
 
 " warmup query to pre-fill the cache on the server.
 " We ask for 0 tokens and ignore the response.
-function! g:vqq#LlamaClient.send_warmup(session_id, messages) dict
+function! g:vqq#LlamaClient.send_warmup(chat_id, messages) dict
     let req = {}
     let req.messages     = a:messages
     let req.n_predict    = 0
@@ -133,8 +132,8 @@ function! g:vqq#LlamaClient.send_warmup(session_id, messages) dict
     call self._send_chat_query(req, {})
 endfunction
 
-" assumes the last message is already in the session 
-function! g:vqq#LlamaClient.send_chat(session_id, messages) dict
+" assumes the last message is already in the chat 
+function! g:vqq#LlamaClient.send_chat(chat_id, messages) dict
     let req = {}
     let req.messages     = a:messages
     let req.n_predict    = g:qq_max_tokens
@@ -143,17 +142,17 @@ function! g:vqq#LlamaClient.send_chat(session_id, messages) dict
 
 
     let l:job_conf = {
-          \ 'out_cb'  : {channel, msg -> self._on_stream_out(a:session_id, msg)}, 
-          \ 'err_cb'  : {channel, msg -> self._on_err(a:session_id, msg)},
-          \ 'close_cb': {channel      -> self._on_stream_close(a:session_id)}
+          \ 'out_cb'  : {channel, msg -> self._on_stream_out(a:chat_id, msg)}, 
+          \ 'err_cb'  : {channel, msg -> self._on_err(a:chat_id, msg)},
+          \ 'close_cb': {channel      -> self._on_stream_close(a:chat_id)}
     \ }
 
     call self._send_chat_query(req, l:job_conf)
 endfunction
 
-" ask for a title we'll use. Uses first message in a chat session
+" ask for a title we'll use. Uses first message in a chat chat
 " TODO: this actually pollutes the kv cache for next messages.
-function! g:vqq#LlamaClient.send_gen_title(session_id, message_text) dict
+function! g:vqq#LlamaClient.send_gen_title(chat_id, message_text) dict
     let req = {}
     let prompt = "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
     let req.messages  = [{"role": "user", "content": prompt . a:message_text}]
@@ -162,7 +161,7 @@ function! g:vqq#LlamaClient.send_gen_title(session_id, message_text) dict
     let req.cache_prompt = v:true
 
     let l:job_conf = {
-          \ 'out_cb': {channel, msg -> self._on_title_out(a:session_id, msg)}
+          \ 'out_cb': {channel, msg -> self._on_title_out(a:chat_id, msg)}
     \ }
 
     call self._send_chat_query(req, l:job_conf)
