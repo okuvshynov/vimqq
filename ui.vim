@@ -7,8 +7,14 @@ let g:vqq#UI = {}
 function! g:vqq#UI.new() dict
     let l:instance = copy(self)
     let l:instance._server_status = "unknown"
+    let l:instance._callbacks = {} 
     return l:instance
 endfunction
+
+function g:vqq#UI.set_callback(key, fn) dict
+    let self._callbacks[a:key] = a:fn
+endfunction
+
 
 function! g:vqq#UI.update_statusline(status) dict
     if a:status != self._server_status
@@ -84,6 +90,75 @@ function! g:vqq#UI.display_prompt() dict
     let l:msg     = strftime(g:qq_timefmt . " Local: ")
     let l:lines   = split(l:msg, '\n')
     call appendbufline(l:bufnum, line('$'), l:lines)
+endfunction
+
+function! g:vqq#UI.display_chat_history(history, current_chat) dict
+    let l:titles = []
+    let l:chat_id_map = {}
+
+    for item in a:history
+        let l:sep = ' '
+        if a:current_chat == item.id
+            let l:selected_line = len(titles) + 1
+            let l:sep = '>'
+        endif
+
+        call add(l:titles, strftime(g:qq_timefmt . l:sep . item.title, item.time))
+        let l:chat_id_map[len(titles)] = item.id
+    endfor
+
+    call self.open_window()
+
+    setlocal modifiable
+    silent! call deletebufline('%', 1, '$')
+    call setline(1, l:titles)
+    if exists('l:selected_line')
+        call cursor(l:selected_line, 1)
+    endif
+    " TODO - turn it off when viewing the individual chat
+    setlocal cursorline
+    setlocal nomodifiable
+    
+    mapclear <buffer>
+
+    function! ShowChat() closure
+        if has_key(self._callbacks, 'chat_select_cb')
+            call self._callbacks['chat_select_cb'](l:chat_id_map[line('.')])
+        endif
+    endfunction
+
+    function! Toggle() closure
+        call self.toggle()
+    endfunction
+    nnoremap <silent> <buffer> <CR> :call ShowChat()<CR>
+    nnoremap <silent> <buffer> q    :call Toggle()<CR>
+endfunction
+
+function g:vqq#UI.display_chat(messages, partial) dict
+    call self.open_window()
+
+    mapclear <buffer>
+    setlocal modifiable
+    silent! call deletebufline('%', 1, '$')
+
+    for l:message in a:messages
+        call self.append_message(v:false, l:message)
+    endfor
+
+    " display streamed partial response
+    if !empty(a:partial)
+        let l:msg = strftime(g:qq_timefmt . " Local: ") . a:partial
+        let l:lines = split(l:msg, '\n')
+        call append(line('$'), l:lines)
+    endif
+
+    function! ShowChatList() closure
+        if has_key(self._callbacks, 'chat_list_cb')
+            call self._callbacks['chat_list_cb']()
+        endif
+    endfunction
+
+    nnoremap <silent> <buffer> q  :call ShowChatList()<CR>
 endfunction
 
 function! g:vqq#UI.toggle() dict
