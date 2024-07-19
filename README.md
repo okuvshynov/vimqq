@@ -60,7 +60,7 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] date/time of last message in chat selection
 - [x] ordering in chat selection
 - [x] navigating within chat session
-- [ ] encapsulate all access to session data. For all updates have callbacks from chat store, do not append anything directly.
+- [x] encapsulate all access to session data. For all updates have callbacks from chat store, do not append anything directly.
 - [ ] improve status line - show number of tokens, chat name and server addr? make configurable
 - [ ] installation/distribution
 - [ ] recording some feedback (e.g. good answer, bad answer, wrong answer, etc)
