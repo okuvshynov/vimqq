@@ -5,8 +5,6 @@
 
 " how many tokens to generate for each message
 let g:qq_max_tokens = get(g:, 'qq_max_tokens', 1024)
-" llama.cpp (or compatible) server
-let g:qq_server = get(g:, 'qq_server', "http://localhost:8080/")
 " format to use for datetime
 let g:qq_timefmt = get(g:, 'qq_timefmt', "%Y-%m-%d %H:%M:%S ")
 
@@ -15,31 +13,22 @@ let g:qq_timefmt = get(g:, 'qq_timefmt', "%Y-%m-%d %H:%M:%S ")
 
 " should each session have its own file?
 let s:sessions_file    = expand('~/.vim/qq_sessions.json')
-" cleanup dead async jobs if list is longer than this
-let s:n_jobs_cleanup   = 32
-" auto-generated title max length
-let s:qq_title_tokens  = 16
-" delay between healthchecks
-let s:healthcheck_ms   = 10000
-
-" prepare endpoints for chat completion and healthcheck
 
 " -----------------------------------------------------------------------------
 " script-level mutable state
 
-" Dead jobs are getting cleaned up after list goes over n_jobs_cleanup
-let s:active_jobs = []
 " this is the active session id. New queries would go to this session by default
 let s:current_session = -1 
 " latest healthcheck result. global so that statusline can access it
 
 source ui.vim
 source chatsdb.vim
+source llama_client.vim
 
 let s:ui = g:vqq#UI.new()
 let s:chatsdb = g:vqq#ChatsDB.new(s:sessions_file)
+let s:client = g:vqq#LlamaClient.new()
 
-" {{{ Utilities, local state
 " get or create a new session if there isn't one
 function! s:current_session_id()
     if s:current_session == -1
@@ -48,173 +37,30 @@ function! s:current_session_id()
     return s:current_session
 endfunction
 
-" async jobs management
-function! s:keep_job(job_id)
-    let s:active_jobs += [a:job_id]
-    if len(s:active_jobs) > s:n_jobs_cleanup
-        for job_id in s:active_jobs[:]
-            if job_info(job_id)['status'] == 'dead'
-                call remove(s:active_jobs, index(s:active_jobs, job_id))
-            endif
-        endfor
-    endif
-endfunction
-
 function! s:fmt_question(context, question)
     return "Here's a code snippet: \n\n " . a:context . "\n\n" . a:question
 endfunction
-" }}}
 
-" {{{  Client for llama.cpp server or compatible
-let s:Client = {} 
+call s:client.set_callback('status_cb', {status -> s:ui.update_statusline(status)})
 
-function! s:Client.init() dict
-    let l:server = substitute(g:qq_server, '/*$', '', '')
-    let self._chat_endpoint   = l:server . '/v1/chat/completions'
-    let self._status_endpoint = l:server . '/health'
-    let self._callbacks = {} 
-    call s:Client._get_status()
-endfunction
-
-function s:Client.set_callback(key, fn) dict
-    let self._callbacks[a:key] = a:fn
-endfunction
-
-function s:Client._on_server_status(status) dict
-    if has_key(self._callbacks, 'status_cb')
-        call self._callbacks['status_cb'](a:status) 
+function! s:_on_token_done(session_id, token)
+    call s:chatsdb.append_partial(a:session_id, a:token)
+    if a:session_id == s:current_session
+        call s:ui.append_partial(a:token)
     endif
 endfunction
 
-function s:Client._on_status_exit(exit_status) dict
-    if a:exit_status != 0
-        call self._on_server_status("unavailable")
-    endif
-    call timer_start(s:healthcheck_ms, { -> s:Client._get_status() })
-endfunction
+call s:client.set_callback('token_cb', {session_id, token -> s:_on_token_done(session_id, token)})
 
-function s:Client._on_status_out(msg) dict
-    let l:status = json_decode(a:msg)
-    if empty(l:status)
-        call self._on_server_status("unavailable")
-    else
-        call self._on_server_status(l:status.status)
-    endif
-endfunction
-
-function s:Client._get_status() dict
-    let l:curl_cmd = ["curl", "--max-time", "5", self._status_endpoint]
-    let l:job_conf = {
-          \ 'out_cb' : {channel, msg   -> self._on_status_out(msg)},
-          \ 'exit_cb': {job_id, status -> self._on_status_exit(status)}
-    \}
-
-    call s:keep_job(job_start(l:curl_cmd, l:job_conf))
-endfunction
-
-function s:Client._send_chat_query(req, job_conf) dict
-    let l:json_req  = json_encode(a:req)
-    let l:json_req  = substitute(l:json_req, "'", "'\\\\''", "g")
-
-    let l:curl_cmd  = "curl --no-buffer -s -X POST '" . self._chat_endpoint . "'"
-    let l:curl_cmd .= " -H 'Content-Type: application/json'"
-    let l:curl_cmd .= " -d '" . l:json_req . "'"
-
-    call s:keep_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
-endfunction
-
-function! s:Client._on_stream_out(session_id, msg) dict
-    if a:msg !~# '^data: '
-        return
-    endif
-    let json_string = substitute(a:msg, '^data: ', '', '')
-
-    let response = json_decode(json_string)
-    if has_key(response.choices[0].delta, 'content')
-        let next_token = response.choices[0].delta.content
-        if has_key(self._callbacks, 'token_cb')
-            call self._callbacks['token_cb'](a:session_id, next_token)
-        endif
-    endif
-endfunction
-
-function! s:Client._on_stream_close(session_id)
+function! s:_on_stream_done(session_id)
     call s:chatsdb.partial_done(a:session_id)
-
-    " TODO - need to subscribe to something here as well
     if !s:chatsdb.has_title(a:session_id)
-        call self.send_gen_title(a:session_id, s:chatsdb.get_first_message(a:session_id))
+        call s:client.send_gen_title(a:session_id, s:chatsdb.get_first_message(a:session_id))
     endif
 endfunction
 
-function! s:Client._on_err(session_id, msg)
-    " TODO: logging
-endfunction
-
-function! s:Client._on_title_out(session_id, msg)
-    let json_string = substitute(a:msg, '^data: ', '', '')
-
-    let response = json_decode(json_string)
-    if has_key(response.choices[0].message, 'content')
-        let title = response.choices[0].message.content
-        call s:chatsdb.set_title(a:session_id, title)
-    endif
-endfunction
-
-" warmup query to pre-fill the cache on the server.
-" We ask for 0 tokens and ignore the response.
-function! s:Client.send_warmup(session_id, question) dict
-    let req = {}
-    let req.messages     = s:chatsdb.get_messages(a:session_id) + [{"role": "user", "content": a:question}]
-    let req.n_predict    = 0
-    let req.stream       = v:true
-    let req.cache_prompt = v:true
-
-    call self._send_chat_query(req, {})
-endfunction
-
-" assumes the last message is already in the session 
-function! s:Client.send_chat(session_id) dict
-    let req = {}
-    let req.messages     = s:chatsdb.get_messages(a:session_id)
-    let req.n_predict    = g:qq_max_tokens
-    let req.stream       = v:true
-    let req.cache_prompt = v:true
-
-    call s:chatsdb.clear_partial(a:session_id)
-
-    let l:job_conf = {
-          \ 'out_cb'  : {channel, msg -> self._on_stream_out(a:session_id, msg)}, 
-          \ 'err_cb'  : {channel, msg -> self._on_err(a:session_id, msg)},
-          \ 'close_cb': {channel      -> self._on_stream_close(a:session_id)}
-    \ }
-
-    call self._send_chat_query(req, l:job_conf)
-endfunction
-
-" ask for a title we'll use. Uses first message in a chat session
-" TODO: this actually pollutes the kv cache for next messages.
-function! s:Client.send_gen_title(session_id, message_text)
-    let req = {}
-    let prompt = "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
-    let req.messages  = [{"role": "user", "content": prompt . a:message_text}]
-    let req.n_predict    = s:qq_title_tokens
-    let req.stream       = v:false
-    let req.cache_prompt = v:true
-
-    let l:job_conf = {
-          \ 'out_cb': {channel, msg -> s:Client._on_title_out(a:session_id, msg)}
-    \ }
-
-    call s:Client._send_chat_query(req, l:job_conf)
-endfunction
-
-call s:Client.init()
-
-" }}}
-
-call s:Client.set_callback('status_cb', {status -> s:ui.update_statusline(status)})
-call s:Client.set_callback('token_cb', {session_id, msg -> [s:chatsdb.append_partial(session_id, msg), s:ui.maybe_append(session_id, msg)][-1]})
+call s:client.set_callback('stream_done_cb', {chat_id -> s:_on_stream_done(chat_id)})
+call s:client.set_callback('title_done_cb', {chat_id, title -> s:chatsdb.set_title(chat_id, title)})
 
 " {{{ API for commands
 function! s:qq_send_message(question, use_context)
@@ -227,17 +73,21 @@ function! s:qq_send_message(question, use_context)
     let l:message  = {"role": "user", "content": l:question}
     let l:session_id = s:current_session_id() 
     " timestamp and other metadata might get appended here
-    let l:message    = s:chatsdb.append_message(l:session_id, l:message)
-
+    call s:chatsdb.append_message(l:session_id, l:message)
+    call s:chatsdb.clear_partial(l:session_id)
     call s:qq_show_chat(l:session_id)
     call s:ui.display_prompt()
-    call s:Client.send_chat(l:session_id)
+    call s:client.send_chat(l:session_id, s:chatsdb.get_messages(l:session_id))
 endfunction
 
 function! s:qq_warmup()
     let l:context = s:ui.get_visual_selection()
     if !empty(l:context)
-        call s:Client.send_warmup(s:current_session_id(), s:fmt_question(l:context, ""))
+        let l:chat_id = s:current_session_id()
+        let l:content = s:fmt_question(l:context, "")
+        let l:message = [{"role": "user", "content": l:content}]
+        let l:messages = s:chatsdb.get_messages(l:chat_id) + l:message
+        call s:client.send_warmup(l:chat_id, l:messages)
         call feedkeys(":'<,'>QQ ", 'n')
     endif
 endfunction

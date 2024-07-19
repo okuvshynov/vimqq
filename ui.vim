@@ -71,12 +71,11 @@ function! g:vqq#UI.append_message(open_chat, message) dict
     normal! G
 endfunction
 
-function! g:vqq#UI.maybe_append(session_id, token) dict
-    if s:current_session == a:session_id
-        let l:bufnum    = bufnr('vim_qna_chat')
-        let l:curr_line = getbufoneline(bufnum, '$')
-        silent! call setbufline(l:bufnum, '$', split(l:curr_line . a:token . "\n", '\n'))
-    endif
+function! g:vqq#UI.append_partial(token) dict
+    let l:bufnum    = bufnr('vim_qna_chat')
+    let l:curr_line = getbufoneline(bufnum, '$')
+    let l:lines     = split(l:curr_line . a:token . "\n", '\n')
+    silent! call setbufline(l:bufnum, '$', l:lines)
 endfunction
 
 function! g:vqq#UI.display_prompt() dict
