@@ -66,9 +66,9 @@ Let's keep input simple - we can only type the question itself in command line (
 - [ ] improve status line - show number of tokens, chat name and server addr? make configurable
 - [ ] installation/distribution
 - [ ] recording some feedback (e.g. good answer, bad answer, wrong answer, etc)
+- [x] multi-agent support - chat with multiple bots
 
 Later
-- [ ] multi-agent support - chat with multiple bots
 - [ ] code review. Ask to provide input without writing code itself. 
 
 Maybe never

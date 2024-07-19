@@ -42,6 +42,15 @@ let s:chatsdb = g:vqq#ChatsDB.new(s:chats_file)
 "let s:client = g:vqq#LlamaClient.new()
 let s:client = g:vqq#AnthropicClient.new()
 
+
+" So what do we need now
+"  - extract some shared functionality from clients
+"  - make config better. Example - how would you create 2 different llama
+"  clients? Can you do that?
+"  - allow asking specific bot
+"  - Store 'bot_name' in message metadata and put it into chat format
+"  - bring back 'tag' to see whom you have asked
+
 " -----------------------------------------------------------------------------
 " Setting up wiring between modules
 

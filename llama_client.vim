@@ -1,29 +1,12 @@
 " llama.cpp (or compatible) server
 let g:qq_server = get(g:, 'qq_server', "http://localhost:8080/")
 
-
-" cleanup dead async jobs if list is longer than this
-let s:n_jobs_cleanup = 32
 " delay between healthchecks
 let s:healthcheck_ms   = 10000
 " auto-generated title max length
 let s:qq_title_tokens  = 16
 
-" Dead jobs are getting cleaned up after list goes over n_jobs_cleanup
-let s:active_jobs = []
-
-" async jobs management
-function! s:keep_job(job_id)
-    let s:active_jobs += [a:job_id]
-    if len(s:active_jobs) > s:n_jobs_cleanup
-        for job_id in s:active_jobs[:]
-            if job_info(job_id)['status'] == 'dead'
-                call remove(s:active_jobs, index(s:active_jobs, job_id))
-            endif
-        endfor
-    endif
-endfunction
-
+source utils.vim
 source vqq_module.vim
 
 let g:vqq#LlamaClient = {} 
@@ -66,7 +49,7 @@ function g:vqq#LlamaClient._get_status() dict
           \ 'exit_cb': {job_id, status -> self._on_status_exit(status)}
     \}
 
-    call s:keep_job(job_start(l:curl_cmd, l:job_conf))
+    call VQQKeepJob(job_start(l:curl_cmd, l:job_conf))
 endfunction
 
 function g:vqq#LlamaClient._send_chat_query(req, job_conf) dict
@@ -77,7 +60,7 @@ function g:vqq#LlamaClient._send_chat_query(req, job_conf) dict
     let l:curl_cmd .= " -H 'Content-Type: application/json'"
     let l:curl_cmd .= " -d '" . l:json_req . "'"
 
-    call s:keep_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
+    call VQQKeepJob(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
 endfunction
 
 function! g:vqq#LlamaClient._on_stream_out(chat_id, msg) dict

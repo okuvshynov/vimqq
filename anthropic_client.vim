@@ -1,4 +1,5 @@
 source vqq_module.vim
+source utils.vim
 
 let g:qq_anthropic_api_key = get(g:, 'qq_anthropic_api_key', $ANTHROPIC_API_KEY)
 
@@ -6,21 +7,6 @@ let g:qq_anthropic_model_name = get(g:, 'qq_anthropic_model_name', "claude-3-5-s
 
 " auto-generated title max length
 let s:qq_title_tokens  = 16
-
-" cleanup dead async jobs if list is longer than this
-let s:n_jobs_cleanup = 32
-let s:active_jobs = []
-" async jobs management
-function! s:keep_job(job_id)
-    let s:active_jobs += [a:job_id]
-    if len(s:active_jobs) > s:n_jobs_cleanup
-        for job_id in s:active_jobs[:]
-            if job_info(job_id)['status'] == 'dead'
-                call remove(s:active_jobs, index(s:active_jobs, job_id))
-            endif
-        endfor
-    endif
-endfunction
 
 let g:vqq#AnthropicClient = {} 
 
@@ -53,8 +39,6 @@ function g:vqq#AnthropicClient._on_title_close(chat_id) dict
 endfunction
 
 function! g:vqq#AnthropicClient._on_out(chat_id, msg) dict
-    echo a:msg
-    sleep 5
     call add(self._reply_by_id[a:chat_id], a:msg)
 endfunction
 
@@ -74,8 +58,6 @@ endfunction
 function! g:vqq#AnthropicClient._send_query(req, job_conf) dict
     let l:json_req  = json_encode(a:req)
     let l:json_req  = substitute(l:json_req, "'", "'\\\\''", "g")
-    echo l:json_req
-    sleep 5
 
     let l:curl_cmd  = "curl -s -X POST 'https://api.anthropic.com/v1/messages'"
     let l:curl_cmd .= " -H 'Content-Type: application/json'"
@@ -83,7 +65,7 @@ function! g:vqq#AnthropicClient._send_query(req, job_conf) dict
     let l:curl_cmd .= " -H 'anthropic-version: 2023-06-01'"
     let l:curl_cmd .= " -d '" . l:json_req . "'"
 
-    call s:keep_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
+    call VQQKeepJob(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
 endfunction
 
 function! g:vqq#AnthropicClient._format_messages(messages) dict
