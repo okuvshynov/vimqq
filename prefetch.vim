@@ -438,7 +438,7 @@ function! s:qq_send_message(question, use_context)
     " timestamp and other metadata might get appended here
     let l:message    = s:Chats.append_message(l:session_id, l:message)
 
-    call s:UI.append_message(v:true, l:message)
+    call s:qq_show_chat(l:session_id)
     call s:UI.display_prompt()
     call s:Client.send_chat(l:session_id)
 endfunction
