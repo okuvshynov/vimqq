@@ -178,10 +178,10 @@ call s:Chats.init()
 
 " }}}
 
-" {{{  llama server client
-let s:Server = {}
+" {{{  Client for llama.cpp server or compatible
+let s:Client = {}
 
-function s:Server._on_status_exit(exit_status) dict
+function s:Client._on_status_exit(exit_status) dict
     if a:exit_status != 0
         " this should modify local variable, and call some fn
         let g:qq_server_status = "unavailable"
@@ -189,10 +189,10 @@ function s:Server._on_status_exit(exit_status) dict
     " TODO: call some callback instead, no direct dependency
     call s:UI.redraw_statusline()
     " restart again. 
-    call timer_start(s:healthcheck_ms, { -> s:Server._get_status() })
+    call timer_start(s:healthcheck_ms, { -> s:Client._get_status() })
 endfunction
 
-function s:Server._on_status_out(msg) dict
+function s:Client._on_status_out(msg) dict
     let l:status = json_decode(a:msg)
     if empty(l:status)
         let g:qq_server_status = "unavailable"
@@ -201,7 +201,7 @@ function s:Server._on_status_out(msg) dict
     endif
 endfunction
 
-function s:Server._get_status() dict
+function s:Client._get_status() dict
     let l:curl_cmd = ["curl", "--max-time", "5", self._status_endpoint]
     let l:job_conf = {
           \ 'out_cb' : {channel, msg   -> self._on_status_out(msg)},
@@ -211,14 +211,14 @@ function s:Server._get_status() dict
     call s:keep_job(job_start(l:curl_cmd, l:job_conf))
 endfunction
 
-function! s:Server.init() dict
+function! s:Client.init() dict
     let l:server = substitute(g:qq_server, '/*$', '', '')
     let self._chat_endpoint   = l:server . '/v1/chat/completions'
     let self._status_endpoint = l:server . '/health'
-    call s:Server._get_status()
+    call s:Client._get_status()
 endfunction
 
-function s:Server._send_chat_query(req, job_conf) dict
+function s:Client._send_chat_query(req, job_conf) dict
     let l:json_req  = json_encode(a:req)
     let l:json_req  = substitute(l:json_req, "'", "'\\\\''", "g")
 
@@ -229,7 +229,7 @@ function s:Server._send_chat_query(req, job_conf) dict
     call s:keep_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
 endfunction
 
-function! s:Server._on_stream_out(session_id, msg) dict
+function! s:Client._on_stream_out(session_id, msg) dict
     if a:msg !~# '^data: '
         return
     endif
@@ -244,7 +244,7 @@ function! s:Server._on_stream_out(session_id, msg) dict
     endif
 endfunction
 
-function! s:Server._on_stream_close(session_id)
+function! s:Client._on_stream_close(session_id)
     call s:Chats.partial_done(a:session_id)
 
     " TODO - need to subscribe to something here as well
@@ -253,11 +253,11 @@ function! s:Server._on_stream_close(session_id)
     endif
 endfunction
 
-function! s:Server._on_err(session_id, msg)
+function! s:Client._on_err(session_id, msg)
     " TODO: logging
 endfunction
 
-function! s:Server._on_title_out(session_id, msg)
+function! s:Client._on_title_out(session_id, msg)
     let json_string = substitute(a:msg, '^data: ', '', '')
 
     let response = json_decode(json_string)
@@ -269,7 +269,7 @@ endfunction
 
 " warmup query to pre-fill the cache on the server.
 " We ask for 0 tokens and ignore the response.
-function! s:Server.send_warmup(session_id, question) dict
+function! s:Client.send_warmup(session_id, question) dict
     let req = {}
     let req.messages     = s:Chats.get_messages(a:session_id) + [{"role": "user", "content": a:question}]
     let req.n_predict    = 0
@@ -280,7 +280,7 @@ function! s:Server.send_warmup(session_id, question) dict
 endfunction
 
 " assumes the last message is already in the session 
-function! s:Server.send_chat(session_id) dict
+function! s:Client.send_chat(session_id) dict
     let req = {}
     let req.messages     = s:Chats.get_messages(a:session_id)
     let req.n_predict    = g:qq_max_tokens
@@ -300,7 +300,7 @@ endfunction
 
 " ask for a title we'll use in UI. Uses first message in a chat session
 " TODO: this actually pollutes the kv cache for next messages.
-function! s:Server.send_gen_title(session_id, message_text)
+function! s:Client.send_gen_title(session_id, message_text)
     let req = {}
     let prompt = "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
     let req.messages  = [{"role": "user", "content": prompt . a:message_text}]
@@ -309,13 +309,13 @@ function! s:Server.send_gen_title(session_id, message_text)
     let req.cache_prompt = v:true
 
     let l:job_conf = {
-          \ 'out_cb': {channel, msg -> s:Server._on_title_out(a:session_id, msg)}
+          \ 'out_cb': {channel, msg -> s:Client._on_title_out(a:session_id, msg)}
     \ }
 
-    call s:Server._send_chat_query(req, l:job_conf)
+    call s:Client._send_chat_query(req, l:job_conf)
 endfunction
 
-call s:Server.init()
+call s:Client.init()
 
 " }}}
 
@@ -417,13 +417,13 @@ function! s:qq_send_message(question, use_context)
 
     call s:UI.append_message(v:true, l:message)
     call s:display_prompt()
-    call s:Server.send_chat(l:session_id)
+    call s:Client.send_chat(l:session_id)
 endfunction
 
 function! s:qq_warmup()
     let l:context = s:get_visual_selection()
     if !empty(l:context)
-        call s:Server.send_warmup(s:current_session_id(), s:fmt_question(l:context, ""))
+        call s:Client.send_warmup(s:current_session_id(), s:fmt_question(l:context, ""))
     endif
     call feedkeys(":'<,'>QQ ", 'n')
 endfunction
