@@ -1,7 +1,6 @@
 " llama.cpp (or compatible) server
 let g:qq_server = get(g:, 'qq_server', "http://localhost:8080/")
 
-let g:vqq#LlamaClient = {} 
 
 " cleanup dead async jobs if list is longer than this
 let s:n_jobs_cleanup = 32
@@ -27,6 +26,8 @@ endfunction
 
 source vqq_module.vim
 
+let g:vqq#LlamaClient = {} 
+
 function! g:vqq#LlamaClient.new() dict
     " poor man inheritance 
     let l:instance = g:vqq#Base.new()
@@ -39,6 +40,8 @@ function! g:vqq#LlamaClient.new() dict
 
     return l:instance
 endfunction
+
+" {{{ private:
 
 function g:vqq#LlamaClient._on_status_exit(exit_status) dict
     if a:exit_status != 0
@@ -108,6 +111,10 @@ function! g:vqq#LlamaClient._on_title_out(chat_id, msg)
     endif
 endfunction
 
+" }}}
+
+" {{{ public:
+
 " warmup query to pre-fill the cache on the server.
 " We ask for 0 tokens and ignore the response.
 function! g:vqq#LlamaClient.send_warmup(chat_id, messages) dict
@@ -120,7 +127,6 @@ function! g:vqq#LlamaClient.send_warmup(chat_id, messages) dict
     call self._send_chat_query(req, {})
 endfunction
 
-" assumes the last message is already in the chat 
 function! g:vqq#LlamaClient.send_chat(chat_id, messages) dict
     let req = {}
     let req.messages     = a:messages
@@ -138,7 +144,7 @@ function! g:vqq#LlamaClient.send_chat(chat_id, messages) dict
     call self._send_chat_query(req, l:job_conf)
 endfunction
 
-" ask for a title we'll use. Uses first message in a chat chat
+" ask for a title we'll use. Uses first message in a chat
 " TODO: this actually pollutes the kv cache for next messages.
 function! g:vqq#LlamaClient.send_gen_title(chat_id, message_text) dict
     let req = {}
@@ -154,3 +160,5 @@ function! g:vqq#LlamaClient.send_gen_title(chat_id, message_text) dict
 
     call self._send_chat_query(req, l:job_conf)
 endfunction
+
+" }}}

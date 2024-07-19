@@ -35,10 +35,12 @@ endfunction
 source ui.vim
 source chatsdb.vim
 source llama_client.vim
+source anthropic_client.vim
 
 let s:ui = g:vqq#UI.new()
 let s:chatsdb = g:vqq#ChatsDB.new(s:chats_file)
-let s:client = g:vqq#LlamaClient.new()
+"let s:client = g:vqq#LlamaClient.new()
+let s:client = g:vqq#AnthropicClient.new()
 
 " -----------------------------------------------------------------------------
 " Setting up wiring between modules
