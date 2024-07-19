@@ -7,8 +7,6 @@
 let g:qq_max_tokens = get(g:, 'qq_max_tokens', 1024)
 " llama.cpp (or compatible) server
 let g:qq_server = get(g:, 'qq_server', "http://localhost:8080/")
-" default chat window width
-let g:qq_width  = get(g:, 'qq_width'   , 80)
 " format to use for datetime
 let g:qq_timefmt = get(g:, 'qq_timefmt', "%Y-%m-%d %H:%M:%S ")
 
@@ -35,11 +33,17 @@ let s:active_jobs = []
 let s:current_session = -1 
 " latest healthcheck result. global so that statusline can access it
 
+source ui.vim
+source chatsdb.vim
+
+let s:ui = g:vqq#UI.new()
+let s:chatsdb = g:vqq#ChatsDB.new(s:sessions_file)
+
 " {{{ Utilities, local state
 " get or create a new session if there isn't one
 function! s:current_session_id()
     if s:current_session == -1
-        let s:current_session = s:Chats.new_chat()
+        let s:current_session = s:chatsdb.new_chat()
     endif
     return s:current_session
 endfunction
@@ -59,110 +63,6 @@ endfunction
 function! s:fmt_question(context, question)
     return "Here's a code snippet: \n\n " . a:context . "\n\n" . a:question
 endfunction
-" }}}
-
-" {{{ Chats - DB-like layer for chats/messages 
-
-let s:Chats = {}
-
-function! s:Chats.init() dict
-    if filereadable(s:sessions_file)
-        let self._chats = json_decode(join(readfile(s:sessions_file), ''))
-    endif
-endfunction
-
-function! s:Chats._save() dict
-    let l:sessions_text = json_encode(self._chats)
-    silent! call writefile([l:sessions_text], s:sessions_file)
-endfunction
-
-function! s:Chats.append_partial(session_id, part) dict
-    call add(self._chats[a:session_id].partial_reply, a:part)
-    call s:Chats._save()
-endfunction
-
-function! s:Chats.has_title(session_id) dict
-    return self._chats[a:session_id].title_computed
-endfunction
-
-function! s:Chats.set_title(session_id, title) dict
-    let self._chats[a:session_id].title          = a:title
-    let self._chats[a:session_id].title_computed = v:true
-    call s:Chats._save()
-endfunction
-
-function! s:Chats.get_first_message(session_id) dict
-    return self._chats[a:session_id].messages[0].content
-endfunction
-
-function! s:Chats.append_message(session_id, message) dict
-    let l:message = copy(a:message)
-    if !has_key(l:message, 'timestamp')
-        let l:message['timestamp'] = localtime()
-    endif
-
-    call add(self._chats[a:session_id].messages, l:message)
-    call s:Chats._save()
-
-    return l:message
-endfunction
-
-function! s:Chats._last_updated(session) dict
-    let l:time = a:session.timestamp
-    for l:message in reverse(copy(a:session.messages))
-        if has_key(l:message, 'timestamp')
-            let l:time = l:message.timestamp
-            break
-        endif
-    endfor
-    return l:time
-endfunction
-
-function! s:Chats.get_ordered_chats() dict
-    let l:session_list = []
-    for [key, session] in items(self._chats)
-        let l:session_list += [{'title': session.title, 'id': session.id, 'time': s:Chats._last_updated(session)}]
-    endfor
-    return sort(l:session_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
-endfunction
-
-" TODO - should we return a copy and not a reference?
-function! s:Chats.get_messages(session_id) dict
-    return self._chats[a:session_id].messages
-endfunction
-
-function! s:Chats.get_partial(session_id) dict
-    return join(self._chats[a:session_id].partial_reply, '')
-endfunction
-
-function! s:Chats.clear_partial(session_id) dict
-    let self._chats[a:session_id].partial_reply = []
-endfunction
-
-function! s:Chats.partial_done(session_id) dict
-    let l:reply = join(self._chats[a:session_id].partial_reply, '')
-    call s:Chats.append_message(a:session_id, {"role": "assistant", "content": l:reply})
-    let self._chats[a:session_id].partial_reply = []
-endfunction
-
-function! s:Chats.new_chat()
-    let l:session = {}
-    let l:session.id = empty(self._chats) ? 1 : max(keys(self._chats)) + 1
-    let l:session.messages = []
-    let l:session.partial_reply = []
-    let l:session.title = "new chat"
-    let l:session.title_computed = v:false
-    let l:session.timestamp = localtime()
-
-    let self._chats[l:session.id] = l:session
-
-    call s:Chats._save()
-
-    return l:session.id
-endfunction
-
-call s:Chats.init()
-
 " }}}
 
 " {{{  Client for llama.cpp server or compatible
@@ -239,11 +139,11 @@ function! s:Client._on_stream_out(session_id, msg) dict
 endfunction
 
 function! s:Client._on_stream_close(session_id)
-    call s:Chats.partial_done(a:session_id)
+    call s:chatsdb.partial_done(a:session_id)
 
     " TODO - need to subscribe to something here as well
-    if !s:Chats.has_title(a:session_id)
-        call self.send_gen_title(a:session_id, s:Chats.get_first_message(a:session_id))
+    if !s:chatsdb.has_title(a:session_id)
+        call self.send_gen_title(a:session_id, s:chatsdb.get_first_message(a:session_id))
     endif
 endfunction
 
@@ -257,7 +157,7 @@ function! s:Client._on_title_out(session_id, msg)
     let response = json_decode(json_string)
     if has_key(response.choices[0].message, 'content')
         let title = response.choices[0].message.content
-        call s:Chats.set_title(a:session_id, title)
+        call s:chatsdb.set_title(a:session_id, title)
     endif
 endfunction
 
@@ -265,7 +165,7 @@ endfunction
 " We ask for 0 tokens and ignore the response.
 function! s:Client.send_warmup(session_id, question) dict
     let req = {}
-    let req.messages     = s:Chats.get_messages(a:session_id) + [{"role": "user", "content": a:question}]
+    let req.messages     = s:chatsdb.get_messages(a:session_id) + [{"role": "user", "content": a:question}]
     let req.n_predict    = 0
     let req.stream       = v:true
     let req.cache_prompt = v:true
@@ -276,12 +176,12 @@ endfunction
 " assumes the last message is already in the session 
 function! s:Client.send_chat(session_id) dict
     let req = {}
-    let req.messages     = s:Chats.get_messages(a:session_id)
+    let req.messages     = s:chatsdb.get_messages(a:session_id)
     let req.n_predict    = g:qq_max_tokens
     let req.stream       = v:true
     let req.cache_prompt = v:true
 
-    call s:Chats.clear_partial(a:session_id)
+    call s:chatsdb.clear_partial(a:session_id)
 
     let l:job_conf = {
           \ 'out_cb'  : {channel, msg -> self._on_stream_out(a:session_id, msg)}, 
@@ -313,127 +213,12 @@ call s:Client.init()
 
 " }}}
 
-" {{{ User interface, buffer/window manipulation
-let s:UI = {}
-
-function! s:UI.init() dict
-    let self._server_status = "unknown"
-endfunction
-
-function! s:UI.update_statusline(status) dict
-    if a:status != self._server_status
-        let self._server_status = a:status
-        redrawstatus!
-    endif
-endfunction
-
-function! s:UI.open_window() dict
-    " Check if the buffer already exists
-    let l:bufnum = bufnr('vim_qna_chat')
-    if l:bufnum == -1
-        " Create a new buffer in a vertical split
-        silent! execute 'topleft vertical ' . g:qq_width . ' new'
-        silent! execute 'edit vim_qna_chat'
-        setlocal buftype=nofile
-        setlocal bufhidden=hide
-        setlocal noswapfile
-        function GetStatus() closure
-            return self._server_status
-        endfunction
-
-        setlocal statusline=server\ status:\ %{GetStatus()}
-    else
-        let winnum = bufwinnr(l:bufnum)
-        if winnum == -1
-            silent! execute 'topleft vertical ' . g:qq_width . ' split'
-            silent! execute 'buffer ' l:bufnum
-        else
-            silent! execute winnum . 'wincmd w'
-        endif
-    endif
-    return l:bufnum
-endfunction
-
-function! s:UI.append_message(open_chat, message) dict
-    if a:open_chat
-        call self.open_window()
-    endif
-
-    let l:tstamp = "        "
-    if has_key(a:message, 'timestamp')
-        let l:tstamp = strftime(g:qq_timefmt . " ", a:message['timestamp'])
-    endif
-    if a:message['role'] == 'user'
-        let prompt = l:tstamp . "  You: "
-    else
-        let prompt = l:tstamp . "Local: "
-    endif
-    let lines = split(a:message['content'], '\n')
-    for l in lines
-        if line('$') == 1 && getline(1) == ''
-            call setline(1, prompt . l)
-        else
-            call append(line('$'), prompt . l)
-        endif
-        let prompt = ''
-    endfor
-
-    normal! G
-endfunction
-
-function! s:UI.maybe_append(session_id, token) dict
-    if s:current_session == a:session_id
-        let l:bufnum    = bufnr('vim_qna_chat')
-        let l:curr_line = getbufoneline(bufnum, '$')
-        silent! call setbufline(l:bufnum, '$', split(l:curr_line . a:token . "\n", '\n'))
-    endif
-endfunction
-
-function! s:UI.display_prompt() dict
-    "TODO: do that only if chat is open, not selection view
-    let l:bufnum  = bufnr('vim_qna_chat')
-    let l:msg     = strftime(g:qq_timefmt . " Local: ")
-    let l:lines   = split(l:msg, '\n')
-    call appendbufline(l:bufnum, line('$'), l:lines)
-endfunction
-
-function! s:UI.toggle() dict
-    let bufnum = bufnr('vim_qna_chat')
-    if bufnum == -1
-        call self.open_window()
-    else
-        let l:winid = bufwinid('vim_qna_chat')
-        if l:winid != -1
-            call win_gotoid(l:winid)
-            silent! execute 'hide'
-        else
-            call self.open_window()
-        endif
-    endif
-endfunction
-
-function! s:UI.get_visual_selection() dict
-    let [line_start, column_start] = getpos("'<")[1:2]
-    let [line_end  , column_end  ] = getpos("'>")[1:2]
-    let lines = getline(line_start, line_end)
-    if len(lines) == 0
-        return ''
-    endif
-    let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
-    let lines[0]  = lines[0][column_start - 1:]
-    return join(lines, "\n")
-endfunction
-
-call s:UI.init()
-
-" }}}
-
-call s:Client.set_callback('status_cb', {status -> s:UI.update_statusline(status)})
-call s:Client.set_callback('token_cb', {session_id, msg -> [s:Chats.append_partial(session_id, msg), s:UI.maybe_append(session_id, msg)][-1]})
+call s:Client.set_callback('status_cb', {status -> s:ui.update_statusline(status)})
+call s:Client.set_callback('token_cb', {session_id, msg -> [s:chatsdb.append_partial(session_id, msg), s:ui.maybe_append(session_id, msg)][-1]})
 
 " {{{ API for commands
 function! s:qq_send_message(question, use_context)
-    let l:context = s:UI.get_visual_selection()
+    let l:context = s:ui.get_visual_selection()
     if a:use_context
         let l:question = s:fmt_question(l:context, a:question)
     else
@@ -442,15 +227,15 @@ function! s:qq_send_message(question, use_context)
     let l:message  = {"role": "user", "content": l:question}
     let l:session_id = s:current_session_id() 
     " timestamp and other metadata might get appended here
-    let l:message    = s:Chats.append_message(l:session_id, l:message)
+    let l:message    = s:chatsdb.append_message(l:session_id, l:message)
 
     call s:qq_show_chat(l:session_id)
-    call s:UI.display_prompt()
+    call s:ui.display_prompt()
     call s:Client.send_chat(l:session_id)
 endfunction
 
 function! s:qq_warmup()
-    let l:context = s:UI.get_visual_selection()
+    let l:context = s:ui.get_visual_selection()
     if !empty(l:context)
         call s:Client.send_warmup(s:current_session_id(), s:fmt_question(l:context, ""))
         call feedkeys(":'<,'>QQ ", 'n')
@@ -458,18 +243,18 @@ function! s:qq_warmup()
 endfunction
 
 function! s:qq_toggle_window()
-    call s:UI.toggle()
+    call s:ui.toggle()
 endfunction
 
 function! s:qq_new_chat()
-    call s:qq_show_chat(s:Chats.new_chat())
+    call s:qq_show_chat(s:chatsdb.new_chat())
 endfunction
 
 function! s:qq_show_chat_list()
     let l:titles = []
     let l:session_id_map = {}
 
-    for item in s:Chats.get_ordered_chats()
+    for item in s:chatsdb.get_ordered_chats()
         let l:sep = ' '
         if s:current_session == item.id
             let l:selected_line = len(titles) + 1
@@ -480,7 +265,7 @@ function! s:qq_show_chat_list()
         let l:session_id_map[len(titles)] = item.id
     endfor
 
-    call s:UI.open_window()
+    call s:ui.open_window()
 
     setlocal modifiable
     silent! call deletebufline('%', 1, '$')
@@ -502,7 +287,7 @@ function! s:qq_show_chat_list()
 endfunction
 
 function! s:qq_show_chat(session_id)
-    call s:UI.open_window()
+    call s:ui.open_window()
 
     let s:current_session = a:session_id
 
@@ -510,12 +295,12 @@ function! s:qq_show_chat(session_id)
     setlocal modifiable
     silent! call deletebufline('%', 1, '$')
 
-    for l:message in s:Chats.get_messages(a:session_id)
-        call s:UI.append_message(v:false, l:message)
+    for l:message in s:chatsdb.get_messages(a:session_id)
+        call s:ui.append_message(v:false, l:message)
     endfor
 
     " display streamed partial response
-    let l:partial = s:Chats.get_partial(a:session_id)
+    let l:partial = s:chatsdb.get_partial(a:session_id)
     if !empty(l:partial)
         let l:msg = strftime(g:qq_timefmt . " Local: ") . l:partial
         let l:lines = split(l:msg, '\n')
