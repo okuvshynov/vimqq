@@ -39,9 +39,8 @@ source anthropic_client.vim
 
 let s:ui = g:vqq#UI.new()
 let s:chatsdb = g:vqq#ChatsDB.new(s:chats_file)
-"let s:client = g:vqq#AnthropicClient.new()
-
-let s:client = g:vqq#LlamaClient.new()
+let s:clients = [g:vqq#AnthropicClient.new(), g:vqq#LlamaClient.new()]
+let s:default_client = s:clients[1]
 
 " So what do we need now
 "  - make config better. Example - how would you create 2 different llama
@@ -54,7 +53,6 @@ let s:client = g:vqq#LlamaClient.new()
 " Setting up wiring between modules
 
 " When server updates health status, we update status line
-call s:client.set_cb('status_cb', {status -> s:ui.update_statusline(status)})
 
 " When server produces new streamed token, we update db and maybe update ui, 
 " if the chat we show is the one updated
@@ -64,21 +62,22 @@ function! s:_on_token_done(chat_id, token)
         call s:ui.append_partial(a:token)
     endif
 endfunction
-call s:client.set_cb('token_cb', {chat_id, token -> s:_on_token_done(chat_id, token)})
 
 " When the streaming is done and entire message is received, we mark it as
 " complete and kick off title generation if it is not computed yet
-function! s:_on_stream_done(chat_id)
+function! s:_on_stream_done(chat_id, client)
     call s:chatsdb.partial_done(a:chat_id)
     if !s:chatsdb.has_title(a:chat_id)
-        call s:client.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
+        call a:client.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
     endif
 endfunction
-call s:client.set_cb('stream_done_cb', {chat_id -> s:_on_stream_done(chat_id)})
 
-" When title call is done, we update title in the db. 
-" TODO: also update in UI
-call s:client.set_cb('title_done_cb', {chat_id, title -> s:chatsdb.set_title(chat_id, title)})
+for c in s:clients
+    call c.set_cb('title_done_cb', {chat_id, title -> s:chatsdb.set_title(chat_id, title)})
+    call c.set_cb('stream_done_cb', {chat_id, client -> s:_on_stream_done(chat_id, client)})
+    call c.set_cb('status_cb', {status -> s:ui.update_statusline(status)})
+    call c.set_cb('token_cb', {chat_id, token -> s:_on_token_done(chat_id, token)})
+endfor
 
 " If chat is selected in UI, show it
 call s:ui.set_cb('chat_select_cb', {chat_id -> s:qq_show_chat(chat_id)})
@@ -90,20 +89,34 @@ call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
 " TODO - send message to whom?
 function! s:qq_send_message(question, use_context)
     let l:context = s:ui.get_visual_selection()
+    " pick the bot
+    let l:client = s:default_client
+    let l:question = a:question
+
+    for c in s:clients
+        let l:tag = '@' . c.name()
+        if strpart(a:question, 0, len(l:tag)) ==# l:tag
+            let l:client = c
+            " removing tag before passing it
+            " TODO: also remove leading space?
+            let l:question = strpart(a:question, len(l:tag))
+            break
+        endif
+    endfor
+
     if a:use_context
-        let l:question = s:fmt_question(l:context, a:question)
-    else
-        let l:question = a:question
+        let l:question = s:fmt_question(l:context, l:question)
     endif
+
     " in this case bot_name means 'who is asked/tagged'
-    let l:message  = {"role": "user", "content": l:question, "bot_name": s:client.name()}
+    let l:message  = {"role": "user", "content": l:question, "bot_name": l:client.name()}
     let l:chat_id = s:current_chat_id() 
     " timestamp and other metadata might get appended here
     call s:chatsdb.append_message(l:chat_id, l:message)
-    call s:chatsdb.reset_partial(l:chat_id, s:client.name())
+    call s:chatsdb.reset_partial(l:chat_id, l:client.name())
     call s:qq_show_chat(l:chat_id)
     "call s:ui.display_prompt()
-    call s:client.send_chat(l:chat_id, s:chatsdb.get_messages(l:chat_id))
+    call l:client.send_chat(l:chat_id, s:chatsdb.get_messages(l:chat_id))
 endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.
@@ -114,7 +127,7 @@ function! s:qq_warmup()
         let l:content = s:fmt_question(l:context, "")
         let l:message = [{"role": "user", "content": l:content}]
         let l:messages = s:chatsdb.get_messages(l:chat_id) + l:message
-        call s:client.send_warmup(l:chat_id, l:messages)
+        call s:clients[1].send_warmup(l:chat_id, l:messages)
         call feedkeys(":'<,'>QQ ", 'n')
     endif
 endfunction

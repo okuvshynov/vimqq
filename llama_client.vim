@@ -80,7 +80,7 @@ function! g:vqq#LlamaClient._on_stream_out(chat_id, msg) dict
 endfunction
 
 function! g:vqq#LlamaClient._on_stream_close(chat_id)
-    call self.call_cb('stream_done_cb', a:chat_id)
+    call self.call_cb('stream_done_cb', a:chat_id, self)
 endfunction
 
 function! g:vqq#LlamaClient._on_err(chat_id, msg)

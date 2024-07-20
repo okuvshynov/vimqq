@@ -54,7 +54,7 @@ function g:vqq#AnthropicClient._on_close(chat_id) dict
     " we pretend it's one huge update
     call self.call_cb('token_cb', a:chat_id, l:message)
     " and immediately done
-    call self.call_cb('stream_done_cb', a:chat_id)
+    call self.call_cb('stream_done_cb', a:chat_id, self)
 endfunction
 
 function! g:vqq#AnthropicClient._send_query(req, job_conf) dict

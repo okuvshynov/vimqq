@@ -83,6 +83,7 @@ endfunction
 
 function! g:vqq#ChatsDB.reset_partial(chat_id, bot_name) dict
   let self._chats[a:chat_id].partial_message = {"role": "assistant", "content": "", "bot_name": a:bot_name, "timestamp": localtime()}
+  call self._save()
 endfunction
 
 function! g:vqq#ChatsDB.partial_done(chat_id) dict
