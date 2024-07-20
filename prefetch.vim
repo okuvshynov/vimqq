@@ -86,7 +86,6 @@ call s:ui.set_cb('chat_select_cb', {chat_id -> s:qq_show_chat(chat_id)})
 call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
 
 " Sends new message to the server
-" TODO - send message to whom?
 function! s:qq_send_message(question, use_context)
     let l:context = s:ui.get_visual_selection()
     " pick the bot
