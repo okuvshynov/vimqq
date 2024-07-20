@@ -10,10 +10,12 @@ let s:qq_title_tokens  = 16
 
 let g:vqq#AnthropicClient = {} 
 
-function! g:vqq#AnthropicClient.new() dict
+function! g:vqq#AnthropicClient.new(config = {}) dict
     " poor man inheritance 
     let l:instance = g:vqq#Base.new()
     call extend(l:instance, copy(self))
+
+    let l:instance._name = get(a:config, 'name', 'Sonnet')
 
     let l:instance._model      = g:qq_anthropic_model_name
     let l:instance._api_key    = g:qq_anthropic_api_key
@@ -79,6 +81,10 @@ endfunction
 " }}}
 
 " {{{ public:
+
+function! g:vqq#AnthropicClient.name() dict
+    return self._name
+endfunction
 
 function! g:vqq#AnthropicClient.send_warmup(chat_id, messages) dict
   " we do nothing, as Anthropic API is stateless, no point in 

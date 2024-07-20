@@ -19,7 +19,7 @@ function! g:vqq#ChatsDB._save() dict
 endfunction
 
 function! g:vqq#ChatsDB.append_partial(chat_id, part) dict
-    call add(self._chats[a:chat_id].partial_reply, a:part)
+    let self._chats[a:chat_id].partial_message.content .= a:part
     call self._save()
 endfunction
 
@@ -74,29 +74,32 @@ function! g:vqq#ChatsDB.get_messages(chat_id) dict
 endfunction
 
 function! g:vqq#ChatsDB.get_partial(chat_id) dict
-    return join(self._chats[a:chat_id].partial_reply, '')
+    return self._chats[a:chat_id].partial_message
 endfunction
 
 function! g:vqq#ChatsDB.clear_partial(chat_id) dict
-    let self._chats[a:chat_id].partial_reply = []
+  let self._chats[a:chat_id].partial_message = {"role": "assistant", "content": ""}
+endfunction
+
+function! g:vqq#ChatsDB.reset_partial(chat_id, bot_name) dict
+  let self._chats[a:chat_id].partial_message = {"role": "assistant", "content": "", "bot_name": a:bot_name, "timestamp": localtime()}
 endfunction
 
 function! g:vqq#ChatsDB.partial_done(chat_id) dict
-    let l:reply = join(self._chats[a:chat_id].partial_reply, '')
-    call self.append_message(a:chat_id, {"role": "assistant", "content": l:reply})
-    let self._chats[a:chat_id].partial_reply = []
+    call self.append_message(a:chat_id, self._chats[a:chat_id].partial_message)
+    call self.clear_partial(a:chat_id)
 endfunction
 
 function! g:vqq#ChatsDB.new_chat()
     let l:chat = {}
     let l:chat.id = empty(self._chats) ? 1 : max(keys(self._chats)) + 1
     let l:chat.messages = []
-    let l:chat.partial_reply = []
     let l:chat.title = "new chat"
     let l:chat.title_computed = v:false
     let l:chat.timestamp = localtime()
 
     let self._chats[l:chat.id] = l:chat
+    call self.clear_partial(l:chat.id)
 
     call self._save()
 

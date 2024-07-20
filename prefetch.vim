@@ -39,12 +39,11 @@ source anthropic_client.vim
 
 let s:ui = g:vqq#UI.new()
 let s:chatsdb = g:vqq#ChatsDB.new(s:chats_file)
-"let s:client = g:vqq#LlamaClient.new()
-let s:client = g:vqq#AnthropicClient.new()
+"let s:client = g:vqq#AnthropicClient.new()
 
+let s:client = g:vqq#LlamaClient.new()
 
 " So what do we need now
-"  - extract some shared functionality from clients
 "  - make config better. Example - how would you create 2 different llama
 "  clients? Can you do that?
 "  - allow asking specific bot
@@ -88,6 +87,7 @@ call s:ui.set_cb('chat_select_cb', {chat_id -> s:qq_show_chat(chat_id)})
 call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
 
 " Sends new message to the server
+" TODO - send message to whom?
 function! s:qq_send_message(question, use_context)
     let l:context = s:ui.get_visual_selection()
     if a:use_context
@@ -95,13 +95,14 @@ function! s:qq_send_message(question, use_context)
     else
         let l:question = a:question
     endif
-    let l:message  = {"role": "user", "content": l:question}
+    " in this case bot_name means 'who is asked/tagged'
+    let l:message  = {"role": "user", "content": l:question, "bot_name": s:client.name()}
     let l:chat_id = s:current_chat_id() 
     " timestamp and other metadata might get appended here
     call s:chatsdb.append_message(l:chat_id, l:message)
-    call s:chatsdb.clear_partial(l:chat_id)
+    call s:chatsdb.reset_partial(l:chat_id, s:client.name())
     call s:qq_show_chat(l:chat_id)
-    call s:ui.display_prompt()
+    "call s:ui.display_prompt()
     call s:client.send_chat(l:chat_id, s:chatsdb.get_messages(l:chat_id))
 endfunction
 

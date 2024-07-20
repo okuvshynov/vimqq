@@ -59,18 +59,17 @@ function! g:vqq#UI.append_message(open_chat, message) dict
         let l:tstamp = strftime(g:qq_timefmt . " ", a:message['timestamp'])
     endif
     if a:message['role'] == 'user'
-        let prompt = l:tstamp . "  You: "
+        let prompt = l:tstamp . "You: @" . a:message['bot_name'] . " " 
     else
-        let prompt = l:tstamp . "Local: "
+        let prompt = l:tstamp . a:message['bot_name'] . ": "
     endif
-    let lines = split(a:message['content'], '\n')
+    let lines = split(prompt . a:message['content'], '\n')
     for l in lines
         if line('$') == 1 && getline(1) == ''
-            call setline(1, prompt . l)
+            call setline(1, l)
         else
-            call append(line('$'), prompt . l)
+            call append(line('$'), l)
         endif
-        let prompt = ''
     endfor
 
     normal! G
@@ -143,10 +142,8 @@ function g:vqq#UI.display_chat(messages, partial) dict
     endfor
 
     " display streamed partial response
-    if !empty(a:partial)
-        let l:msg = strftime(g:qq_timefmt . " Local: ") . a:partial
-        let l:lines = split(l:msg, '\n')
-        call append(line('$'), l:lines)
+    if has_key(a:partial, 'bot_name') && !empty(a:partial.bot_name)
+        call self.append_message(v:false, a:partial)
     endif
 
     function! ShowChatList() closure

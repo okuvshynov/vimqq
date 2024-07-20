@@ -11,12 +11,15 @@ source vqq_module.vim
 
 let g:vqq#LlamaClient = {} 
 
-function! g:vqq#LlamaClient.new() dict
+function! g:vqq#LlamaClient.new(config = {}) dict
     " poor man inheritance 
     let l:instance = g:vqq#Base.new()
     call extend(l:instance, copy(self))
 
-    let l:server = substitute(g:qq_server, '/*$', '', '')
+    let l:server = get(a:config, 'server', g:qq_server)
+    let l:instance._name = get(a:config, 'name', 'Llama')
+
+    let l:server = substitute(l:server, '/*$', '', '')
     let l:instance._chat_endpoint   = l:server . '/v1/chat/completions'
     let l:instance._status_endpoint = l:server . '/health'
     call l:instance._get_status()
@@ -117,7 +120,6 @@ function! g:vqq#LlamaClient.send_chat(chat_id, messages) dict
     let req.stream       = v:true
     let req.cache_prompt = v:true
 
-
     let l:job_conf = {
           \ 'out_cb'  : {channel, msg -> self._on_stream_out(a:chat_id, msg)}, 
           \ 'err_cb'  : {channel, msg -> self._on_err(a:chat_id, msg)},
@@ -142,6 +144,10 @@ function! g:vqq#LlamaClient.send_gen_title(chat_id, message_text) dict
     \ }
 
     call self._send_chat_query(req, l:job_conf)
+endfunction
+
+function! g:vqq#LlamaClient.name() dict
+    return self._name
 endfunction
 
 " }}}
