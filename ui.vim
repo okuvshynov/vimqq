@@ -199,12 +199,13 @@ endfunction
 function! s:setup_syntax()
     syntax clear
 
-    syntax match prompt     "^\d\d:\d\d:\d\d\s*[A-Za-z0-9_]\+:" nextgroup=taggedBot skipwhite
-    syntax match taggedBot  "@[A-Za-z0-9_]\+"                   nextgroup=restOfLine
+    syntax match timestr    "^\d\d:\d\d:\d\d" nextgroup=prompt    skipwhite
+    syntax match prompt     "[A-Za-z0-9_]\+:" contained nextgroup=taggedBot skipwhite
+    syntax match taggedBot  "@[A-Za-z0-9_]\+" nextgroup=restOfLine
 
     syntax match restOfLine ".*$" contained
 
-    highlight prompt     cterm=reverse gui=reverse
+    highlight prompt     cterm=bold gui=bold ctermfg=DarkBlue guifg=DarkBlue
     highlight taggedBot  ctermfg=DarkBlue guifg=DarkBlue
 endfunction
 

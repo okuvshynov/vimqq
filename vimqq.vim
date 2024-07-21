@@ -11,6 +11,9 @@ let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
 " this is the active chat id. New queries would go to this chat by default
 let s:current_chat = -1 
 
+" we need to create another one which would be warmup chat?
+let s:warmup_chat = -1
+
 function! s:current_chat_id()
     if s:current_chat == -1
         let s:current_chat = s:chatsdb.new_chat()
@@ -87,33 +90,37 @@ call s:ui.set_cb('chat_select_cb', {chat_id -> s:qq_show_chat(chat_id)})
 " If UI wants to show chat selection list, we need to get fresh list
 call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
 
+function! s:_pick_client(question)
+    for c in s:clients
+        let l:tag = '@' . c.name()
+        if strpart(a:question, 0, len(l:tag)) ==# l:tag
+            " removing tag before passing it to backend
+            return [c, strpart(a:question, len(l:tag))]
+        endif
+    endfor
+    return [s:default_client, a:question]
+endfunction
+
 " -----------------------------------------------------------------------------
 " entry points to the plugin
 
 " Sends new message to the server
-function! s:qq_send_message(question, use_context)
-    let l:context = s:ui.get_visual_selection()
+function! s:qq_send_message(question, use_context, force_new_chat=v:false)
     " pick the bot
-    let l:client = s:default_client
-    let l:question = a:question
-
-    for c in s:clients
-        let l:tag = '@' . c.name()
-        if strpart(a:question, 0, len(l:tag)) ==# l:tag
-            let l:client = c
-            " removing tag before passing it to backend
-            let l:question = strpart(a:question, len(l:tag))
-            break
-        endif
-    endfor
+    let [l:client, l:question] = s:_pick_client(a:question)
 
     if a:use_context
+        let l:context = s:ui.get_visual_selection()
         let l:question = s:fmt_question(l:context, l:question)
     endif
 
     " in this case bot_name means 'who is asked/tagged'
     let l:message  = {"role": "user", "content": l:question, "bot_name": l:client.name()}
-    let l:chat_id = s:current_chat_id() 
+    if a:force_new_chat
+        let l:chat_id = s:chatsdb.new_chat()
+    else
+        let l:chat_id = s:current_chat_id() 
+    endif
     " timestamp and other metadata might get appended here
     call s:chatsdb.append_message(l:chat_id, l:message)
     call s:chatsdb.reset_partial(l:chat_id, l:client.name())
@@ -134,18 +141,34 @@ function! s:qq_warmup()
     endif
 endfunction
 
+" sends a warmup message to the server to pre-fill kv cache with context.
+function! s:qq_send_warmup(use_context, force_new_chat, tag="")
+    let l:context = s:ui.get_visual_selection()
+    if a:use_context && !empty(l:context)
+        let l:chat_id = s:current_chat_id()
+        let l:content = s:fmt_question(l:context, "")
+        let l:message = [{"role": "user", "content": l:content}]
+    else
+        let l:message = [{"role": "user", "content": ""}]
+    endif
+
+    if a:force_new_chat
+        let l:chat_id = s:chatsdb.new_chat()
+    else
+        let l:chat_id = s:current_chat_id() 
+    endif
+
+    let [l:client, _msg] = s:_pick_client(a:tag)
+    let l:messages = s:chatsdb.get_messages(l:chat_id) + l:message
+
+    call l:client.send_warmup(l:chat_id, l:messages)
+endfunction
+
 " show/hide qq window. window might contain individual chat or history of past
 " conversations. qq_show_chat and qq_show_chat_list functions are used to
 " switch between these two views
 function! s:qq_toggle_window()
     call s:ui.toggle()
-endfunction
-
-" start new chat
-function! s:qq_new_chat()
-    " TODO: not much point showing empty chat.
-    " instead, show it after we send first message and/or warmup?
-    call s:qq_show_chat(s:chatsdb.new_chat())
 endfunction
 
 " show list of chats to select from 
@@ -169,8 +192,31 @@ xnoremap <silent> QQ :<C-u>call <SID>qq_warmup()<CR>
 command! -range -nargs=+ QQ  call s:qq_send_message(<q-args>, v:true)
 command!        -nargs=+ Q   call s:qq_send_message(<q-args>, v:false)
 command!        -nargs=1 QL  call s:qq_show_chat(<f-args>)
-command!        -nargs=0 QN  call s:qq_new_chat()
 command!        -nargs=0 QP  call s:qq_show_chat_list()
 command!        -nargs=0 QT  call s:qq_toggle_window()
 
 command! -range -nargs=0 QW  call s:qq_warmup()
+
+"
+" TODO:
+"  VQQChats -- list the chats
+"  VQQOpenChat <id>
+"  VQQToggleWindow <id>
+"  VQQStats
+
+command        -nargs=+ VQQSend        call s:qq_send_message(<q-args>, v:false, v:false)
+command        -nargs=+ VQQSendNew     call s:qq_send_message(<q-args>, v:false, v:true)
+command -range -nargs=+ VQQSendCtx     call s:qq_send_message(<q-args>, v:true,  v:false)
+command -range -nargs=+ VQQSendNewCtx  call s:qq_send_message(<q-args>, v:true,  v:true)
+
+" gets bot name as parameter optionally
+command        -nargs=? VQQWarm        call s:qq_send_warmup(v:false, v:false, <q-args>)
+" not much point sending warmup query with no context and new chat - only a
+" few first tokens + system prompt? 
+command -range -nargs=? VQQWarmNew     call s:qq_send_warmup(v:false, v:true, <q-args>)
+command -range -nargs=? VQQWarmCtx     call s:qq_send_warmup(v:true, v:false, <q-args>)
+command -range -nargs=? VQQWarmNewCtx  call s:qq_send_warmup(v:true, v:true, <q-args>)
+
+" then a hotkey to warmup current would look like:
+" 1. call corresponding VQQWarm* function
+" 2. open the corresponding VQQSend* function
