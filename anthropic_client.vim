@@ -24,10 +24,21 @@ function! g:vqq#ClaudeClient.new(config = {}) dict
     let l:instance._reply_by_id = {}
     let l:instance._title_reply_by_id = {}
 
+    let l:instance._usage = {'in': 0, 'out': 0}
+
     return l:instance
 endfunction
 
 " {{{ private:
+
+function! g:vqq#ClaudeClient._update_usage(usage) dict
+    let self._usage['in']  += a:usage['input_tokens']
+    let self._usage['out'] += a:usage['output_tokens']
+
+    let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
+
+    call self.call_cb('status_cb', msg, self)
+endfunction
 
 function! g:vqq#ClaudeClient._on_title_out(chat_id, msg) dict
     call add(self._title_reply_by_id[a:chat_id], a:msg)
@@ -36,6 +47,7 @@ endfunction
 function g:vqq#ClaudeClient._on_title_close(chat_id) dict
     let l:response = json_decode(join(self._title_reply_by_id[a:chat_id], '\n'))
     let l:title  = l:response.content[0].text
+    call self._update_usage(l:response.usage)
     " we pretend it's one huge update
     call self.call_cb('title_done_cb', a:chat_id, title)
 endfunction
@@ -51,6 +63,7 @@ endfunction
 function g:vqq#ClaudeClient._on_close(chat_id) dict
     let l:response = json_decode(join(self._reply_by_id[a:chat_id], '\n'))
     let l:message  = l:response.content[0].text
+    call self._update_usage(l:response.usage)
     " we pretend it's one huge update
     call self.call_cb('token_cb', a:chat_id, l:message)
     " and immediately done
