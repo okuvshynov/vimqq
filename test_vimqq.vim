@@ -1,3 +1,4 @@
+" Copyright 2024 Oleksandr Kuvshynov
 set nocompatible
 
 " -----------------------------------------------------------------------------
@@ -24,8 +25,12 @@ let g:vqq_claude_models = [
       \  {'bot_name': 'sonnet', 'model': 'claude-3-5-sonnet-20240620'}
 \]
 
+" optional parameters for claude config:
+"  - max_tokens: how many tokens to generate. default: 1024
+"  - title_tokens: how many tokens to generate to get title. default: 16
 " API key. default is environment variable $ANTHROPIC_API_KEY
 " let g:vqq_claude_api_key = 
+
 
 " -----------------------------------------------------------------------------
 " Other configuration
@@ -33,9 +38,18 @@ let g:vqq_claude_models = [
 " default bot is the one used if you don't use @bot_name tag in your question
 " it is also one where warmup query would be sent by default. Note that
 " for claude models warmup is no-op.
-"
 " if vqq_default_bot is not configured, first of the available clients will be
 " used as default
+"
 " let g:vqq_default_bot = 'llama70'
+"
+" chat window width (default = 80)
+" let g:vqq_width = 120
+"
+" time format to use for both messages and chats. Default is '%Y-%m-%d %H:%M:%S '
+" let g:vqq_time_format = '%H:%M:%S '
+"
+" json file to store all the message history (default = ~/.vim/vqq_chars.json)
+" let g:vqq_chats_file = expand('~/.vim/vqq_history.json')
 
 source vimqq.vim

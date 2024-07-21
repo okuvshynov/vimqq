@@ -1,6 +1,13 @@
+" Copyright 2024 Oleksandr Kuvshynov
+" -----------------------------------------------------------------------------
+" configuration:
 " default chat window width
-let g:qq_width  = get(g:, 'qq_width', 80)
+let g:vqq_width = get(g:, 'vqq_width', 80)
 
+" format to use for datetime
+let g:vqq_time_format = get(g:, 'vqq_time_format', "%Y-%m-%d %H:%M:%S ")
+
+" -----------------------------------------------------------------------------
 " User interface, buffer/window manipulation
 let g:vqq#UI = {}
 
@@ -27,7 +34,7 @@ function! g:vqq#UI.open_window() dict
     let l:bufnum = bufnr('vim_qna_chat')
     if l:bufnum == -1
         " Create a new buffer in a vertical split
-        silent! execute 'topleft vertical ' . g:qq_width . ' new'
+        silent! execute 'topleft vertical ' . g:vqq_width . ' new'
         silent! execute 'edit vim_qna_chat'
         setlocal buftype=nofile
         setlocal bufhidden=hide
@@ -40,7 +47,7 @@ function! g:vqq#UI.open_window() dict
     else
         let winnum = bufwinnr(l:bufnum)
         if winnum == -1
-            silent! execute 'topleft vertical ' . g:qq_width . ' split'
+            silent! execute 'topleft vertical ' . g:vqq_width . ' split'
             silent! execute 'buffer ' l:bufnum
         else
             silent! execute winnum . 'wincmd w'
@@ -56,7 +63,7 @@ function! g:vqq#UI.append_message(open_chat, message) dict
 
     let l:tstamp = "        "
     if has_key(a:message, 'timestamp')
-        let l:tstamp = strftime(g:qq_timefmt . " ", a:message['timestamp'])
+        let l:tstamp = strftime(g:vqq_time_format . " ", a:message['timestamp'])
     endif
     if a:message['role'] == 'user'
         let prompt = l:tstamp . "You: @" . a:message['bot_name'] . " " 
@@ -85,7 +92,7 @@ endfunction
 function! g:vqq#UI.display_prompt() dict
     "TODO: do that only if chat is open, not selection view
     let l:bufnum  = bufnr('vim_qna_chat')
-    let l:msg     = strftime(g:qq_timefmt . " Local: ")
+    let l:msg     = strftime(g:vqq_time_format . " Local: ")
     let l:lines   = split(l:msg, '\n')
     call appendbufline(l:bufnum, line('$'), l:lines)
 endfunction
@@ -101,7 +108,7 @@ function! g:vqq#UI.display_chat_history(history, current_chat) dict
             let l:sep = '>'
         endif
 
-        call add(l:titles, strftime(g:qq_timefmt . l:sep . item.title, item.time))
+        call add(l:titles, strftime(g:vqq_time_format . l:sep . item.title, item.time))
         let l:chat_id_map[len(titles)] = item.id
     endfor
 

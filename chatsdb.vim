@@ -1,11 +1,17 @@
+" Copyright 2024 Oleksandr Kuvshynov
+" -----------------------------------------------------------------------------
+" configuration:
+" file to store all message history
+let g:vqq_chats_file = get(g:, 'vqq_chats_file', expand('~/.vim/vqq_chats.json'))
+
 let g:vqq#ChatsDB = {}
 
-function! g:vqq#ChatsDB.new(chats_file) dict
+function! g:vqq#ChatsDB.new() dict
     let l:instance = copy(self)
-    let l:instance._file = a:chats_file
+    let l:instance._file = g:vqq_chats_file
     let l:instance._chats = {}
-    if filereadable(a:chats_file)
-        let l:instance._chats = json_decode(join(readfile(a:chats_file), ''))
+    if filereadable(l:instance._file)
+        let l:instance._chats = json_decode(join(readfile(l:instance._file), ''))
     endif
     return l:instance
 endfunction

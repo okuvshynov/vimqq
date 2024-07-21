@@ -2,21 +2,12 @@
 
 " -----------------------------------------------------------------------------
 " configuration
-
 let g:vqq_llama_servers = get(g:, 'vqq_llama_servers', [])
 let g:vqq_claude_models = get(g:, 'vqq_claude_models', [])
 let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
 
-" format to use for datetime
-let g:qq_timefmt = get(g:, 'qq_timefmt', "%Y-%m-%d %H:%M:%S ")
-
-" -----------------------------------------------------------------------------
-" script-level constants 
-let s:chats_file = expand('~/.vim/qq_chats.json')
-
 " -----------------------------------------------------------------------------
 " script-level mutable state
-
 " this is the active chat id. New queries would go to this chat by default
 let s:current_chat = -1 
 
@@ -36,8 +27,8 @@ source chatsdb.vim
 source llama_client.vim
 source anthropic_client.vim
 
-let s:ui = g:vqq#UI.new()
-let s:chatsdb = g:vqq#ChatsDB.new(s:chats_file)
+let s:ui      = g:vqq#UI.new()
+let s:chatsdb = g:vqq#ChatsDB.new()
 
 let s:clients = []
 
@@ -61,20 +52,9 @@ for client in s:clients
     endif
 endfor
 
-" So what do we need now
-"  - make config better. Example - how would you create 2 different llama
-"  clients? Can you do that?
-"  - allow asking specific bot
-"  - Store 'bot_name' in message metadata and put it into chat format
-"  - bring back 'tag' to see whom you have asked
-
 " -----------------------------------------------------------------------------
 " Setting up wiring between modules
 
-" When server updates health status, we update status line
-
-" When server produces new streamed token, we update db and maybe update ui, 
-" if the chat we show is the one updated
 function! s:_on_token_done(chat_id, token)
     call s:chatsdb.append_partial(a:chat_id, a:token)
     if a:chat_id == s:current_chat
@@ -82,8 +62,6 @@ function! s:_on_token_done(chat_id, token)
     endif
 endfunction
 
-" When the streaming is done and entire message is received, we mark it as
-" complete and kick off title generation if it is not computed yet
 function! s:_on_stream_done(chat_id, client)
     call s:chatsdb.partial_done(a:chat_id)
     if !s:chatsdb.has_title(a:chat_id)
@@ -91,6 +69,11 @@ function! s:_on_stream_done(chat_id, client)
     endif
 endfunction
 
+" When server updates health status, we update status line
+" When server produces new streamed token, we update db and maybe update ui, 
+" if the chat we show is the one updated
+" When the streaming is done and entire message is received, we mark it as
+" complete and kick off title generation if it is not computed yet
 for c in s:clients
     call c.set_cb('title_done_cb', {chat_id, title -> s:chatsdb.set_title(chat_id, title)})
     call c.set_cb('stream_done_cb', {chat_id, client -> s:_on_stream_done(chat_id, client)})
@@ -103,6 +86,9 @@ call s:ui.set_cb('chat_select_cb', {chat_id -> s:qq_show_chat(chat_id)})
 
 " If UI wants to show chat selection list, we need to get fresh list
 call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
+
+" -----------------------------------------------------------------------------
+" entry points to the plugin
 
 " Sends new message to the server
 function! s:qq_send_message(question, use_context)
