@@ -38,5 +38,4 @@ let g:vqq_claude_models = [
 " used as default
 " let g:vqq_default_bot = 'llama70'
 
-
-source prefetch.vim
+source vimqq.vim
