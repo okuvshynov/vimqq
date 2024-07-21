@@ -1,10 +1,9 @@
-" llama.cpp (or compatible) server
-let g:qq_server = get(g:, 'qq_server', "http://localhost:8080/")
-
-" delay between healthchecks
-let s:healthcheck_ms   = 10000
-" auto-generated title max length
-let s:qq_title_tokens  = 16
+let s:default_conf = {
+  \ 'healthcheck_ms' : 10000,
+  \ 'title_tokens'   : 16,
+  \ 'max_tokens'     : 1024,
+  \ 'bot_name'       : 'Llama',
+\ }
 
 source utils.vim
 source vqq_module.vim
@@ -16,10 +15,10 @@ function! g:vqq#LlamaClient.new(config = {}) dict
     let l:instance = g:vqq#Base.new()
     call extend(l:instance, copy(self))
 
-    let l:server = get(a:config, 'server', g:qq_server)
-    let l:instance._name = get(a:config, 'name', 'Llama')
+    let l:instance._conf = deepcopy(s:default_conf)
+    call extend(l:instance._conf, a:config)
 
-    let l:server = substitute(l:server, '/*$', '', '')
+    let l:server = substitute(l:instance._conf.addr, '/*$', '', '')
     let l:instance._chat_endpoint   = l:server . '/v1/chat/completions'
     let l:instance._status_endpoint = l:server . '/health'
     call l:instance._get_status()
@@ -33,7 +32,7 @@ function g:vqq#LlamaClient._on_status_exit(exit_status) dict
     if a:exit_status != 0
         call self.call_cb('status_cb', "unavailable")
     endif
-    call timer_start(s:healthcheck_ms, { -> self._get_status() })
+    call timer_start(self._conf.healthcheck_ms, { -> self._get_status() })
 endfunction
 
 function g:vqq#LlamaClient._on_status_out(msg) dict
@@ -116,7 +115,7 @@ endfunction
 function! g:vqq#LlamaClient.send_chat(chat_id, messages) dict
     let req = {}
     let req.messages     = a:messages
-    let req.n_predict    = g:qq_max_tokens
+    let req.n_predict    = self._conf.max_tokens
     let req.stream       = v:true
     let req.cache_prompt = v:true
 
@@ -135,7 +134,7 @@ function! g:vqq#LlamaClient.send_gen_title(chat_id, message_text) dict
     let req = {}
     let prompt = "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
     let req.messages  = [{"role": "user", "content": prompt . a:message_text}]
-    let req.n_predict    = s:qq_title_tokens
+    let req.n_predict    = self._conf.title_tokens
     let req.stream       = v:false
     let req.cache_prompt = v:true
 
@@ -147,7 +146,7 @@ function! g:vqq#LlamaClient.send_gen_title(chat_id, message_text) dict
 endfunction
 
 function! g:vqq#LlamaClient.name() dict
-    return self._name
+    return self._conf.bot_name
 endfunction
 
 " }}}

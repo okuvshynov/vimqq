@@ -3,23 +3,22 @@
 " -----------------------------------------------------------------------------
 " configuration
 
-" how many tokens to generate for each message
-let g:qq_max_tokens = get(g:, 'qq_max_tokens', 1024)
+let g:vqq_llama_servers = get(g:, 'vqq_llama_servers', [])
+let g:vqq_claude_models = get(g:, 'vqq_claude_models', [])
+let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
+
 " format to use for datetime
 let g:qq_timefmt = get(g:, 'qq_timefmt', "%Y-%m-%d %H:%M:%S ")
 
 " -----------------------------------------------------------------------------
 " script-level constants 
-
-" should each chat have its own file?
-let s:chats_file    = expand('~/.vim/qq_chats.json')
+let s:chats_file = expand('~/.vim/qq_chats.json')
 
 " -----------------------------------------------------------------------------
 " script-level mutable state
 
 " this is the active chat id. New queries would go to this chat by default
 let s:current_chat = -1 
-" latest healthcheck result. global so that statusline can access it
 
 function! s:current_chat_id()
     if s:current_chat == -1
@@ -39,8 +38,28 @@ source anthropic_client.vim
 
 let s:ui = g:vqq#UI.new()
 let s:chatsdb = g:vqq#ChatsDB.new(s:chats_file)
-let s:clients = [g:vqq#AnthropicClient.new(), g:vqq#LlamaClient.new()]
-let s:default_client = s:clients[1]
+
+let s:clients = []
+
+for llama_conf in g:vqq_llama_servers
+    call add(s:clients, g:vqq#LlamaClient.new(llama_conf))
+endfor
+
+for claude_conf in g:vqq_claude_models
+    call add(s:clients, g:vqq#ClaudeClient.new(claude_conf))
+endfor
+
+if empty(s:clients)
+    echo "no clients for vim-qq"
+    finish
+endif
+
+let s:default_client = s:clients[0]
+for client in s:clients
+    if client.name() ==# g:vqq_default_bot
+        let s:default_client = client
+    endif
+endfor
 
 " So what do we need now
 "  - make config better. Example - how would you create 2 different llama
@@ -126,7 +145,7 @@ function! s:qq_warmup()
         let l:content = s:fmt_question(l:context, "")
         let l:message = [{"role": "user", "content": l:content}]
         let l:messages = s:chatsdb.get_messages(l:chat_id) + l:message
-        call s:clients[1].send_warmup(l:chat_id, l:messages)
+        call s:default_client.send_warmup(l:chat_id, l:messages)
         call feedkeys(":'<,'>QQ ", 'n')
     endif
 endfunction

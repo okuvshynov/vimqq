@@ -1,25 +1,25 @@
 source vqq_module.vim
 source utils.vim
 
-let g:qq_anthropic_api_key = get(g:, 'qq_anthropic_api_key', $ANTHROPIC_API_KEY)
+let g:vqq_claude_api_key = get(g:, 'vqq_claude_api_key', $ANTHROPIC_API_KEY)
 
-let g:qq_anthropic_model_name = get(g:, 'qq_anthropic_model_name', "claude-3-5-sonnet-20240620")
+let s:default_conf = {
+  \ 'title_tokens'   : 16,
+  \ 'max_tokens'     : 1024,
+  \ 'bot_name'       : 'Claude',
+\ }
 
-" auto-generated title max length
-let s:qq_title_tokens  = 16
+let g:vqq#ClaudeClient = {} 
 
-let g:vqq#AnthropicClient = {} 
-
-function! g:vqq#AnthropicClient.new(config = {}) dict
+function! g:vqq#ClaudeClient.new(config = {}) dict
     " poor man inheritance 
     let l:instance = g:vqq#Base.new()
     call extend(l:instance, copy(self))
 
-    let l:instance._name = get(a:config, 'name', 'Sonnet')
+    let l:instance._conf = deepcopy(s:default_conf)
+    call extend(l:instance._conf, a:config)
 
-    let l:instance._model      = g:qq_anthropic_model_name
-    let l:instance._api_key    = g:qq_anthropic_api_key
-    let l:instance._max_tokens = g:qq_max_tokens
+    let l:instance._api_key = g:vqq_claude_api_key
 
     let l:instance._reply_by_id = {}
     let l:instance._title_reply_by_id = {}
@@ -29,26 +29,26 @@ endfunction
 
 " {{{ private:
 
-function! g:vqq#AnthropicClient._on_title_out(chat_id, msg) dict
+function! g:vqq#ClaudeClient._on_title_out(chat_id, msg) dict
     call add(self._title_reply_by_id[a:chat_id], a:msg)
 endfunction
 
-function g:vqq#AnthropicClient._on_title_close(chat_id) dict
+function g:vqq#ClaudeClient._on_title_close(chat_id) dict
     let l:response = json_decode(join(self._title_reply_by_id[a:chat_id], '\n'))
     let l:title  = l:response.content[0].text
     " we pretend it's one huge update
     call self.call_cb('title_done_cb', a:chat_id, title)
 endfunction
 
-function! g:vqq#AnthropicClient._on_out(chat_id, msg) dict
+function! g:vqq#ClaudeClient._on_out(chat_id, msg) dict
     call add(self._reply_by_id[a:chat_id], a:msg)
 endfunction
 
-function! g:vqq#AnthropicClient._on_err(chat_id, msg) dict
-    " TODO logging
+function! g:vqq#ClaudeClient._on_err(chat_id, msg) dict
+    " TODO logging (or status callback?)
 endfunction
 
-function g:vqq#AnthropicClient._on_close(chat_id) dict
+function g:vqq#ClaudeClient._on_close(chat_id) dict
     let l:response = json_decode(join(self._reply_by_id[a:chat_id], '\n'))
     let l:message  = l:response.content[0].text
     " we pretend it's one huge update
@@ -57,7 +57,7 @@ function g:vqq#AnthropicClient._on_close(chat_id) dict
     call self.call_cb('stream_done_cb', a:chat_id, self)
 endfunction
 
-function! g:vqq#AnthropicClient._send_query(req, job_conf) dict
+function! g:vqq#ClaudeClient._send_query(req, job_conf) dict
     let l:json_req  = json_encode(a:req)
     let l:json_req  = substitute(l:json_req, "'", "'\\\\''", "g")
 
@@ -70,7 +70,7 @@ function! g:vqq#AnthropicClient._send_query(req, job_conf) dict
     call VQQKeepJob(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
 endfunction
 
-function! g:vqq#AnthropicClient._format_messages(messages) dict
+function! g:vqq#ClaudeClient._format_messages(messages) dict
     let l:res = []
     for msg in a:messages
         call add (l:res, {'role': msg.role, 'content': msg.content})
@@ -82,20 +82,20 @@ endfunction
 
 " {{{ public:
 
-function! g:vqq#AnthropicClient.name() dict
-    return self._name
+function! g:vqq#ClaudeClient.name() dict
+    return self._conf.bot_name
 endfunction
 
-function! g:vqq#AnthropicClient.send_warmup(chat_id, messages) dict
-  " we do nothing, as Anthropic API is stateless, no point in 
+function! g:vqq#ClaudeClient.send_warmup(chat_id, messages) dict
+  " we do nothing, as Claude API is stateless, no point in 
   " preparing anything
 endfunction
 
-function! g:vqq#AnthropicClient.send_chat(chat_id, messages) dict
+function! g:vqq#ClaudeClient.send_chat(chat_id, messages) dict
     let req = {}
-    let req.model      = self._model
+    let req.model      = self._conf.model
     let req.messages   = self._format_messages(a:messages)
-    let req.max_tokens = self._max_tokens
+    let req.max_tokens = self._conf.max_tokens
     let self._reply_by_id[a:chat_id] = []
 
     let l:job_conf = {
@@ -108,12 +108,12 @@ function! g:vqq#AnthropicClient.send_chat(chat_id, messages) dict
 endfunction
 
 " ask for a title we'll use. Uses first message in a chat
-function! g:vqq#AnthropicClient.send_gen_title(chat_id, message_text) dict
+function! g:vqq#ClaudeClient.send_gen_title(chat_id, message_text) dict
     let req = {}
     let prompt = "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
     let req.messages   = [{"role": "user", "content": prompt . a:message_text}]
-    let req.max_tokens = s:qq_title_tokens
-    let req.model      = self._model
+    let req.max_tokens = self._conf.title_tokens
+    let req.model      = self._conf.model
 
     let self._title_reply_by_id[a:chat_id] = []
 
