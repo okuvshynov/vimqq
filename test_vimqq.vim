@@ -55,4 +55,20 @@ let g:vqq_claude_models = [
 " json file to store all the message history (default = ~/.vim/vqq_chars.json)
 " let g:vqq_chats_file = expand('~/.vim/vqq_history.json')
 
+" vimqq provides basic commands which we can combine to get convenient
+" shortcuts.
+
+function! VQQWarmup()
+    execute 'VQQWarmCtx' 
+    call feedkeys(":'<,'>VQQSendCtx ", 'n')
+endfunction
+
+function! VQQWarmupNew()
+    execute 'VQQWarmNewCtx' 
+    call feedkeys(":'<,'>VQQSendNewCtx ", 'n')
+endfunction
+
+xnoremap <silent> QW :<C-u>call VQQWarmup()<cr>
+xnoremap <silent> QN :<C-u>call VQQWarmupNew()<cr>
+
 source vimqq.vim

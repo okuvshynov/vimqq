@@ -205,6 +205,7 @@ function! s:setup_syntax()
 
     syntax match restOfLine ".*$" contained
 
+    highlight timestr    cterm=bold gui=bold
     highlight prompt     cterm=bold gui=bold ctermfg=DarkBlue guifg=DarkBlue
     highlight taggedBot  ctermfg=DarkBlue guifg=DarkBlue
 endfunction
