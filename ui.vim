@@ -26,14 +26,9 @@ function! g:vqq#UI.new() dict
     return l:instance
 endfunction
 
-function! g:vqq#UI.update_statusline(status, bot_name) dict
-    if !has_key(self._bot_status, a:bot_name) || self._bot_status[a:bot_name] != a:status
-        let self._bot_status[a:bot_name] = a:status
-        redrawstatus!
-    endif
-endfunction
+" {{{ private:
 
-function! g:vqq#UI.open_window() dict
+function! g:vqq#UI._open_window() dict
     " Check if the buffer already exists
     let l:bufnum = bufnr('vim_qna_chat')
     if l:bufnum == -1
@@ -64,9 +59,9 @@ function! g:vqq#UI.open_window() dict
     return l:bufnum
 endfunction
 
-function! g:vqq#UI.append_message(open_chat, message) dict
+function! g:vqq#UI._append_message(open_chat, message) dict
     if a:open_chat
-        call self.open_window()
+        call self._open_window()
     endif
 
     let l:tstamp = "        "
@@ -90,19 +85,21 @@ function! g:vqq#UI.append_message(open_chat, message) dict
     normal! G
 endfunction
 
+" }}}
+" {{{ public:
+
+function! g:vqq#UI.update_statusline(status, bot_name) dict
+    if !has_key(self._bot_status, a:bot_name) || self._bot_status[a:bot_name] != a:status
+        let self._bot_status[a:bot_name] = a:status
+        redrawstatus!
+    endif
+endfunction
+
 function! g:vqq#UI.append_partial(token) dict
     let l:bufnum    = bufnr('vim_qna_chat')
     let l:curr_line = getbufoneline(bufnum, '$')
     let l:lines     = split(l:curr_line . a:token . "\n", '\n')
     silent! call setbufline(l:bufnum, '$', l:lines)
-endfunction
-
-function! g:vqq#UI.display_prompt() dict
-    "TODO: do that only if chat is open, not selection view
-    let l:bufnum  = bufnr('vim_qna_chat')
-    let l:msg     = strftime(s:time_format . " Local: ")
-    let l:lines   = split(l:msg, '\n')
-    call appendbufline(l:bufnum, line('$'), l:lines)
 endfunction
 
 function! g:vqq#UI.display_chat_history(history, current_chat) dict
@@ -120,7 +117,7 @@ function! g:vqq#UI.display_chat_history(history, current_chat) dict
         let l:chat_id_map[len(titles)] = item.id
     endfor
 
-    call self.open_window()
+    call self._open_window()
 
     setlocal modifiable
     silent! call deletebufline('%', 1, '$')
@@ -146,19 +143,19 @@ function! g:vqq#UI.display_chat_history(history, current_chat) dict
 endfunction
 
 function g:vqq#UI.display_chat(messages, partial) dict
-    call self.open_window()
+    call self._open_window()
 
     mapclear <buffer>
     setlocal modifiable
     silent! call deletebufline('%', 1, '$')
 
     for l:message in a:messages
-        call self.append_message(v:false, l:message)
+        call self._append_message(v:false, l:message)
     endfor
 
     " display streamed partial response
     if has_key(a:partial, 'bot_name') && !empty(a:partial.bot_name)
-        call self.append_message(v:false, a:partial)
+        call self._append_message(v:false, a:partial)
     endif
 
     function! ShowChatList() closure
@@ -171,14 +168,14 @@ endfunction
 function! g:vqq#UI.toggle() dict
     let bufnum = bufnr('vim_qna_chat')
     if bufnum == -1
-        call self.open_window()
+        call self._open_window()
     else
         let l:winid = bufwinid('vim_qna_chat')
         if l:winid != -1
             call win_gotoid(l:winid)
             silent! execute 'hide'
         else
-            call self.open_window()
+            call self._open_window()
         endif
     endif
 endfunction
@@ -195,7 +192,9 @@ function! g:vqq#UI.get_visual_selection() dict
     return join(lines, "\n")
 endfunction
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" }}}
+
+" -----------------------------------------------------------------------------
 " basic color scheme setup
 function! s:setup_syntax()
     syntax clear

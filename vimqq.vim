@@ -101,8 +101,7 @@ function! s:qq_send_message(question, use_context)
         let l:tag = '@' . c.name()
         if strpart(a:question, 0, len(l:tag)) ==# l:tag
             let l:client = c
-            " removing tag before passing it
-            " TODO: also remove leading space?
+            " removing tag before passing it to backend
             let l:question = strpart(a:question, len(l:tag))
             break
         endif
@@ -119,7 +118,6 @@ function! s:qq_send_message(question, use_context)
     call s:chatsdb.append_message(l:chat_id, l:message)
     call s:chatsdb.reset_partial(l:chat_id, l:client.name())
     call s:qq_show_chat(l:chat_id)
-    "call s:ui.display_prompt()
     call l:client.send_chat(l:chat_id, s:chatsdb.get_messages(l:chat_id))
 endfunction
 
