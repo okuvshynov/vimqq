@@ -1,10 +1,10 @@
 # vim quick question (vim-qq)
 
 Motivation:
-* Typically good engineer spends much more time reading code than writing code. The main use-case here was to help understand what's going on, not to make LLM write BFS or http server in python.
+* Typically good engineer spends much more time reading code than writing code. The main use-case here was to help understand what's going on, not to make LLM write quicksort in C or http server in python.
 * LLMs are still not too good at generating code, especially if the change is spread across many files in huge repo and is generally complicated enough. If LLM is good at writing some code, maybe that code should not be written at all.
-* At the same time, LLMs are pretty good at trying to explain what the code is trying to accomplish (search space is different!)
-* Pretty good at suggesting alternatives/cleaner ways to achieve something.
+* At the same time, LLMs are pretty good at trying to explain what the code is trying to accomplish (search space is different)
+* Pretty good at suggesting alternatives/cleaner ways/already existing tools to achieve something.
 * Pretty good at helping with corner cases/review.
 
 The expectations here are:
@@ -12,16 +12,16 @@ The expectations here are:
 * It will help me read/understand code faster;
 * It will help me write a little bit better code.
 
-Multi-backend support was done to be able to experiment on different local/closed models, for example:
+Multi-backend support was implemented to be able to experiment on different local/closed models, for example:
 1. To get initial assesment of a complicated problem you might ask sonnet 3.5. 
-2. Claude will charge per token in the input and each message will send/process all the tokens again, so if you keep chatting you get cost = O(n^2). While it's pretty cheap - 1000 tokens of output is ~1.5 cents, it can still add up. We can also expect ~5x for next opus model.
+2. Claude will charge per token in the input and each message will send/process all the tokens again, so if you keep chatting you get O(n^2). While it's pretty cheap - 1000 tokens of output is ~1.5 cents, it can still add up. We can also expect ~5x for next opus model.
 3. The idea is that we might be able to, for example, ask Sonnet 3.5 original question, ask for some options/alternatives and then continue the conversation with a different bot (maybe haiku, maybe local llama, etc.).
 
 Key features:
 * use both Sonnet/local llama.cpp within same chat session. Can have multiple bots to pick on based on problem complexity/cost/capabilities/etc.
-* streaming text to vim for llama.cpp server. This is important for large models running locally - llama3 70B gets ~8 tps on m2 ultra, which is very close to typical human reading time.
-* easily share context based on visual selection in vim. Be able to select lines, hit a hotkey and ask 'what is it doing?', 'what might be corner cases here?';
-* kv cache warmup to save on local prompt processing time. We can warmup KV cache for the lengthy multiple-turn chat session or a large code selection before we finished typing the question, thus amortizing the prompt processing cost.
+* streaming response from llama.cpp server and show in vim right away. This is important for large models running locally - llama3 70B gets ~8 tps on m2 ultra, which is very close to typical human reading time, so we can just read as the reply is getting produced.
+* easily share context based on visual selection in vim. Be able to select lines, hit a hotkey and ask 'what is it doing?', 'what might be corner cases here?', 'how would you modernize this code?', 'how would you test this code?'.
+* kv cache warmup to save on local prompt processing time. We can warmup KV cache for the lengthy multiple-turn chat session or a large code selection before we finished typing the question, thus amortizing the prompt processing cost. Hit hotkey, selection/previous messages are already being worked on in parallel while you are typing the question.
 
 ## TODO
 
