@@ -16,9 +16,6 @@ function! g:vqq#ChatsDB.new() dict
     return l:instance
 endfunction
 
-function! g:vqq#ChatsDB.init() dict
-endfunction
-
 function! g:vqq#ChatsDB._save() dict
     let l:chats_text = json_encode(self._chats)
     silent! call writefile([l:chats_text], self._file)

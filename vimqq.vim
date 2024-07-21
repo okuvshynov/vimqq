@@ -143,6 +143,8 @@ endfunction
 
 " start new chat
 function! s:qq_new_chat()
+    " TODO: not much point showing empty chat.
+    " instead, show it after we send first message and/or warmup?
     call s:qq_show_chat(s:chatsdb.new_chat())
 endfunction
 
@@ -170,3 +172,5 @@ command!        -nargs=1 QL  call s:qq_show_chat(<f-args>)
 command!        -nargs=0 QN  call s:qq_new_chat()
 command!        -nargs=0 QP  call s:qq_show_chat_list()
 command!        -nargs=0 QT  call s:qq_toggle_window()
+
+command! -range -nargs=0 QW  call s:qq_warmup()
