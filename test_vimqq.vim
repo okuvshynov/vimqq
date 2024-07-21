@@ -70,5 +70,6 @@ endfunction
 
 xnoremap <silent> QW :<C-u>call VQQWarmup()<cr>
 xnoremap <silent> QN :<C-u>call VQQWarmupNew()<cr>
+nnoremap <silent> QL :<C-u>execute 'VQQList'<cr>
 
 source vimqq.vim

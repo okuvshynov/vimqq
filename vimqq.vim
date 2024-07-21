@@ -186,8 +186,7 @@ function! s:qq_show_chat(chat_id)
 endfunction
 
 " -----------------------------------------------------------------------------
-"  commands and default key mappings
-xnoremap <silent> QQ :<C-u>call <SID>qq_warmup()<CR>
+"  commands
 
 command!        -nargs=+ VQQSend        call s:qq_send_message(<q-args>, v:false, v:false)
 command!        -nargs=+ VQQSendNew     call s:qq_send_message(<q-args>, v:false, v:true)
