@@ -30,7 +30,7 @@ endfunction
 
 function g:vqq#LlamaClient._on_status_exit(exit_status) dict
     if a:exit_status != 0
-        call self.call_cb('status_cb', "unavailable")
+        call self.call_cb('status_cb', "unavailable", self)
     endif
     call timer_start(self._conf.healthcheck_ms, { -> self._get_status() })
 endfunction
@@ -38,9 +38,9 @@ endfunction
 function g:vqq#LlamaClient._on_status_out(msg) dict
     let l:status = json_decode(a:msg)
     if empty(l:status)
-        call self.call_cb('status_cb', "unavailable")
+        call self.call_cb('status_cb', "unavailable", self)
     else
-        call self.call_cb('status_cb', l:status.status)
+        call self.call_cb('status_cb', l:status.status, self)
     endif
 endfunction
 

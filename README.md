@@ -65,11 +65,11 @@ Let's keep input simple - we can only type the question itself in command line (
 - [ ] prefetch on chat selection
 - [ ] improve status line - show number of tokens, chat name and server addr? make configurable
 - [ ] installation/distribution
-- [ ] recording some feedback (e.g. good answer, bad answer, wrong answer, etc)
 - [x] multi-agent support - chat with multiple bots
 
 Later
 - [ ] code review. Ask to provide input without writing code itself. 
+- [ ] recording some feedback (e.g. good answer, bad answer, wrong answer, etc)
 
 Maybe never
 - [ ] integration with fzf

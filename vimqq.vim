@@ -77,7 +77,7 @@ endfunction
 for c in s:clients
     call c.set_cb('title_done_cb', {chat_id, title -> s:chatsdb.set_title(chat_id, title)})
     call c.set_cb('stream_done_cb', {chat_id, client -> s:_on_stream_done(chat_id, client)})
-    call c.set_cb('status_cb', {status -> s:ui.update_statusline(status)})
+    call c.set_cb('status_cb', {status, client -> s:ui.update_statusline(status, client.name())})
     call c.set_cb('token_cb', {chat_id, token -> s:_on_token_done(chat_id, token)})
 endfor
 

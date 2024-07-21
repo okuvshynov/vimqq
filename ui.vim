@@ -19,12 +19,13 @@ function! g:vqq#UI.new() dict
     call extend(l:instance, copy(self))
 
     let l:instance._server_status = "unknown"
+    let l:instance._bot_status = {}
     return l:instance
 endfunction
 
-function! g:vqq#UI.update_statusline(status) dict
-    if a:status != self._server_status
-        let self._server_status = a:status
+function! g:vqq#UI.update_statusline(status, bot_name) dict
+    if !has_key(self._bot_status, a:bot_name) || self._bot_status[a:bot_name] != a:status
+        let self._bot_status[a:bot_name] = a:status
         redrawstatus!
     endif
 endfunction
@@ -40,10 +41,14 @@ function! g:vqq#UI.open_window() dict
         setlocal bufhidden=hide
         setlocal noswapfile
         function GetStatus() closure
-            return self._server_status
+            let res = []
+            for [name, status] in items(self._bot_status)
+                call add(res, name . ":" . status)
+            endfor
+            return join(res, ' | ')
         endfunction
 
-        setlocal statusline=server\ status:\ %{GetStatus()}
+        setlocal statusline=status:\ %{GetStatus()}
     else
         let winnum = bufwinnr(l:bufnum)
         if winnum == -1
