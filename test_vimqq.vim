@@ -1,5 +1,6 @@
 " Copyright 2024 Oleksandr Kuvshynov
 set nocompatible
+syntax on
 
 " -----------------------------------------------------------------------------
 " Local llama configuration
@@ -46,7 +47,9 @@ let g:vqq_claude_models = [
 " chat window width (default = 80)
 " let g:vqq_width = 120
 "
-" time format to use for both messages and chats. Default is '%Y-%m-%d %H:%M:%S '
+" time format to use for chats in chatlist. Default is '%Y-%m-%d %H:%M:%S '.
+" Individual message time format is fixed to be '%H:%M:%S' so that it is
+" easier to create syntax rules for highlighting
 " let g:vqq_time_format = '%H:%M:%S '
 "
 " json file to store all the message history (default = ~/.vim/vqq_chars.json)

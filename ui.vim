@@ -4,8 +4,11 @@
 " default chat window width
 let g:vqq_width = get(g:, 'vqq_width', 80)
 
-" format to use for datetime
+" format to use in chat list
 let g:vqq_time_format = get(g:, 'vqq_time_format', "%Y-%m-%d %H:%M:%S ")
+
+" format to use for each message. Not configurable, we have hardcoded syntax
+let s:time_format = "%H:%M:%S"
 
 " -----------------------------------------------------------------------------
 " User interface, buffer/window manipulation
@@ -68,7 +71,7 @@ function! g:vqq#UI.append_message(open_chat, message) dict
 
     let l:tstamp = "        "
     if has_key(a:message, 'timestamp')
-        let l:tstamp = strftime(g:vqq_time_format . " ", a:message['timestamp'])
+        let l:tstamp = strftime(s:time_format . " ", a:message['timestamp'])
     endif
     if a:message['role'] == 'user'
         let prompt = l:tstamp . "You: @" . a:message['bot_name'] . " " 
@@ -97,7 +100,7 @@ endfunction
 function! g:vqq#UI.display_prompt() dict
     "TODO: do that only if chat is open, not selection view
     let l:bufnum  = bufnr('vim_qna_chat')
-    let l:msg     = strftime(g:vqq_time_format . " Local: ")
+    let l:msg     = strftime(s:time_format . " Local: ")
     let l:lines   = split(l:msg, '\n')
     call appendbufline(l:bufnum, line('$'), l:lines)
 endfunction
@@ -192,3 +195,21 @@ function! g:vqq#UI.get_visual_selection() dict
     return join(lines, "\n")
 endfunction
 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" basic color scheme setup
+function! s:setup_syntax()
+    syntax clear
+
+    syntax match prompt     "^\d\d:\d\d:\d\d\s*[A-Za-z0-9_]\+:" nextgroup=taggedBot skipwhite
+    syntax match taggedBot  "@[A-Za-z0-9_]\+"                   nextgroup=restOfLine
+
+    syntax match restOfLine ".*$" contained
+
+    highlight prompt     cterm=reverse gui=reverse
+    highlight taggedBot  ctermfg=DarkBlue guifg=DarkBlue
+endfunction
+
+augroup VQQSyntax
+  autocmd!
+  autocmd BufRead,BufNewFile *vim_qna_chat* call s:setup_syntax()
+augroup END
