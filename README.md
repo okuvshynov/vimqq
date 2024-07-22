@@ -135,6 +135,30 @@ Now you can do the following:
 ## TODO
 
 Let's keep input simple - we can only type the question itself in command line (not in the buffer) and the history will be displayed separately. What more complicated things do we need:
+
+- [ ] deleting chats
+- [ ] doc/help
+
+Later
+
+- [ ] recording some feedback (e.g. good answer, bad answer, wrong answer, etc)
+
+Maybe never
+- [ ] integration with fzf
+- [ ] use popup similar to fzf
+
+old completed:
+- [x] generating title for chat
+- [x] visual selection is incorrect
+- [x] date/time of last message in chat selection
+- [x] ordering in chat selection
+- [x] navigating within chat session
+- [x] encapsulate all access to session data. For all updates have callbacks from chat store, do not append anything directly.
+- [x] refactor to something mvc-like (ui, db, client, main logic)
+- [x] prefetch on chat selection
+- [x] improve status line - show number of tokens, botname
+- [x] installation/distribution/correct directory structure
+- [x] multi-agent support - chat with multiple bots
 - [x] Command to show/hide history window
 - [x] Saving chats locally
 - [x] sessions support
@@ -147,24 +171,4 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] change shortcuts, define commands the right way, now it is a mess
 - [x] check what's up with cache reuse and \n\n token.
 - [x] session dictionary
-- [ ] deleting chats.
-- [x] generating title for chat
-- [x] visual selection is incorrect
-- [x] date/time of last message in chat selection
-- [x] ordering in chat selection
-- [x] navigating within chat session
-- [x] encapsulate all access to session data. For all updates have callbacks from chat store, do not append anything directly.
-- [x] refactor to something mvc-like (ui, db, client, main logic)
-- [x] prefetch on chat selection
-- [x] improve status line - show number of tokens, botname
-- [x] installation/distribution/correct directory structure
-- [x] multi-agent support - chat with multiple bots
-- [ ] doc/help
-
-Later
-- [ ] code review. Ask to provide input without writing code itself. 
-- [ ] recording some feedback (e.g. good answer, bad answer, wrong answer, etc)
-
-Maybe never
-- [ ] integration with fzf
-- [ ] use popup similar to fzf
+- [x] code review. Ask to provide input without writing code itself. 
