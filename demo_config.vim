@@ -92,5 +92,8 @@ nnoremap <silent> <leader>ss :<C-u>call VQQQueryNew('@sonnet')<cr>
 " [C]hat list
 nnoremap <silent> <leader>ll :<C-u>execute 'VQQList'<cr>
 
+" [R]eview code
+xnoremap <silent> <leader>R :<C-u>execute "'<,'>VQQSendNewCtx @llama70 please review the code and share suggestions for improvement."<cr>
+
 let g:vqq_warmup_on_chat_open = ['llama70']
 
