@@ -17,7 +17,7 @@ Key features:
 * easily share context based on visual selection in vim. Be able to select lines, hit a hotkey and ask 'what is it doing?', 'what might be corner cases here?', 'how would you modernize this code?', 'how would you test this code?'.
 * kv cache warmup to save on local prompt processing time. We can warmup KV cache for the lengthy multiple-turn chat session or a large code selection before we finished typing the question, thus amortizing the prompt processing cost. Hit hotkey, selection/previous messages are already being worked on in parallel while you are typing the question.
 
-Claude is stateles and will charge per token in both the input and the output, and each message will send/process all the tokens again as an input, so if you keep chatting you get O(n^2) cost. For example, if you send a message with 100 tokens and received an answer with 1000 tokens, and did that 10 times within same chat session, you'll pay 1000 * 10 = 10k tokens of output and (55 * 100 + 45 * 1000) = ~50k tokens of input. It costs less than a dollar (~$0.30), but it can still add up. We can also expect ~5x cost for next opus model likely coming later this year.
+Claude is stateles and will charge per token in both the input and the output, and each message will send/process all the tokens again as an input, so if you keep chatting you get O(n^2) cost. For example, if you send a message with 100 tokens and received an answer with 1000 tokens, and did that 10 times within same chat session, you'll pay `1000 * 10 = 10k` tokens of output and `(55*100 + 45*1000) = ~50k` tokens of input. It costs less than a dollar (~$0.30), but it can still add up. We can also expect ~5x cost for next opus model likely coming later this year.
 
 ## Installation
 
