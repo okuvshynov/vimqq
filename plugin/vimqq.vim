@@ -12,9 +12,6 @@ let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
 " this is the active chat id. New queries would go to this chat by default
 let s:current_chat = -1 
 
-" we need to create another one which would be warmup chat?
-let s:warmup_chat = -1
-
 function! s:current_chat_id()
     if s:current_chat == -1
         let s:current_chat = s:chatsdb.new_chat()

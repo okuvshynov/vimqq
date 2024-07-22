@@ -5,15 +5,17 @@ if exists('g:autoloaded_vimqq_ui_module')
 endif
 
 let g:autoloaded_vimqq_ui_module = 1
+
+" -----------------------------------------------------------------------------
 " configuration:
 " default chat window width
 let g:vqq_width = get(g:, 'vqq_width', 80)
 
 " format to use in chat list
-let g:vqq_time_format = get(g:, 'vqq_time_format', "%Y-%m-%d %H:%M:%S ")
+let g:vqq_time_format = get(g:, 'vqq_time_format', "%b %d %H:%M ")
 
 " format to use for each message. Not configurable, we have hardcoded syntax
-let s:time_format = "%H:%M:%S"
+let s:time_format = "%H:%M"
 
 " -----------------------------------------------------------------------------
 function vimqq#ui#new() abort
@@ -153,7 +155,6 @@ function vimqq#ui#new() abort
         if exists('l:selected_line')
             call cursor(l:selected_line, 1)
         endif
-        " TODO - turn it off when viewing the individual chat
         setlocal cursorline
         setlocal nomodifiable
         
@@ -175,6 +176,7 @@ function vimqq#ui#new() abort
 
         mapclear <buffer>
         setlocal modifiable
+        setlocal cursorline<
         silent! call deletebufline('%', 1, '$')
 
         for l:message in a:messages
@@ -225,16 +227,14 @@ function vimqq#ui#new() abort
     return l:ui
 endfunction
 
-
-
 " -----------------------------------------------------------------------------
 " basic color scheme setup
 function! s:setup_syntax()
     syntax clear
 
-    syntax match timestr    "^\d\d:\d\d:\d\d" nextgroup=prompt    skipwhite
+    syntax match timestr    "^\d\d:\d\d"      nextgroup=prompt skipwhite
     syntax match prompt     "[A-Za-z0-9_]\+:" contained nextgroup=taggedBot skipwhite
-    syntax match taggedBot  "@[A-Za-z0-9_]\+" nextgroup=restOfLine
+    syntax match taggedBot  "@[A-Za-z0-9_]\+" contained nextgroup=restOfLine
 
     syntax match restOfLine ".*$" contained
 
