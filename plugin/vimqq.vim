@@ -178,13 +178,11 @@ function! s:qq_show_chat(chat_id)
     let s:current_chat = a:chat_id
     let l:messages     = s:chatsdb.get_messages(a:chat_id)
     let l:partial      = s:chatsdb.get_partial(a:chat_id)
-
     call s:ui.display_chat(l:messages, l:partial)
 endfunction
 
 " -----------------------------------------------------------------------------
-"  commands
-
+"  commands. this is the API for the plugin
 command!        -nargs=+ VQQSend        call s:qq_send_message(<q-args>, v:false, v:false)
 command!        -nargs=+ VQQSendNew     call s:qq_send_message(<q-args>, v:false, v:true)
 command! -range -nargs=+ VQQSendCtx     call s:qq_send_message(<q-args>, v:true,  v:false)
@@ -192,8 +190,6 @@ command! -range -nargs=+ VQQSendNewCtx  call s:qq_send_message(<q-args>, v:true,
 
 " gets bot name as parameter optionally
 command!        -nargs=? VQQWarm        call s:qq_send_warmup(v:false, v:false, <q-args>)
-" not much point sending warmup query with no context and new chat - only a
-" few first tokens + system prompt? 
 command! -range -nargs=? VQQWarmNew     call s:qq_send_warmup(v:false, v:true, <q-args>)
 command! -range -nargs=? VQQWarmCtx     call s:qq_send_warmup(v:true, v:false, <q-args>)
 command! -range -nargs=? VQQWarmNewCtx  call s:qq_send_warmup(v:true, v:true, <q-args>)
@@ -201,7 +197,3 @@ command! -range -nargs=? VQQWarmNewCtx  call s:qq_send_warmup(v:true, v:true, <q
 command!        -nargs=0 VQQList        call s:qq_show_chat_list()
 command!        -nargs=1 VQQOpenChat    call s:qq_show_chat(<f-args>)
 command!        -nargs=0 VQQToggle      call s:qq_toggle_window()
-
-" then a hotkey to warmup current would look like:
-" 1. call corresponding VQQWarm* function
-" 2. open the corresponding VQQSend* function
