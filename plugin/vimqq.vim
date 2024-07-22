@@ -6,6 +6,7 @@ let g:vqq_llama_servers = get(g:, 'vqq_llama_servers', [])
 let g:vqq_claude_models = get(g:, 'vqq_claude_models', [])
 let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
 
+let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
 " -----------------------------------------------------------------------------
 " script-level mutable state
 " this is the active chat id. New queries would go to this chat by default
@@ -129,19 +130,6 @@ function! s:qq_send_message(question, use_context, force_new_chat=v:false)
 endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.
-function! s:qq_warmup()
-    let l:context = s:ui.get_visual_selection()
-    if !empty(l:context)
-        let l:chat_id = s:current_chat_id()
-        let l:content = s:fmt_question(l:context, "")
-        let l:message = [{"role": "user", "content": l:content}]
-        let l:messages = s:chatsdb.get_messages(l:chat_id) + l:message
-        call s:default_client.send_warmup(l:chat_id, l:messages)
-        call feedkeys(":'<,'>QQ ", 'n')
-    endif
-endfunction
-
-" sends a warmup message to the server to pre-fill kv cache with context.
 function! s:qq_send_warmup(use_context, force_new_chat, tag="")
     let l:context = s:ui.get_visual_selection()
     if a:use_context && !empty(l:context)
@@ -182,6 +170,10 @@ function! s:qq_show_chat(chat_id)
     let l:messages     = s:chatsdb.get_messages(a:chat_id)
     let l:partial      = s:chatsdb.get_partial(a:chat_id)
     call s:ui.display_chat(l:messages, l:partial)
+    for bot_name in g:vqq_warmup_on_chat_open
+        " no context, no new chat creation
+        call s:qq_send_warmup(v:false, v:false, "@" . bot_name)
+    endfor
 endfunction
 
 function! s:qq_delete_chat(chat_id)

@@ -46,10 +46,10 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] creating new chats. `:QQN something something` would be new?
 - [x] session selection/loading
 - [x] session list
-- [ ] change shortcuts, define commands the right way, now it is a mess
+- [x] change shortcuts, define commands the right way, now it is a mess
 - [x] check what's up with cache reuse and \n\n token.
 - [x] session dictionary
-- [ ] deleting sessions.
+- [x] deleting chats.
 - [x] generating title for chat
 - [x] visual selection is incorrect
 - [x] date/time of last message in chat selection
@@ -57,7 +57,7 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] navigating within chat session
 - [x] encapsulate all access to session data. For all updates have callbacks from chat store, do not append anything directly.
 - [x] refactor to something mvc-like (ui, db, client, main logic)
-- [ ] prefetch on chat selection
+- [x] prefetch on chat selection
 - [x] improve status line - show number of tokens, botname
 - [x] installation/distribution/correct directory structure
 - [x] multi-agent support - chat with multiple bots

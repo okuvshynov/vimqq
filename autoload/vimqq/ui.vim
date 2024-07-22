@@ -168,7 +168,10 @@ function vimqq#ui#new() abort
         " we'll be redefining this closure while running within its context,
         " so that stack would look like DeleteChat -> some_cb -> mode_ops ->
         " display_chat_history. We cannot redefine it while it is running, so
-        " let's use timer to break the chain
+        " let's use timer to break the chain.
+        "
+        " TODO: should we do the same for all callbacks and move this to base
+        " module?
         function! DeleteChat() closure
             call timer_start(0, { -> self.call_cb('chat_delete_cb', l:chat_id_map[line('.')])})
         endfunction

@@ -68,15 +68,29 @@ function! VQQWarmupNew(bot)
     call feedkeys(":'<,'>VQQSendNewCtx " . a:bot . " ", 'n')
 endfunction
 
-" [W]armup llama[8]b
-xnoremap <silent> W8 :<C-u>call VQQWarmup('@llama8')<cr>
-" [W]armup [N]ew chat llama[8]b
-xnoremap <silent> WN8 :<C-u>call VQQWarmupNew('@llama8')<cr>
+function! VQQQuery(bot)
+    call feedkeys(":VQQSend " . a:bot . " ", 'n')
+endfunction
 
-" [W]armup llama[70]b
-xnoremap <silent> W70 :<C-u>call VQQWarmup('@llama70')<cr>
-" [W]armup [N]ew chat llama[70]b
-xnoremap <silent> WN70 :<C-u>call VQQWarmupNew('@llama70')<cr>
+function! VQQQueryNew(bot)
+    call feedkeys(":VQQSendNew " . a:bot . " ", 'n')
+endfunction
+
+" [w]armup llama70b
+xnoremap <silent> <leader>w :<C-u>call VQQWarmup('@llama70')<cr>
+" [w]armup new chat llama70b
+xnoremap <silent> <leader>ww :<C-u>call VQQWarmupNew('@llama70')<cr>
+
+" [q]uery llama70b
+nnoremap <silent> <leader>q :<C-u>call VQQQuery('@llama70')<cr>
+nnoremap <silent> <leader>qq :<C-u>call VQQQueryNew('@llama70')<cr>
+
+" query [s]onnet
+nnoremap <silent> <leader>s :<C-u>call VQQQuery('@sonnet')<cr>
+nnoremap <silent> <leader>ss :<C-u>call VQQQueryNew('@sonnet')<cr>
 
 " [C]hat list
-nnoremap <silent> CCC :<C-u>execute 'VQQList'<cr>
+nnoremap <silent> <leader>ll :<C-u>execute 'VQQList'<cr>
+
+let g:vqq_warmup_on_chat_open = ['llama70']
+
