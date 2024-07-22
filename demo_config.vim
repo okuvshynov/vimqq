@@ -58,16 +58,25 @@ let g:vqq_claude_models = [
 " vimqq provides basic commands which we can combine to get convenient
 " shortcuts.
 
-function! VQQWarmup()
-    execute 'VQQWarmCtx' 
-    call feedkeys(":'<,'>VQQSendCtx ", 'n')
+function! VQQWarmup(bot)
+    execute 'VQQWarmCtx ' . a:bot 
+    call feedkeys(":'<,'>VQQSendCtx " . a:bot . " ", 'n')
 endfunction
 
-function! VQQWarmupNew()
-    execute 'VQQWarmNewCtx' 
-    call feedkeys(":'<,'>VQQSendNewCtx ", 'n')
+function! VQQWarmupNew(bot)
+    execute 'VQQWarmNewCtx ' . a:bot 
+    call feedkeys(":'<,'>VQQSendNewCtx " . a:bot . " ", 'n')
 endfunction
 
-xnoremap <silent> QW :<C-u>call VQQWarmup()<cr>
-xnoremap <silent> QN :<C-u>call VQQWarmupNew()<cr>
-nnoremap <silent> QL :<C-u>execute 'VQQList'<cr>
+" [W]armup llama[8]b
+xnoremap <silent> W8 :<C-u>call VQQWarmup('@llama8')<cr>
+" [W]armup [N]ew chat llama[8]b
+xnoremap <silent> WN8 :<C-u>call VQQWarmupNew('@llama8')<cr>
+
+" [W]armup llama[70]b
+xnoremap <silent> W70 :<C-u>call VQQWarmup('@llama70')<cr>
+" [W]armup [N]ew chat llama[70]b
+xnoremap <silent> WN70 :<C-u>call VQQWarmupNew('@llama70')<cr>
+
+" [C]hat list
+nnoremap <silent> CCC :<C-u>execute 'VQQList'<cr>
