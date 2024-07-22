@@ -25,22 +25,19 @@ function! s:fmt_question(context, question)
     return "Here's a code snippet: \n\n " . a:context . "\n\n" . a:question
 endfunction
 
-source ui.vim
-source chatsdb.vim
-source llama_client.vim
-source anthropic_client.vim
+call vimqq#ui#new()
 
-let s:ui      = g:vqq#UI.new()
-let s:chatsdb = g:vqq#ChatsDB.new()
+let s:ui      = vimqq#ui#new()
+let s:chatsdb = vimqq#chatsdb#new()
 
 let s:clients = []
 
 for llama_conf in g:vqq_llama_servers
-    call add(s:clients, g:vqq#LlamaClient.new(llama_conf))
+    call add(s:clients, vimqq#llama#new(llama_conf))
 endfor
 
 for claude_conf in g:vqq_claude_models
-    call add(s:clients, g:vqq#ClaudeClient.new(claude_conf))
+    call add(s:clients, vimqq#claude#new(claude_conf))
 endfor
 
 if empty(s:clients)

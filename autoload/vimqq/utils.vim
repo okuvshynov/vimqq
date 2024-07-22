@@ -1,14 +1,14 @@
-if exists('g:autoloaded_vqq_utils')
+if exists('g:autoloaded_vimqq_utils')
     finish
 endif
 
-let g:autoloaded_vqq_utils = 1
+let g:autoloaded_vimqq_utils = 1
 
 let s:n_jobs_cleanup = 32
 let s:active_jobs    = []
 
 " async jobs management
-function! VQQKeepJob(job)
+function! vimqq#utils#keep_job(job)
     let s:active_jobs += [a:job]
     if len(s:active_jobs) > s:n_jobs_cleanup
         for job in s:active_jobs[:]
