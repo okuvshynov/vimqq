@@ -1,6 +1,11 @@
 " Copyright 2024 Oleksandr Kuvshynov
 " -----------------------------------------------------------------------------
-" configuration:
+if exists('g:autoloaded_vimqq_chatdb_module')
+    finish
+endif
+
+let g:autoloaded_vimqq_chatdb_module = 1
+
 " file to store all message history
 let g:vqq_chats_file = get(g:, 'vqq_chats_file', expand('~/.vim/vqq_chats.json'))
 

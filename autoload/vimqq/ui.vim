@@ -1,5 +1,10 @@
 " Copyright 2024 Oleksandr Kuvshynov
 " -----------------------------------------------------------------------------
+if exists('g:autoloaded_vimqq_ui_module')
+    finish
+endif
+
+let g:autoloaded_vimqq_ui_module = 1
 " configuration:
 " default chat window width
 let g:vqq_width = get(g:, 'vqq_width', 80)

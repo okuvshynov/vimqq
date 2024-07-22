@@ -1,3 +1,11 @@
+" Copyright 2024 Oleksandr Kuvshynov
+" -----------------------------------------------------------------------------
+if exists('g:autoloaded_vimqq_llama_module')
+    finish
+endif
+
+let g:autoloaded_vimqq_llama_module = 1
+
 let s:default_conf = {
   \ 'healthcheck_ms' : 10000,
   \ 'title_tokens'   : 16,

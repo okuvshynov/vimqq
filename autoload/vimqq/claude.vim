@@ -1,3 +1,12 @@
+" Copyright 2024 Oleksandr Kuvshynov
+" -----------------------------------------------------------------------------
+if exists('g:autoloaded_vimqq_claude_module')
+    finish
+endif
+
+let g:autoloaded_vimqq_claude_module = 1
+
+" API key for anthropic
 let g:vqq_claude_api_key = get(g:, 'vqq_claude_api_key', $ANTHROPIC_API_KEY)
 
 let s:default_conf = {

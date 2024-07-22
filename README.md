@@ -23,6 +23,17 @@ Key features:
 * easily share context based on visual selection in vim. Be able to select lines, hit a hotkey and ask 'what is it doing?', 'what might be corner cases here?', 'how would you modernize this code?', 'how would you test this code?'.
 * kv cache warmup to save on local prompt processing time. We can warmup KV cache for the lengthy multiple-turn chat session or a large code selection before we finished typing the question, thus amortizing the prompt processing cost. Hit hotkey, selection/previous messages are already being worked on in parallel while you are typing the question.
 
+## Installation
+
+
+```
+git clone https://github.com/okuvshynov/vimqq.git ~/.vim/pack/plugins/start/vimqq
+
+```
+
+
+
+
 ## TODO
 
 Let's keep input simple - we can only type the question itself in command line (not in the buffer) and the history will be displayed separately. What more complicated things do we need:
