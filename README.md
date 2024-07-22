@@ -47,9 +47,10 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] encapsulate all access to session data. For all updates have callbacks from chat store, do not append anything directly.
 - [x] refactor to something mvc-like (ui, db, client, main logic)
 - [ ] prefetch on chat selection
-- [ ] improve status line - show number of tokens, chat name and server addr? make configurable
-- [ ] installation/distribution
+- [x] improve status line - show number of tokens, botname
+- [x] installation/distribution/correct directory structure
 - [x] multi-agent support - chat with multiple bots
+- [ ] doc/help
 
 Later
 - [ ] code review. Ask to provide input without writing code itself. 
