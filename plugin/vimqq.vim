@@ -85,9 +85,6 @@ endfor
 " If chat is selected in UI, show it
 call s:ui.set_cb('chat_select_cb', {chat_id -> s:qq_show_chat(chat_id)})
 
-" If chat is selected in UI, show it
-call s:ui.set_cb('chat_delete_cb', {chat_id -> s:qq_delete_chat(chat_id)})
-
 " If UI wants to show chat selection list, we need to get fresh list
 call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
 
@@ -174,20 +171,6 @@ function! s:qq_show_chat(chat_id)
         " no context, no new chat creation
         call s:qq_send_warmup(v:false, v:false, "@" . bot_name)
     endfor
-endfunction
-
-function! s:qq_delete_chat(chat_id)
-    let title = s:chatsdb.get_title(a:chat_id)
-    let choice = confirm("Are you sure you want to delete '" . title . "'?", "&Yes\n&No", 2)
-    if choice != 1
-        return
-    endif
-
-    call s:chatsdb.delete_chat(a:chat_id)
-    if s:current_chat == a:chat_id
-        s:current_chat = -1
-    endif
-    call s:qq_show_chat_list()
 endfunction
 
 " -----------------------------------------------------------------------------

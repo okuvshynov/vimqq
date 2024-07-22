@@ -49,7 +49,7 @@ Let's keep input simple - we can only type the question itself in command line (
 - [x] change shortcuts, define commands the right way, now it is a mess
 - [x] check what's up with cache reuse and \n\n token.
 - [x] session dictionary
-- [x] deleting chats.
+- [ ] deleting chats.
 - [x] generating title for chat
 - [x] visual selection is incorrect
 - [x] date/time of last message in chat selection

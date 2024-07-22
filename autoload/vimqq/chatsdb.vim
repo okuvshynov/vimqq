@@ -31,12 +31,6 @@ function! vimqq#chatsdb#new() abort
         return self._chats[a:chat_id].title_computed
     endfunction
 
-    function! l:db.delete_chat(chat_id) dict
-        if has_key(self._chats, a:chat_id)
-            call remove(self._chats, a:chat_id)
-        endif
-    endfunction
-
     function! l:db.get_title(chat_id) dict
         return self._chats[a:chat_id].title
     endfunction
