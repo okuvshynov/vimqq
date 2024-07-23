@@ -133,12 +133,7 @@ Now you can do the following:
 2. Press `\R`
 3. Both the code and your message will be sent to llama server and you should start seeing the reply being updated.
 
-
-
 https://github.com/user-attachments/assets/ead4c5a3-c441-4fab-9607-5f5f66614442
-
-
-
 
 ## TODO
 
