@@ -19,6 +19,12 @@ Key features:
 
 Claude is stateles and will charge per token in both the input and the output, and each message will send/process all the tokens again as an input, so if you keep chatting you get O(n^2) cost. For example, if you send a message with 100 tokens and received an answer with 1000 tokens, and did that 10 times within same chat session, you'll pay `1000 * 10 = 10k` tokens of output and `(55*100 + 45*1000) = ~50k` tokens of input. It costs less than a dollar (~$0.30), but it can still add up. We can also expect ~5x cost for next opus model likely coming later this year.
 
+## requirements
+
+* Vim 8.2+
+* llama.cpp if planning to use local models
+* anthropic API subscription if planning to use claude family of models
+
 ## Installation
 
 Get the plugin:
