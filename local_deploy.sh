@@ -7,7 +7,7 @@ dest_dir=~/.vim/pack/plugins/start/vimqq/
 mkdir -p "$dest_dir"
 
 # Find all .txt files and copy them with their directory structure
-find "$source_dir" -type f -name "*.vim" -exec bash -c '
+find "$source_dir" -type f \( -name "*.vim" -o -name "*.txt" \) -exec bash -c '
     file="$1"
     src_dir="$2"
     dst_dir="$3"

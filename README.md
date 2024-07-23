@@ -20,9 +20,10 @@ Key features:
 ## requirements
 
 * Vim 8.2+
+* curl
 * llama.cpp if planning to use local models
 * anthropic API subscription if planning to use claude family of models
-* curl
+
 
 ## Installation
 
@@ -31,6 +32,12 @@ Get the plugin:
 git clone https://github.com/okuvshynov/vimqq.git ~/.vim/pack/plugins/start/vimqq
 
 ```
+
+generate helptags:
+```
+:helptags ALL
+```
+
 
 If planning to use local models, get llama.cpp server
 
@@ -141,10 +148,11 @@ More examples in the [demo_config.vim](demo_config.vim).
 
 - [ ] deleting chats
 - [ ] doc/help
+- [ ] customize system prompt 
 
 Later
 
-- [ ] recording some feedback (e.g. good answer, bad answer, wrong answer, etc).
+- [ ] recording some feedback (e.g. good answer, wrong answer, etc).
 
 Maybe never
 - [ ] integration with fzf

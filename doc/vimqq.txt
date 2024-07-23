@@ -1,0 +1,37 @@
+*vimqq.txt*  For Vim version 8.0+  Last change: 2024 July 23
+
+VIMQQ HELP FILE~
+
+1. Introduction     |vimqq-intro|
+2. Installation     |vimqq-install|
+3. Usage            |vimqq-usage|
+4. Commands         |vimqq-commands|
+5. Mappings         |vimqq-mappings|
+6. Configuration    |vimqq-config|
+7. Changelog        |vimqq-changelog|
+
+==============================================================================
+1. Introduction                                           *vimqq-intro*
+
+
+
+==============================================================================
+2. Installation                                           *vimqq-install*
+
+
+==============================================================================
+3. Usage                                                  *vimqq-usage*  
+
+
+==============================================================================
+4. Commands                                               *vimqq-commands*  
+
+==============================================================================
+5. Mappings                                               *vimqq-mappings*  
+
+==============================================================================
+6. Configuration                                          *vimqq-config*  
+
+==============================================================================
+7. Changelog                                              *vimqq-changelog*  
+

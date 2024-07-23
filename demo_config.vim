@@ -2,35 +2,42 @@
 set nocompatible
 syntax on
 
-" This is an example configuration file. You can think of it as something you
-" can put into your vimrc file.
+" This is an example configuration.
 
 " -----------------------------------------------------------------------------
 " Local llama configuration
 
+" 1. Get llama.cpp server:
+"
 " Local model evaluation is done using llama.cpp server: 
 "   https://github.com/ggerganov/llama.cpp/tree/master/examples/server
 "
 " Easiest way to get it seems to be to build from source. Clone llama.cpp
 " repo, build with make and you should have llama-server binary ready.
 " Check llama.cpp docs to see how to enable CUDA if you running on GPU.
+"
+" 2. Download the models
+"
+" 3. Start the server, for example
 " 
 " Example commands to start the server:
-" ./llama.cpp/llama-server --model ./llms/gguf/llama3.70b.q8.inst.gguf --chat-template llama3 --host 0.0.0.0 --top_p 0.0 --top_k 1 --port 8080
-" ./llama.cpp/llama-server --model ./llms/gguf/llama3.8b.q8.inst.gguf --chat-template llama3 --host 0.0.0.0 --top_p 0.0 --top_k 1 --port 8088
-" These commands would do greedy sampling which might be not the best option
-" for your use-case. remove top_p and top_k options to make it non-greedy.
-
+" Larger 70B model:
+" ./llama.cpp/llama-server --model ./llms/gguf/llama3.70b.q8.inst.gguf --chat-template llama3 --host 0.0.0.0 --port 8080
+"
+" Smaller 8B model:
+" ./llama.cpp/llama-server --model ./llms/gguf/llama3.8b.q8.inst.gguf --chat-template llama3 --host 0.0.0.0  --port 8088
+"
+" 4. Define the endpoint(s) vimqq will 
 " Now we can define the endpoint(s). In the example below we configure two
-" instances. bot_name is something you'll use to tag the bot and in
-" configuration below, so make it somewhat descriptive.
+" instances. bot_name will be used to tag the bot, for configuration and be
+" shown in chat history interface, so make it somewhat descriptive.
 
 let g:vqq_llama_servers = [
       \  {'bot_name': 'llama8', 'addr': 'http://studio.local:8088'},
       \  {'bot_name': 'llama70', 'addr': 'http://studio.local:8080'}
 \]
 
-" you can add more optional parameters to the dictionary:
+" you can add more optional parameters to the config dictionary for each model:
 "  - max_tokens: how many tokens to generate. default: 1024
 "  - title_tokens: how many tokens to generate to get title. default: 16
 "  - healthcheck_ms: how often to issue healthcheck query. default: 10000 (=10s)
@@ -39,7 +46,14 @@ let g:vqq_llama_servers = [
 " Anthropic models configuration
 "
 " If you plan to use claude models, you'll need to register and get API key
-" with some credits. Once you have that, you can add claude model as well:
+" with some credits. 
+" You need to make your claude API key available to the script. By default, 
+" we are looking for API key in environment variable $ANTHROPIC_API_KEY, but
+" you can override that here:
+"
+" let g:vqq_claude_api_key = 
+
+" Once we have that, we can add claude model as well:
 
 let g:vqq_claude_models = [
       \  {'bot_name': 'sonnet', 'model': 'claude-3-5-sonnet-20240620'}
@@ -49,11 +63,6 @@ let g:vqq_claude_models = [
 "  - max_tokens: how many tokens to generate. default: 1024
 "  - title_tokens: how many tokens to generate to get title. default: 16
 "
-" You need to make your claude API key available to the script. By default, 
-" we are looking for API key in environment variable $ANTHROPIC_API_KEY, but
-" you can override that here:
-"
-" let g:vqq_claude_api_key = 
 
 
 " -----------------------------------------------------------------------------
