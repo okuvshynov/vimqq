@@ -13,6 +13,7 @@ let s:default_conf = {
   \ 'title_tokens'   : 16,
   \ 'max_tokens'     : 1024,
   \ 'bot_name'       : 'Claude',
+  \ 'system_prompt'  : 'You are a helpful assistant.'
 \ }
 
 " TODO: handling errors 
@@ -110,6 +111,7 @@ function! vimqq#claude#new(config = {}) abort
     function! l:claude.send_chat(chat_id, messages) dict
         let req = {}
         let req.model      = self._conf.model
+        let req.system     = self._conf.system_prompt
         let req.messages   = self._format_messages(a:messages)
         let req.max_tokens = self._conf.max_tokens
         let self._reply_by_id[a:chat_id] = []
@@ -130,6 +132,7 @@ function! vimqq#claude#new(config = {}) abort
         let req.messages   = [{"role": "user", "content": prompt . a:message_text}]
         let req.max_tokens = self._conf.title_tokens
         let req.model      = self._conf.model
+        let req.system     = self._conf.system_prompt
 
         let self._title_reply_by_id[a:chat_id] = []
 

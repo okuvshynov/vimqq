@@ -264,24 +264,55 @@ mapping for predefined messages for commonly used patterns. For example:
 ==============================================================================
 6. Configuration                                                  *vimqq-config*  
 
-TBD, just list everything here for now
+Configuration is done using global variables with prefix `g:vqq`.
 
-let g:vqq_llama_servers = get(g:, 'vqq_llama_servers', [])
-let g:vqq_claude_models = get(g:, 'vqq_claude_models', [])
-let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
+    - `g:vqq_llama_servers` - list of llama.cpp bots. Default is empty.
+      Each bot configuration is a dictionary with the following attributes:
+      - `bot_name`. string identification for this bot.
+        Must be unique and consist of [a-zA-Z0-9_] symbols. Required
+      - `addr`. Path to endpoint, in the http://host:port format. Required.
+      - `healthcheck_ms`. How often to do healthcheck query.
+        Optional, default is 10000ms (=10s)
+      - `title_tokens`. When generating title for chat, up to this many
+        tokens can be produced. Optional, default is 16.
+      - `max_tokens`. When producing response, up to this many tokens can
+        be produced. Optional, default is 1024.
+      - `system_prompt`. System prompt to include in the query and steer 
+        bot behavior. Optional, default is "You are a helpful assistant".
 
-let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
-let g:vqq_context_template = get(g:, 'vqq_context_template', 
-    \ "Here's a code snippet: \n\n{vqq_ctx}\n\n{vqq_msg}")
+    - `g:vqq_claude_models` - list of claude bots. Default is empty.
+      Each bot configuration is a dictionary with the following attributes:
+      - `model`. Model to use, must be one the models supported by Claude.
+        Check https://docs.anthropic.com/en/docs/about-claude/models for 
+        the model list. Required.
+      - `bot_name`. string identification for this bot.
+        Must be unique and consist of [a-zA-Z0-9_] symbols. Required
+      - `title_tokens`. When generating title for chat, up to this many
+        tokens can be produced. Optional, default is 16.
+      - `max_tokens`. When producing response, up to this many tokens can
+        be produced. Optional, default is 1024.
 
-" default chat window width
-let g:vqq_width = get(g:, 'vqq_width', 80)
+    - `g:vqq_default_bot`. bot_name of the bot used by default, if user
+      omits the tag. Optional, default is first bot.
 
-" format to use in chat list
-let g:vqq_time_format = get(g:, 'vqq_time_format', "%b %d %H:%M ")
+    - `g:vqq_warmup_on_chat_open`. List of bot names for which to issue 
+      a warmup query automatically, every time we opened chat history
+      for some chat session. Useful for resuming old sessions. Default
+      is empty list.
 
-" chat file
-let g:vqq_chats_file = get(g:, 'vqq_chats_file', expand('~/.vim/vqq_chats.json'))
+    - `g:vqq_context_template`. Template to use to construct the message
+      if some code needs to be included as a context. Replaces placeholders
+      {vvq_ctx} and {vvq_msg} with context (selected code) and message.
+      Optional, default is "Here's a code snippet: \n\n{vqq_ctx}\n\n{vqq_msg}"
+
+    - `g:vqq_width`. Default chat window width in characters.
+      Optional, defutlt is 80.
+
+    - `g:vqq_time_format`. Time format to use in chat sessions list.
+      Optional, default is "%b %d %H:%M ", for example "July 23, 18:05"
+
+    - `g:vqq_chats_file`. Path to json file to store message history.
+        Optional, default is expand('~/.vim/vqq_chats.json')
 
 ==============================================================================
 7. Changelog                                                   *vimqq-changelog*  
