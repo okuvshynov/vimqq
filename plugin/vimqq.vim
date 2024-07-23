@@ -35,6 +35,10 @@ let s:chatsdb = vimqq#chatsdb#new()
 
 let s:clients = []
 
+" TODO: validate bot names;
+"  - 'You' not allowed
+"  - [A-Za-z0-9_]
+"  - no bots with same name
 for llama_conf in g:vqq_llama_servers
     call add(s:clients, vimqq#llama#new(llama_conf))
 endfor
@@ -191,3 +195,24 @@ command! -range -nargs=? VQQWarmNewCtx  call s:qq_send_warmup(v:true, v:true, <q
 command!        -nargs=0 VQQList        call s:qq_show_chat_list()
 command!        -nargs=1 VQQOpenChat    call s:qq_show_chat(<f-args>)
 command!        -nargs=0 VQQToggle      call s:qq_toggle_window()
+
+" -----------------------------------------------------------------------------
+"  Wrapper helper functions, useful for key mappings definitions
+
+function! VQQWarmup(bot)
+    execute 'VQQWarmCtx ' . a:bot 
+    call feedkeys(":'<,'>VQQSendCtx " . a:bot . " ", 'n')
+endfunction
+
+function! VQQWarmupNew(bot)
+    execute 'VQQWarmNewCtx ' . a:bot 
+    call feedkeys(":'<,'>VQQSendNewCtx " . a:bot . " ", 'n')
+endfunction
+
+function! VQQQuery(bot)
+    call feedkeys(":VQQSend " . a:bot . " ", 'n')
+endfunction
+
+function! VQQQueryNew(bot)
+    call feedkeys(":VQQSendNew " . a:bot . " ", 'n')
+endfunction

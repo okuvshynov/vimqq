@@ -232,14 +232,17 @@ endfunction
 function! s:setup_syntax()
     syntax clear
 
-    syntax match timestr    "^\d\d:\d\d"      nextgroup=prompt skipwhite
-    syntax match prompt     "[A-Za-z0-9_]\+:" contained nextgroup=taggedBot skipwhite
+    syntax match timestr    "^\d\d:\d\d"      nextgroup=userPrompt,botPrompt skipwhite
+    syntax match userPrompt "You:"            contained nextgroup=taggedBot skipwhite
+    "syntax match botPrompt  "[A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
+    syntax match botPrompt  "\%(You\)\@![A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
     syntax match taggedBot  "@[A-Za-z0-9_]\+" contained nextgroup=restOfLine
 
     syntax match restOfLine ".*$" contained
 
     highlight timestr    cterm=bold gui=bold
-    highlight prompt     cterm=bold gui=bold ctermfg=DarkBlue guifg=DarkBlue
+    highlight botPrompt  cterm=bold gui=bold ctermfg=DarkBlue guifg=DarkBlue
+    highlight userPrompt cterm=bold gui=bold ctermfg=DarkRed guifg=DarkRed
     highlight taggedBot  ctermfg=DarkBlue guifg=DarkBlue
 endfunction
 

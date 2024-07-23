@@ -73,6 +73,9 @@ Update helptags in vim:
 >
     :helptags ~/.vim/pack/plugins/start/vimqq/doc
 
+
+vimqq will not work in 'compatible' mode. 'nocompatible' needs to be set.
+
 To use local models, get and build llama.cpp server
 >
     git clone https://github.com/ggerganov/llama.cpp
@@ -127,32 +130,29 @@ past messages. Up/Down or j/k can be used to navigate the list and <cr>
 can be used to select individual chat.
 
 
-vimqq adds no global key mappings, only the navigation within chat buffer. 
-To make usage productive it is a good idea to define some for yourself.
-
 
 ==============================================================================
 4. Commands                                                     *vimqq-commands*  
 
 First group of commands can be used to send messages.
 
-    `:VQQSend [@bot] message` sends a message to current chat.
-    It @bot tag is present, `@bot` will be used to generate response,
-    otherwise `g:vqq_default_bot` is used. Only the message itself is sent.
+    - `:VQQSend [@bot] message` sends a message to current chat.
+      It @bot tag is present, `@bot` will be used to generate response,
+      otherwise `g:vqq_default_bot` is used. Only the message itself is sent.
 
-    `:VQQSendNew [@bot] message` sends a message to a new chat. 
-    It @bot tag is present, `@bot` will be used to generate response,
-    otherwise `g:vqq_default_bot` is used. Only the message itself is sent.
+    - `:VQQSendNew [@bot] message` sends a message to a new chat. 
+      It @bot tag is present, `@bot` will be used to generate response,
+      otherwise `g:vqq_default_bot` is used. Only the message itself is sent.
 
-    `:VQQSendCtx [@bot] message` sends a message to current chat.
-    It @bot tag is present, `@bot` will be used to generate response,
-    otherwise `g:vqq_default_bot` is used. Both message and the current 
-    visual selection is sent.
+    - `:VQQSendCtx [@bot] message` sends a message to current chat.
+      It @bot tag is present, `@bot` will be used to generate response,
+      otherwise `g:vqq_default_bot` is used. Both message and the current 
+      visual selection is sent.
 
-    `:VQQSendNewCtx [@bot] message` sends a message to a new chat. 
-    It @bot tag is present, `@bot` will be used to generate response,
-    otherwise `g:vqq_default_bot` is used. Both message and the current 
-    visual selection is sent.
+    - `:VQQSendNewCtx [@bot] message` sends a message to a new chat. 
+      It @bot tag is present, `@bot` will be used to generate response,
+      otherwise `g:vqq_default_bot` is used. Both message and the current 
+      visual selection is sent.
 
     the following prompt template is used for the messages with context:
 
@@ -163,18 +163,58 @@ First group of commands can be used to send messages.
 
 Next group of commands is used for sending warmup queries.
 
-    `:VQQWarm [@bot]` will send current chat messages as a warmup query. 
-    It @bot tag is present, `@bot` will be used to generate response,
-    otherwise `g:vqq_default_bot` is used.
+    - `:VQQWarm [@bot]` will send current chat messages as a warmup query. 
+      It @bot tag is present, `@bot` will be used to generate response,
+      otherwise `g:vqq_default_bot` is used.
 
-    `:VQQWarmNew [@bot]` will send new chat as a warmup query. 
-    It @bot tag is present, `@bot` will be used to generate response,
-    otherwise `g:vqq_default_bot` is used. This warmup might be still
-    useful in case of long system prompt.
+    - `:VQQWarmNew [@bot]` will send new chat as a warmup query. 
+      It @bot tag is present, `@bot` will be used to generate response,
+      otherwise `g:vqq_default_bot` is used. This warmup might be still
+      useful in case of long system prompt.
 
+    - `:VQQWarmCtx [@bot]` will send current chat messages as a warmup query. 
+      Will also include the visual selection. It @bot tag is present, `@bot`
+      will be used to generate response, otherwise `g:vqq_default_bot` is used.
+
+    - `:VQQWarmNewCtx [@bot]` will send new chat as a warmup query. 
+      Will also include the visual selection. It @bot tag is present, `@bot`
+      will be used to generate response, otherwise `g:vqq_default_bot` is used.
+
+
+Next group of commands is UI-related.
+
+    - `:VQQList` will show the list of past chat threads. User can navigate the
+      list and select chat session by pressing <CR>. This action will make chat
+      session current.
+
+    - `:VQQOpenChat chat_id` opens chat with id=`chat_id`. This action will make
+      chat session current.
+
+    - `:VQQToggle` shows/hides vimqq window.
 
 ==============================================================================
 5. Mappings                                                     *vimqq-mappings*  
+
+vimqq adds no global key mappings, only the navigation within chat buffer.
+
+In chat list view:
+ - 'q'  will close the vim-qq window
+ - <cr> will select chat session under cursor, open it and make current.
+
+In chat view:
+ - 'q' will open the chat list view while keeping the same current chat.
+
+To make usage productive it is a good idea to define some for yourself.
+
+In addition to commands above, vimqq provides several helper functions which
+are useful for defining key mappings.
+
+  - `VQQWarmup(bot)` will call `:VQQWarmCtx bot` and prefill command line with
+    `:'<,'>VQQSendCtx bot`, so that user can start typing question immediately.
+
+  - `VQQWarmupNew(bot)` will call `:VQQWarmNewCtx bot` and prefill command
+    line with `:'<,'>VQQSendNewCtx bot`, so that user can start typing 
+    question immediately.
 
 ==============================================================================
 6. Configuration                                                  *vimqq-config*  

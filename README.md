@@ -148,6 +148,7 @@ More examples in the [demo_config.vim](demo_config.vim).
 
 - [ ] deleting chats
 - [ ] doc/help
+- [ ] error handling in API calls
 - [ ] customize system prompt 
 
 Later
