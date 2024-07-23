@@ -1,10 +1,10 @@
 # vim quick question (vim-qq)
 
-vim ai chat plugin with the following focus areas:
+vim plugin with the following focus areas:
 * communication with local models and paid APIs within the same chat session;
-* explanation/education/code review rather than code completion, infill, generation, etc. Reading and understanding code is harder and more time-consuming part compared to writing;
+* focusing on explanation/education/code review rather than code completion, infill, generation, etc. Reading and understanding code is harder and more time-consuming part compared to writing;
 
-LLMs are still not too good at generating complex code, especially if the change is spread across many files in huge repo, which is precisely what many important code changes are. At the same time, LLMs are reasonably good at trying to explain what the code is trying to accomplish, pretty good at suggesting alternatives/cleaner ways/already existing tools to achieve something, etc. I view it as having a hybrid coach/assistant model, where, while an athlete or an executive might be 'better' than coach (same as humans are better software engineers than LLMs), coach can provide useful, unique and valuable insights. 
+LLMs are still not too good at generating complex code, especially if the change is spread across many files in huge repo, which is precisely what many important code changes are. At the same time, LLMs are reasonably good at trying to explain what the code is trying to accomplish, pretty good at suggesting alternatives/cleaner ways/already existing tools to achieve something, etc. We can think of it as a hybrid coach/assistant. While an athlete might be 'better' than their coach (just as humans are better software engineers than LLMs), coach can provide useful, unique and valuable insights. 
 
 The expectations here are:
 * It won't write much code for me;
@@ -12,18 +12,17 @@ The expectations here are:
 * It will help me write a little bit better code.
 
 Key features:
-* use both claude/local llama.cpp within same chat session. Can pick on multiple bots to pick on based on problem complexity/cost/capabilities/etc. Multi-backend support was implemented to be able to experiment on different local/closed models. The idea is to, for example, ask Sonnet 3.5 a question, get some options/alternatives and then continue the conversation with a different bot (maybe haiku, maybe local llama3, etc.). We'll see config below having 2 local models and one claude model configured.
-* streaming response from llama.cpp server and show it in vim right away, token by token. This is important for large models running locally - llama3 70B gets ~8 tps on m2 ultra, which is close to typical human reading rate, so we can just read as the reply is getting produced.
-* easily share context based on visual selection in vim. Be able to select lines, hit a hotkey and ask 'what is it doing?', 'what might be corner cases here?', 'how would you modernize this code?', 'how would you test this code?'.
-* kv cache warmup to save on local prompt processing time. We can warmup KV cache for the lengthy multiple-turn chat session or a large code selection before we finished typing the question, thus amortizing the prompt processing cost. Hit hotkey, selection/previous messages are already being worked on in parallel while you are typing the question.
-
-Claude is stateles and will charge per token in both the input and the output, and each message will send/process all the tokens again as an input, so if you keep chatting you get O(n^2) cost. For example, if you send a message with 100 tokens and received an answer with 1000 tokens, and did that 10 times within same chat session, you'll pay `1000 * 10 = 10k` tokens of output and `(55*100 + 45*1000) = ~50k` tokens of input. It costs less than a dollar (~$0.30), but it can still add up. We can also expect ~5x cost for next opus model likely coming later this year.
+* use both claude/local llama.cpp within same chat session. We can pick most suitable bot based on problem complexity/cost/capabilities/etc. Multi-backend support was implemented to be able to experiment on different local/closed models. The idea is to, for example, ask Sonnet 3.5 a question, get some options/alternatives and then continue the conversation with a different bot (maybe haiku, maybe local llama3, etc.). We'll see config below having 2 local models and one claude model set up.
+* streaming response from llama.cpp server and show it in vim right away, token by token. This is important for large models running locally - llama3 70B gets ~8 tps on m2 ultra, which is close to human reading rate, so we can just read as the reply is getting produced and not wait.
+* easily include context based on visual selection in vim. Be able to select lines, hit a hotkey and ask 'what is it doing?', 'what might be corner cases here?', 'how would you modernize this code?', 'how would you test this code?'.
+* KV cache warmup to save on local prompt processing time. We can warmup KV cache for the lengthy multiple-turn chat session or a large code selection while we are typing the question, thus amortizing the prompt processing cost.
 
 ## requirements
 
 * Vim 8.2+
 * llama.cpp if planning to use local models
 * anthropic API subscription if planning to use claude family of models
+* curl
 
 ## Installation
 
@@ -135,6 +134,9 @@ Now you can do the following:
 
 https://github.com/user-attachments/assets/ead4c5a3-c441-4fab-9607-5f5f66614442
 
+More examples in the [demo_config.vim](demo_config.vim).
+
+
 ## TODO
 
 - [ ] deleting chats
@@ -142,7 +144,7 @@ https://github.com/user-attachments/assets/ead4c5a3-c441-4fab-9607-5f5f66614442
 
 Later
 
-- [ ] recording some feedback (e.g. good answer, bad answer, wrong answer, etc)
+- [ ] recording some feedback (e.g. good answer, bad answer, wrong answer, etc).
 
 Maybe never
 - [ ] integration with fzf
