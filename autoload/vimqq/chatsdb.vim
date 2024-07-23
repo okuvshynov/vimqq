@@ -86,12 +86,13 @@ function! vimqq#chatsdb#new() abort
     endfunction
 
     function! l:db.clear_partial(chat_id) dict
-      let self._chats[a:chat_id].partial_message = {"role": "assistant", "content": ""}
+        let self._chats[a:chat_id].partial_message = {"role": "assistant", "content": ""}
+        call self._save()
     endfunction
 
     function! l:db.reset_partial(chat_id, bot_name) dict
-      let self._chats[a:chat_id].partial_message = {"role": "assistant", "content": "", "bot_name": a:bot_name, "timestamp": localtime()}
-      call self._save()
+        let self._chats[a:chat_id].partial_message = {"role": "assistant", "content": "", "bot_name": a:bot_name, "timestamp": localtime()}
+        call self._save()
     endfunction
 
     function! l:db.partial_done(chat_id) dict
