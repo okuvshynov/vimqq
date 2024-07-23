@@ -126,11 +126,52 @@ Pressing "q" in the window would change the window view to the list of
 past messages. Up/Down or j/k can be used to navigate the list and <cr>
 can be used to select individual chat.
 
-Plugin no global key mappings, only the navigation within chat buffer. 
+
+vimqq adds no global key mappings, only the navigation within chat buffer. 
 To make usage productive it is a good idea to define some for yourself.
+
 
 ==============================================================================
 4. Commands                                                     *vimqq-commands*  
+
+First group of commands can be used to send messages.
+
+    `:VQQSend [@bot] message` sends a message to current chat.
+    It @bot tag is present, `@bot` will be used to generate response,
+    otherwise `g:vqq_default_bot` is used. Only the message itself is sent.
+
+    `:VQQSendNew [@bot] message` sends a message to a new chat. 
+    It @bot tag is present, `@bot` will be used to generate response,
+    otherwise `g:vqq_default_bot` is used. Only the message itself is sent.
+
+    `:VQQSendCtx [@bot] message` sends a message to current chat.
+    It @bot tag is present, `@bot` will be used to generate response,
+    otherwise `g:vqq_default_bot` is used. Both message and the current 
+    visual selection is sent.
+
+    `:VQQSendNewCtx [@bot] message` sends a message to a new chat. 
+    It @bot tag is present, `@bot` will be used to generate response,
+    otherwise `g:vqq_default_bot` is used. Both message and the current 
+    visual selection is sent.
+
+    the following prompt template is used for the messages with context:
+
+>
+    "Here's a code snippet:\n\n{vqq_ctx}\n\n{vqq_msg}")
+
+    It can be modified by setting `g:vqq_context_template`.
+
+Next group of commands is used for sending warmup queries.
+
+    `:VQQWarm [@bot]` will send current chat messages as a warmup query. 
+    It @bot tag is present, `@bot` will be used to generate response,
+    otherwise `g:vqq_default_bot` is used.
+
+    `:VQQWarmNew [@bot]` will send new chat as a warmup query. 
+    It @bot tag is present, `@bot` will be used to generate response,
+    otherwise `g:vqq_default_bot` is used. This warmup might be still
+    useful in case of long system prompt.
+
 
 ==============================================================================
 5. Mappings                                                     *vimqq-mappings*  

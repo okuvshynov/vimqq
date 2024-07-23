@@ -15,6 +15,7 @@ let s:default_conf = {
   \ 'bot_name'       : 'Claude',
 \ }
 
+" TODO: handling errors 
 function! vimqq#claude#new(config = {}) abort
     let l:claude = {}
     call extend(l:claude, vimqq#base#new())
@@ -48,7 +49,6 @@ function! vimqq#claude#new(config = {}) abort
         let l:response = json_decode(join(self._title_reply_by_id[a:chat_id], '\n'))
         let l:title  = l:response.content[0].text
         call self._update_usage(l:response.usage)
-        " we pretend it's one huge update
         call self.call_cb('title_done_cb', a:chat_id, title)
     endfunction
 
@@ -86,7 +86,10 @@ function! vimqq#claude#new(config = {}) abort
     function! l:claude._format_messages(messages) dict
         let l:res = []
         for msg in a:messages
-            call add (l:res, {'role': msg.role, 'content': msg.content})
+            " Skipping empty messages
+            if !empty(msg.content)
+                call add (l:res, {'role': msg.role, 'content': msg.content})
+            endif
         endfor
         return l:res
     endfunction

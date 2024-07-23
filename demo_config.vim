@@ -62,8 +62,6 @@ let g:vqq_claude_models = [
 " optional parameters for claude config:
 "  - max_tokens: how many tokens to generate. default: 1024
 "  - title_tokens: how many tokens to generate to get title. default: 16
-"
-
 
 " -----------------------------------------------------------------------------
 " Other configuration

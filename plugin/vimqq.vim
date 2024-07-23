@@ -7,6 +7,8 @@ let g:vqq_claude_models = get(g:, 'vqq_claude_models', [])
 let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
 
 let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
+let g:vqq_context_template = get(g:, 'vqq_context_template', 
+    \ "Here's a code snippet: \n\n{vqq_ctx}\n\n{vqq_msg}")
 " -----------------------------------------------------------------------------
 " script-level mutable state
 " this is the active chat id. New queries would go to this chat by default
@@ -20,7 +22,10 @@ function! s:current_chat_id()
 endfunction
 
 function! s:fmt_question(context, question)
-    return "Here's a code snippet: \n\n " . a:context . "\n\n" . a:question
+    let l:formatted = g:vqq_context_template
+    let l:formatted = substitute(l:formatted, '{vqq_ctx}', a:context, 'g')
+    let l:formatted = substitute(l:formatted, '{vqq_msg}', a:question, 'g')
+    return l:formatted
 endfunction
 
 call vimqq#ui#new()
@@ -179,7 +184,7 @@ command! -range -nargs=+ VQQSendNewCtx  call s:qq_send_message(<q-args>, v:true,
 
 " gets bot name as parameter optionally
 command!        -nargs=? VQQWarm        call s:qq_send_warmup(v:false, v:false, <q-args>)
-command! -range -nargs=? VQQWarmNew     call s:qq_send_warmup(v:false, v:true, <q-args>)
+command!        -nargs=? VQQWarmNew     call s:qq_send_warmup(v:false, v:true, <q-args>)
 command! -range -nargs=? VQQWarmCtx     call s:qq_send_warmup(v:true, v:false, <q-args>)
 command! -range -nargs=? VQQWarmNewCtx  call s:qq_send_warmup(v:true, v:true, <q-args>)
 
