@@ -35,15 +35,38 @@ let s:chatsdb = vimqq#chatsdb#new()
 
 let s:clients = []
 
-" TODO: validate bot names;
-"  - 'You' not allowed
-"  - [A-Za-z0-9_]
-"  - no bots with same name
+function! s:validate_bot_name(name) abort
+    " Check if name is 'You'
+    if a:name ==# 'You'
+        throw "Bot name 'You' is not allowed"
+    endif
+
+    " Check if name contains only allowed characters
+    if a:name !~# '^[A-Za-z0-9_]\+$'
+        throw "Bot name must contain only letters, numbers, and underscores"
+    endif
+
+    " Check if a bot with the same name already exists
+    for client in s:clients
+        if client.name() ==# a:name
+            throw "A bot with the name '" . a:name . "' already exists"
+        endif
+    endfor
+endfunction
+
 for llama_conf in g:vqq_llama_servers
+    if !has_key(llama_conf, 'bot_name')
+        throw "Each bot must have a 'bot_name' field"
+    endif
+    call s:validate_bot_name(llama_conf.bot_name)
     call add(s:clients, vimqq#llama#new(llama_conf))
 endfor
 
 for claude_conf in g:vqq_claude_models
+    if !has_key(claude_conf, 'bot_name')
+        throw "Each bot must have a 'bot_name' field"
+    endif
+    call s:validate_bot_name(claude_conf.bot_name)
     call add(s:clients, vimqq#claude#new(claude_conf))
 endfor
 
