@@ -11,6 +11,7 @@ let s:default_conf = {
   \ 'title_tokens'   : 16,
   \ 'max_tokens'     : 1024,
   \ 'bot_name'       : 'Llama',
+  \ 'system_prompt'  : 'You are a helpful assistant.'
 \ }
 
 function vimqq#llama#new(config = {}) abort
@@ -95,6 +96,19 @@ function vimqq#llama#new(config = {}) abort
       endif
   endfunction
 
+  function! l:llama._prepare_system_prompt() dict
+      return {"role": "system", "content": self._conf.system_prompt}
+  endfunction
+
+  function! l:llama._prepare_request(messages) dict
+      let req = {}
+      let req.messages     = [self._prepare_system_prompt()] + a:messages
+      let req.n_predict    = 0
+      let req.stream       = v:true
+      let req.cache_prompt = v:true
+      return req
+  endfunction
+
   " }}}
 
   " {{{ public:
@@ -102,21 +116,15 @@ function vimqq#llama#new(config = {}) abort
   " warmup query to pre-fill the cache on the server.
   " We ask for 0 tokens and ignore the response.
   function! l:llama.send_warmup(chat_id, messages) dict
-      let req = {}
-      let req.messages     = a:messages
-      let req.n_predict    = 0
-      let req.stream       = v:true
-      let req.cache_prompt = v:true
+      let req = self._prepare_request(a:messages)
+      let req.n_predict = 0
 
       call self._send_chat_query(req, {})
   endfunction
 
   function! l:llama.send_chat(chat_id, messages) dict
-      let req = {}
-      let req.messages     = a:messages
-      let req.n_predict    = self._conf.max_tokens
-      let req.stream       = v:true
-      let req.cache_prompt = v:true
+      let req = self._prepare_request(a:messages)
+      let req.n_predict = self._conf.max_tokens
 
       let l:job_conf = {
             \ 'out_cb'  : {channel, msg -> self._on_stream_out(a:chat_id, msg)}, 
