@@ -37,37 +37,7 @@ function vimqq#ui#new() abort
             setlocal buftype=nofile
             setlocal bufhidden=hide
             setlocal noswapfile
-            function GetStatus() closure
-                let res = []
-                for [name, status] in items(self._bot_status)
-                    call add(res, name . ":" . status)
-                endfor
-                return join(res, ' | ')
-            endfunction
-
-            setlocal statusline=status:\ %{GetStatus()}
-        else
-            let winnum = bufwinnr(l:bufnum)
-            if winnum == -1
-                silent! execute 'topleft vertical ' . g:vqq_width . ' split'
-                silent! execute 'buffer ' l:bufnum
-            else
-                silent! execute winnum . 'wincmd w'
-            endif
-        endif
-        return l:bufnum
-    endfunction
-
-    function! l:ui._open_window() dict
-        " Check if the buffer already exists
-        let l:bufnum = bufnr('vim_qna_chat')
-        if l:bufnum == -1
-            " Create a new buffer in a vertical split
-            silent! execute 'topleft vertical ' . g:vqq_width . ' new'
-            silent! execute 'edit vim_qna_chat'
-            setlocal buftype=nofile
-            setlocal bufhidden=hide
-            setlocal noswapfile
+            setlocal wfw 
             function GetStatus() closure
                 let res = []
                 for [name, status] in items(self._bot_status)

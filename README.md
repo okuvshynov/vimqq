@@ -147,12 +147,14 @@ More examples in the [demo_config.vim](demo_config.vim).
 ## TODO
 
 - [ ] deleting chats
-- [ ] doc/help
 - [ ] error handling in API calls
-- [ ] customize system prompt 
+- [ ] more custom examples
+- [ ] set right options (fixed width, etc)
 
 Later
 
+- [ ] context improvements: use entire file, use something we looked up
+      with ctags?
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).
 
 Maybe never
@@ -160,6 +162,8 @@ Maybe never
 - [ ] use popup similar to fzf
 
 old completed:
+- [x] customize system prompt 
+- [x] doc/help
 - [x] generating title for chat
 - [x] visual selection is incorrect
 - [x] date/time of last message in chat selection

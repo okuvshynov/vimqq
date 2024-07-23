@@ -2,13 +2,18 @@
 
 VIMQQ ~
 
-1. Introduction     |vimqq-intro|
-2. Installation     |vimqq-install|
-3. Usage            |vimqq-usage|
-4. Commands         |vimqq-commands|
-5. Mappings         |vimqq-mappings|
-6. Configuration    |vimqq-config|
-7. Changelog        |vimqq-changelog|
+Author: Oleksandr Kuvshynov
+
+AI plugin with a focus on local model evaluation, code reading and refinement
+rather than writing code.
+
+1. Introduction ................................................ |vimqq-intro|
+2. Installation .............................................. |vimqq-install|
+3. Usage ....................................................... |vimqq-usage|
+4. Commands ................................................. |vimqq-commands|
+5. Mappings ................................................. |vimqq-mappings|
+6. Configuration .............................................. |vimqq-config|
+7. Changelog ............................................... |vimqq-changelog|
 
 ==============================================================================
 1. Introduction                                                    *vimqq-intro*
