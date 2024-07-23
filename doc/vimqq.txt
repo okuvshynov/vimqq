@@ -47,7 +47,7 @@ Features:
       sends the incomplete message to the server and moves focus to the 
       command line, where user can start typing the question. 
     - server starts processing the query in parallel with user typing the 
-      question, reducing overall wait time
+      question, reducing overall wait time.
  - mixing different models in the same chat sessions. It is possible to send 
    original message to one model and use a different model for the follow-up
    questions. This allows to:
@@ -55,8 +55,7 @@ Features:
     - save on API calls if important
     - pick the right bot based on time/complexity of the issue
     - easily fallback to more expensive/slower model if the cheaper or faster
-      one was not able to give an answer without having to re-create original
-      message.
+      one was not able to give an answer.
 
 ==============================================================================
 2. Installation                                                  *vimqq-install*
@@ -158,11 +157,11 @@ First group of commands can be used to send messages.
     the following prompt template is used for the messages with context:
 
 >
-    "Here's a code snippet:\n\n{vqq_ctx}\n\n{vqq_msg}")
+    "Here's a code snippet:\n\n{vqq_ctx}\n\n{vqq_msg}"
 
-    It can be modified by setting `g:vqq_context_template`.
+    It can be modified by setting `g:vqq_context_template` variable.
 
-Next group of commands is used for sending warmup queries.
+Second group of commands is used for sending warmup queries.
 
     - `:VQQWarm [@bot]` will send current chat messages as a warmup query. 
       It @bot tag is present, `@bot` will be used to generate response,
@@ -180,7 +179,6 @@ Next group of commands is used for sending warmup queries.
     - `:VQQWarmNewCtx [@bot]` will send new chat as a warmup query. 
       Will also include the visual selection. It @bot tag is present, `@bot`
       will be used to generate response, otherwise `g:vqq_default_bot` is used.
-
 
 Next group of commands is UI-related.
 
@@ -206,8 +204,7 @@ In chat view:
  - 'q' will open the chat list view while keeping the same current chat.
 
 It is a good idea to define some for yourself, but before that we need to
-look at several helper functions. In addition to commands vimqq provides
-these functions as they are useful for defining key mappings.
+look at several helper functions:
 
   - `VQQWarmup(bot)` will call `:VQQWarmCtx bot` and prefill command line with
     `:'<,'>VQQSendCtx bot`, so that user can start typing question immediately.
