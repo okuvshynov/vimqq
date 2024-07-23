@@ -127,7 +127,7 @@ function vimqq#ui#new() abort
 
     function! l:ui.append_partial(token) dict
         let l:bufnum    = bufnr('vim_qna_chat')
-        let l:curr_line = getbufoneline(bufnum, '$')
+        let l:curr_line = getbufline(bufnum, '$')[0]
         let l:lines     = split(l:curr_line . a:token . "\n", '\n')
         silent! call setbufline(l:bufnum, '$', l:lines)
     endfunction
