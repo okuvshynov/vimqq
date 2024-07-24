@@ -35,12 +35,17 @@ What vimqq is not doing:
    is done in the chat buffer. It is reasonably easy to copy/paste the code.
 
 Features:
- - Claude/Anthropic remote models through paid API
- - local models via llama.cpp server (or compatible)
+ - Both Claude/Anthropic remote models through paid API and local models 
+   via llama.cpp server (or compatible).
  - streaming response from llama.cpp server, so that user can start
    reading it as it is being generated. For example, Llama3-70B can produce 
    8-10 tokens per second on Apple M2 Ultra, which is very close to human
    reading rate. This way user will not waste any time waiting for reply.
+ - optional extra context via |ctags|. To answer questions about a piece of 
+   software one might need to follow some other definitions which could be 
+   located in entirely different file. Including everything in the context
+   becomes impractical in case of large codebases. Rather than doing 
+   embedding lookup we utilize very widespread ctags functionality.
  - KV cache warmup for llama.cpp. In cases of high-memory but low-compute
    hardware configuration for LLM inference (Apple devices, CPU-only machines)
    processing original prompt might take a while in cases of large context 
@@ -61,11 +66,6 @@ Features:
     - pick the right bot based on time/complexity of the issue
     - easily fallback to more expensive/slower model if the cheaper or faster
       one was not able to give an answer.
- - optional extra context via |ctags|. To answer questions about a piece of 
-   software one might need to follow some other definitions which might be 
-   located in entirely different file and including everything in the context
-   becomes impractical. Rather than doing embedding lookup we utilize very 
-   widespread ctags functionality.
 
 ==============================================================================
 2. Installation                                                  *vimqq-install*
@@ -225,6 +225,11 @@ Next group of commands is UI-related.
 
     - `:VQQToggle` shows/hides vimqq window.
 
+A few notes about extra context selection. It depends on the existence of 
+ctags for the codebase and will roughly follow default <CTRL+]> logic.
+vimqq will pick several ctags and some area above/below potential location.
+With empty ctags, extra context will be empty as well.
+
 ==============================================================================
 5. Mappings                                                     *vimqq-mappings*  
 
@@ -296,8 +301,11 @@ For example, <leader>ww in visual mode will get the selection, send warmup
 query to llama70 bot, prefill command line with :'<,'>VQQSendNewCtx @llama70 
 and wait for user input to complete the query.
 
-Note that because warmup is no-op for remote sonnet model, we can reuse the same 
-`VQQWarmup` functions to capture context and prepare the right prompt.
+For extra ctags-based context generation we can press <leader>WW and then
+type in the question.
+
+Note that because warmup is no-op for remote sonnet model, we can reuse
+the same `VQQWarmup` functions to capture context and prepare the prompt.
 
 All the commands above expect some user message. We can also prepare some key
 mapping for predefined messages for commonly used patterns. For example:
@@ -359,8 +367,6 @@ Configuration is done using global variables with prefix `g:vqq`.
 
     - `g:vqq_chats_file`. Path to json file to store message history.
         Optional, default is expand('~/.vim/vqq_chats.json')
-
-    - `g:vqq_dbg_extra_suffix`. Default: false
 
 ==============================================================================
 7. Changelog                                                   *vimqq-changelog*  

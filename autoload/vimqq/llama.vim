@@ -102,7 +102,7 @@ function vimqq#llama#new(config = {}) abort
 
   function! l:llama._prepare_request(messages) dict
       let req = {}
-      let req.messages     = [self._prepare_system_prompt()] + vimqq#utils#with_extra_suffix(a:messages)
+      let req.messages     = [self._prepare_system_prompt()] + vimqq#fmt#many(a:messages)
       let req.n_predict    = 0
       let req.stream       = v:true
       let req.cache_prompt = v:true
@@ -136,11 +136,12 @@ function vimqq#llama#new(config = {}) abort
   endfunction
 
   " ask for a title we'll use. Uses first message in a chat
-  " TODO: this actually pollutes the kv cache for next messages.
-  function! l:llama.send_gen_title(chat_id, message_text) dict
+  " TODO: this pollutes the kv cache for next messages.
+  function! l:llama.send_gen_title(chat_id, message) dict
       let req = {}
+      let l:message_text = vimqq#fmt#content(a:message)
       let prompt = "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
-      let req.messages  = [{"role": "user", "content": prompt . a:message_text}]
+      let req.messages  = [{"role": "user", "content": prompt . l:message_text}]
       let req.n_predict    = self._conf.title_tokens
       let req.stream       = v:false
       let req.cache_prompt = v:true

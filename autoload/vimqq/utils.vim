@@ -86,16 +86,3 @@ function! vimqq#utils#expand_context(selection, n_first, n_up, n_down)
     endfor 
     return join(l:res, "\n")
 endfunction
-
-function! vimqq#utils#with_extra_suffix(messages)
-  let new_messages = []
-  for msg in a:messages
-      let new_msg = deepcopy(msg)
-      if has_key(new_msg, 'extra_suffix')
-          let new_msg.content .= new_msg.extra_suffix
-      endif
-      call add(new_messages, new_msg)
-  endfor
-  return new_messages
-endfunction
-

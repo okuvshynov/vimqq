@@ -7,8 +7,6 @@ let g:vqq_claude_models = get(g:, 'vqq_claude_models', [])
 let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
 
 let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
-let g:vqq_context_template = get(g:, 'vqq_context_template', 
-    \ "Here's a code snippet: \n\n{vqq_ctx}\n\n{vqq_msg}")
 " -----------------------------------------------------------------------------
 " script-level mutable state
 " this is the active chat id. New queries would go to this chat by default
@@ -19,13 +17,6 @@ function! s:current_chat_id()
         let s:current_chat = s:chatsdb.new_chat()
     endif
     return s:current_chat
-endfunction
-
-function! s:fmt_question(context, question)
-    let l:formatted = g:vqq_context_template
-    let l:formatted = substitute(l:formatted, '{vqq_ctx}', a:context, 'g')
-    let l:formatted = substitute(l:formatted, '{vqq_msg}', a:question, 'g')
-    return l:formatted
 endfunction
 
 call vimqq#ui#new()
@@ -119,7 +110,7 @@ call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
 
 function! s:_pick_client(question)
     for c in s:clients
-        let l:tag = '@' . c.name() . ' '
+        let l:tag = '@' . c.name()
         if strpart(a:question, 0, len(l:tag)) ==# l:tag
             " removing tag before passing it to backend
             return [c, strpart(a:question, len(l:tag))]
@@ -129,7 +120,7 @@ function! s:_pick_client(question)
 endfunction
 
 function! s:_expand_context(context)
-  return vimqq#utils#expand_context(a:context, 3, 2, 10)
+    return vimqq#utils#expand_context(a:context, 3, 2, 10)
 endfunction
 
 " -----------------------------------------------------------------------------
@@ -137,23 +128,24 @@ endfunction
 
 " Sends new message to the server
 function! s:qq_send_message(question, use_context, force_new_chat=v:false, expand_context=v:false)
-    " pick the bot
+    " pick the bot. we modify message inplace to allow removing bot tag.
     let [l:client, l:question] = s:_pick_client(a:question)
 
-    let l:extra_suffix = ""
+    " in this case bot_name means 'who is asked/tagged'. the author of this message is user. 
+    let l:message = {
+          \ "role"     : "user",
+          \ "message"  : l:question,
+          \ "bot_name" : l:client.name()
+    \ }
+
     if a:use_context
+        let l:selection = s:ui.get_visual_selection()
+        let l:message.selection = l:selection
         if a:expand_context
-            let l:context      = s:ui.get_visual_selection()
-            let l:question     = s:fmt_question(l:context, l:question)
-            let l:extra_suffix = "\n\nExtra context:\n\n" . s:_expand_context(l:context)
-        else
-            let l:context = s:ui.get_visual_selection()
-            let l:question = s:fmt_question(l:context, l:question)
+            let l:message.context =  s:_expand_context(l:selection)
         endif
     endif
 
-    " in this case bot_name means 'who is asked/tagged'
-    let l:message  = {"role": "user", "content": l:question, "bot_name": l:client.name(), "extra_suffix": l:extra_suffix}
     if a:force_new_chat
         let l:chat_id = s:chatsdb.new_chat()
     else
@@ -168,20 +160,16 @@ endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.
 function! s:qq_send_warmup(use_context, force_new_chat, expand_context, tag="")
-    let l:context = s:ui.get_visual_selection()
-    " TODO: with such suffix we are not matching the cache
-    if a:use_context && !empty(l:context)
+    let l:message = {
+          \ "role"     : "user",
+          \ "message"  : "",
+    \ }
+    if a:use_context
+        let l:selection = s:ui.get_visual_selection()
+        let l:message.selection = l:selection
         if a:expand_context
-            let l:content      = s:fmt_question(l:context, "")
-            let l:extra_suffix = "\n\nExtra context:\n\n" . s:_expand_context(l:context)
-            let l:message      = [{"role": "user", "content": l:content, "extra_suffix": l:extra_suffix}]
-        else
-            let l:chat_id = s:current_chat_id()
-            let l:content = s:fmt_question(l:context, "")
-            let l:message = [{"role": "user", "content": l:content}]
+            let l:message.context =  s:_expand_context(l:selection)
         endif
-    else
-        let l:message = [{"role": "user", "content": ""}]
     endif
 
     if a:force_new_chat
@@ -191,7 +179,7 @@ function! s:qq_send_warmup(use_context, force_new_chat, expand_context, tag="")
     endif
 
     let [l:client, _msg] = s:_pick_client(a:tag)
-    let l:messages = s:chatsdb.get_messages(l:chat_id) + l:message
+    let l:messages = s:chatsdb.get_messages(l:chat_id) + [l:message]
 
     call l:client.send_warmup(l:chat_id, l:messages)
 endfunction

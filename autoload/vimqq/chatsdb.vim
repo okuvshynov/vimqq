@@ -42,7 +42,7 @@ function! vimqq#chatsdb#new() abort
     endfunction
 
     function! l:db.get_first_message(chat_id) dict
-        return self._chats[a:chat_id].messages[0].content
+        return self._chats[a:chat_id].messages[0]
     endfunction
 
     function! l:db.append_message(chat_id, message) dict
@@ -96,8 +96,13 @@ function! vimqq#chatsdb#new() abort
     endfunction
 
     function! l:db.partial_done(chat_id) dict
-        call self.append_message(a:chat_id, self._chats[a:chat_id].partial_message)
+        let l:message = deepcopy(self._chats[a:chat_id].partial_message)
+        let l:message.message = l:message.content
+        let l:message.content = ""
+        
+        call self.append_message(a:chat_id, l:message)
         call self.clear_partial(a:chat_id)
+        call self._save()
     endfunction
 
     function! l:db.new_chat()

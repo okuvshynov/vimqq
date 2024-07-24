@@ -86,7 +86,7 @@ function! vimqq#claude#new(config = {}) abort
 
     function! l:claude._format_messages(messages) dict
         let l:res = []
-        for msg in a:messages
+        for msg in vimqq#fmt#many(a:messages)
             " Skipping empty messages
             if !empty(msg.content)
                 call add (l:res, {'role': msg.role, 'content': msg.content})
@@ -126,10 +126,12 @@ function! vimqq#claude#new(config = {}) abort
     endfunction
 
     " ask for a title we'll use. Uses first message in a chat
-    function! l:claude.send_gen_title(chat_id, message_text) dict
+    function! l:claude.send_gen_title(chat_id, message) dict
         let req = {}
+        let l:message_text = vimqq#fmt#content(a:message)
+        " TODO: make configurable and remove duplicate code with llama.vim
         let prompt = "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
-        let req.messages   = [{"role": "user", "content": prompt . a:message_text}]
+        let req.messages   = [{"role": "user", "content": prompt . l:message_text}]
         let req.max_tokens = self._conf.title_tokens
         let req.model      = self._conf.model
         let req.system     = self._conf.system_prompt
