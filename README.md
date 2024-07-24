@@ -150,11 +150,11 @@ More examples in the [demo_config.vim](demo_config.vim).
 - [ ] error handling in API calls
 - [ ] more custom examples
 - [ ] set right options (fixed width, etc)
+- [ ] open current chat
 
 Later
 
-- [ ] context improvements: use entire file, use something we looked up
-      with ctags?
+- [ ] context improvements: use entire file, expand context based on ctags?
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).
 
 Maybe never

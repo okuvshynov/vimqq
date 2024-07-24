@@ -162,7 +162,7 @@ function vimqq#ui#new() abort
             call self.call_cb('chat_list_cb')
         endfunction
 
-        nnoremap <silent> <buffer> q  :call ShowChatList()<CR>
+        nnoremap <silent> <buffer> q  :call ShowChatList()<cr>
     endfunction
 
     function! l:ui.toggle() dict
