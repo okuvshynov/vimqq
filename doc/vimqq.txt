@@ -5,7 +5,7 @@ VIMQQ ~
 Author: Oleksandr Kuvshynov
 
 AI plugin with a focus on local model evaluation, code reading and refinement
-rather than writing code.
+rather than writing new code.
 
 1. Introduction ................................................ |vimqq-intro|
 2. Installation .............................................. |vimqq-install|
@@ -17,9 +17,6 @@ rather than writing code.
 
 ==============================================================================
 1. Introduction                                                    *vimqq-intro*
-
-AI plugin with a focus on code reading, explanation, education and coaching 
-rather than writing new code.
 
 While impressive, LLMs are still not that good at writing original code. It
 is especially true for the scenarios where the change is spread out across
