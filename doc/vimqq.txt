@@ -61,6 +61,11 @@ Features:
     - pick the right bot based on time/complexity of the issue
     - easily fallback to more expensive/slower model if the cheaper or faster
       one was not able to give an answer.
+ - optional extra context via |ctags|. To answer questions about a piece of 
+   software one might need to follow some other definitions which might be 
+   located in entirely different file and including everything in the context
+   becomes impractical. Rather than doing embedding lookup we utilize very 
+   widespread ctags functionality.
 
 ==============================================================================
 2. Installation                                                  *vimqq-install*
@@ -159,6 +164,18 @@ First group of commands can be used to send messages.
       otherwise `g:vqq_default_bot` is used. Both message and the current 
       visual selection is sent.
 
+    - `:VQQSendCtxEx [@bot] message` sends a message to current chat.
+      It @bot tag is present, `@bot` will be used to generate response,
+      otherwise `g:vqq_default_bot` is used. Both message and the current 
+      visual selection is sent. In addition to that, some context found
+      by exploring ctags in the selection might be also included.
+
+    - `:VQQSendNewCtxEx [@bot] message` sends a message to a new chat. 
+      It @bot tag is present, `@bot` will be used to generate response,
+      otherwise `g:vqq_default_bot` is used. Both message and the current 
+      visual selection is sent. In addition to that, some context found
+      by exploring ctags in the selection might be also included.
+
     the following prompt template is used for the messages with context:
 
 >
@@ -184,6 +201,18 @@ Second group of commands is used for sending warmup queries.
     - `:VQQWarmNewCtx [@bot]` will send new chat as a warmup query. 
       Will also include the visual selection. It @bot tag is present, `@bot`
       will be used to generate response, otherwise `g:vqq_default_bot` is used.
+
+    - `:VQQWarmCtxEx [@bot]` will send current chat messages as a warmup query. 
+      Will also include the visual selection. It @bot tag is present, `@bot`
+      will be used to generate response, otherwise `g:vqq_default_bot` is used.
+      In addition to that, some context found by exploring ctags in
+      the selection might be also included.
+
+    - `:VQQWarmNewCtxEx [@bot]` will send new chat as a warmup query. 
+      Will also include the visual selection. It @bot tag is present, `@bot`
+      will be used to generate response, otherwise `g:vqq_default_bot` is used.
+      In addition to that, some context found by exploring ctags in
+      the selection might be also included.
 
 Next group of commands is UI-related.
 
@@ -218,6 +247,14 @@ look at several helper functions:
     line with `:'<,'>VQQSendNewCtx bot`, so that user can start typing 
     question immediately.
 
+  - `VQQWarmupEx(bot)` will call `:VQQWarmCtxEx bot` and prefill command line
+    with `:'<,'>VQQSendCtxEx bot`, so that user can start typing question
+    immediately.
+
+  - `VQQWarmupNewEx(bot)` will call `:VQQWarmNewCtxEx bot` and prefill command
+    line with `:'<,'>VQQSendNewCtxEx bot`, so that user can start typing 
+    question immediately.
+
   - `VQQQuery(bot)` will prefill command line with `:'<,'>VQQSend bot`,
     so that user can start typing question immediately.
 
@@ -241,6 +278,10 @@ Now we can define some key mappings
     xnoremap <silent> <leader>w :<C-u>call VQQWarmup('@llama70')<cr>
     " [w]armup new chat llama70b
     xnoremap <silent> <leader>ww :<C-u>call VQQWarmupNew('@llama70')<cr>
+    " [W]armup llama70b with extra context
+    xnoremap <silent> <leader>W :<C-u>call VQQWarmupEx('@llama70')<cr>
+    " [W]armup new chat llama70b with extra context
+    xnoremap <silent> <leader>WW :<C-u>call VQQWarmupNewEx('@llama70')<cr>
     " [q]uery llama70b
     nnoremap <silent> <leader>q :<C-u>call VQQQuery('@llama70')<cr>
     nnoremap <silent> <leader>qq :<C-u>call VQQQueryNew('@llama70')<cr>
@@ -318,6 +359,8 @@ Configuration is done using global variables with prefix `g:vqq`.
 
     - `g:vqq_chats_file`. Path to json file to store message history.
         Optional, default is expand('~/.vim/vqq_chats.json')
+
+    - `g:vqq_dbg_extra_suffix`. Default: false
 
 ==============================================================================
 7. Changelog                                                   *vimqq-changelog*  

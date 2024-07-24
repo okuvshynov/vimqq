@@ -102,7 +102,7 @@ function vimqq#llama#new(config = {}) abort
 
   function! l:llama._prepare_request(messages) dict
       let req = {}
-      let req.messages     = [self._prepare_system_prompt()] + a:messages
+      let req.messages     = [self._prepare_system_prompt()] + vimqq#utils#with_extra_suffix(a:messages)
       let req.n_predict    = 0
       let req.stream       = v:true
       let req.cache_prompt = v:true

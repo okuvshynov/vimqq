@@ -14,6 +14,9 @@ let g:vqq_width = get(g:, 'vqq_width', 80)
 " format to use in chat list
 let g:vqq_time_format = get(g:, 'vqq_time_format', "%b %d %H:%M ")
 
+" format to use in chat list
+let g:vqq_dbg_extra_suffix = get(g:, 'vqq_dbg_extra_suffix', v:false)
+
 " format to use for each message. Not configurable, we have hardcoded syntax
 let s:time_format = "%H:%M"
 
@@ -73,6 +76,7 @@ function vimqq#ui#new() abort
         else
             let prompt = l:tstamp . a:message['bot_name'] . ": "
         endif
+        let l:content = a:message
         let lines = split(prompt . a:message['content'], '\n')
         for l in lines
             if line('$') == 1 && getline(1) == ''
@@ -149,7 +153,12 @@ function vimqq#ui#new() abort
         setlocal cursorline<
         silent! call deletebufline('%', 1, '$')
 
-        for l:message in a:messages
+        let l:messages = a:messages
+        if g:vqq_dbg_extra_suffix
+            let l:messages = vimqq#utils#with_extra_suffix(a:messages)
+        endif
+
+        for l:message in l:messages
             call self._append_message(v:false, l:message)
         endfor
 

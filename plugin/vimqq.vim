@@ -119,7 +119,7 @@ call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
 
 function! s:_pick_client(question)
     for c in s:clients
-        let l:tag = '@' . c.name()
+        let l:tag = '@' . c.name() . ' '
         if strpart(a:question, 0, len(l:tag)) ==# l:tag
             " removing tag before passing it to backend
             return [c, strpart(a:question, len(l:tag))]
@@ -132,17 +132,24 @@ endfunction
 " entry points to the plugin
 
 " Sends new message to the server
-function! s:qq_send_message(question, use_context, force_new_chat=v:false)
+function! s:qq_send_message(question, use_context, force_new_chat=v:false, expand_context=v:false)
     " pick the bot
     let [l:client, l:question] = s:_pick_client(a:question)
 
+    let l:extra_suffix = ""
     if a:use_context
-        let l:context = s:ui.get_visual_selection()
-        let l:question = s:fmt_question(l:context, l:question)
+        if a:expand_context
+            let l:context      = s:ui.get_visual_selection()
+            let l:question     = s:fmt_question(l:context, l:question)
+            let l:extra_suffix = "\n\nExtra context:\n\n" . vimqq#utils#expand_context(l:context, 3, 5, 50)  
+        else
+            let l:context = s:ui.get_visual_selection()
+            let l:question = s:fmt_question(l:context, l:question)
+        endif
     endif
 
     " in this case bot_name means 'who is asked/tagged'
-    let l:message  = {"role": "user", "content": l:question, "bot_name": l:client.name()}
+    let l:message  = {"role": "user", "content": l:question, "bot_name": l:client.name(), "extra_suffix": l:extra_suffix}
     if a:force_new_chat
         let l:chat_id = s:chatsdb.new_chat()
     else
@@ -156,12 +163,19 @@ function! s:qq_send_message(question, use_context, force_new_chat=v:false)
 endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.
-function! s:qq_send_warmup(use_context, force_new_chat, tag="")
+function! s:qq_send_warmup(use_context, force_new_chat, expand_context, tag="")
     let l:context = s:ui.get_visual_selection()
+    " TODO: with such suffix we are not matching the cache
     if a:use_context && !empty(l:context)
-        let l:chat_id = s:current_chat_id()
-        let l:content = s:fmt_question(l:context, "")
-        let l:message = [{"role": "user", "content": l:content}]
+        if a:expand_context
+            let l:content      = s:fmt_question(l:context, "")
+            let l:extra_suffix = "\n\nExtra context:\n\n" . vimqq#utils#expand_context(l:context, 3, 5, 30)  
+            let l:message      = [{"role": "user", "content": l:content, "extra_suffix": l:extra_suffix}]
+        else
+            let l:chat_id = s:current_chat_id()
+            let l:content = s:fmt_question(l:context, "")
+            let l:message = [{"role": "user", "content": l:content}]
+        endif
     else
         let l:message = [{"role": "user", "content": ""}]
     endif
@@ -198,7 +212,7 @@ function! s:qq_show_chat(chat_id)
     call s:ui.display_chat(l:messages, l:partial)
     for bot_name in g:vqq_warmup_on_chat_open
         " no context, no new chat creation
-        call s:qq_send_warmup(v:false, v:false, "@" . bot_name)
+        call s:qq_send_warmup(v:false, v:false, v:false, "@" . bot_name)
     endfor
 endfunction
 
@@ -210,10 +224,16 @@ command! -range -nargs=+ VQQSendCtx     call s:qq_send_message(<q-args>, v:true,
 command! -range -nargs=+ VQQSendNewCtx  call s:qq_send_message(<q-args>, v:true,  v:true)
 
 " gets bot name as parameter optionally
-command!        -nargs=? VQQWarm        call s:qq_send_warmup(v:false, v:false, <q-args>)
-command!        -nargs=? VQQWarmNew     call s:qq_send_warmup(v:false, v:true, <q-args>)
-command! -range -nargs=? VQQWarmCtx     call s:qq_send_warmup(v:true, v:false, <q-args>)
-command! -range -nargs=? VQQWarmNewCtx  call s:qq_send_warmup(v:true, v:true, <q-args>)
+command!        -nargs=? VQQWarm        call s:qq_send_warmup(v:false, v:false, v:false, <q-args>)
+command!        -nargs=? VQQWarmNew     call s:qq_send_warmup(v:false, v:true,  v:false, <q-args>)
+command! -range -nargs=? VQQWarmCtx     call s:qq_send_warmup(v:true,  v:false, v:false, <q-args>)
+command! -range -nargs=? VQQWarmNewCtx  call s:qq_send_warmup(v:true,  v:true,  v:false, <q-args>)
+
+" extra context using ctags
+command! -range -nargs=+ VQQSendCtxEx    call s:qq_send_message(<q-args>, v:true,  v:false, v:true)
+command! -range -nargs=+ VQQSendNewCtxEx call s:qq_send_message(<q-args>, v:true,  v:true, v:true)
+command! -range -nargs=? VQQWarmCtxEx    call s:qq_send_warmup(v:true, v:false, v:true, <q-args>)
+command! -range -nargs=? VQQWarmNewCtxEx call s:qq_send_warmup(v:true, v:true, v:true, <q-args>)
 
 command!        -nargs=0 VQQList        call s:qq_show_chat_list()
 command!        -nargs=1 VQQOpenChat    call s:qq_show_chat(<f-args>)
@@ -221,6 +241,15 @@ command!        -nargs=0 VQQToggle      call s:qq_toggle_window()
 
 " -----------------------------------------------------------------------------
 "  Wrapper helper functions, useful for key mappings definitions
+function! VQQWarmupEx(bot)
+    execute 'VQQWarmCtxEx ' . a:bot 
+    call feedkeys(":'<,'>VQQSendCtxEx " . a:bot . " ", 'n')
+endfunction
+
+function! VQQWarmupNewEx(bot)
+    execute 'VQQWarmNewCtxEx ' . a:bot 
+    call feedkeys(":'<,'>VQQSendNewCtxEx " . a:bot . " ", 'n')
+endfunction
 
 function! VQQWarmup(bot)
     execute 'VQQWarmCtx ' . a:bot 
@@ -239,3 +268,4 @@ endfunction
 function! VQQQueryNew(bot)
     call feedkeys(":VQQSendNew " . a:bot . " ", 'n')
 endfunction
+
