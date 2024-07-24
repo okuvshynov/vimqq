@@ -409,9 +409,10 @@ Configuration is done using global variables with prefix `g:vqq`.
 
 - [ ] deleting chats
 - [ ] error handling in API calls
-- [ ] more custom examples
+- [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
 - [ ] set right options (fixed width, etc)
 - [ ] open current chat
+- [ ] better prompt configuration
 
 
 Later
