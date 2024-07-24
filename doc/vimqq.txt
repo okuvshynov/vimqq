@@ -32,29 +32,30 @@ What vimqq is not doing:
    is done in the chat buffer. It is reasonably easy to copy/paste the code.
 
 Features:
- - Both Claude/Anthropic remote models through paid API and local models 
-   via llama.cpp server (or compatible).
+ - Support for both Claude remote models through paid API and local models 
+   via llama.cpp server (or compatible);
  - streaming response from llama.cpp server, so that user can start
-   reading it as it is being generated. For example, Llama3-70B can produce 
-   8-10 tokens per second on Apple M2 Ultra, which is very close to human
-   reading rate. This way user will not waste any time waiting for reply.
+   reading it as it is being generated. Llama3-70B can produce 8-10 tps 
+   on Apple M2 Ultra, which is very close to human reading rate. 
+   This way user will not waste any time waiting for reply;
  - optional extra context via |ctags|. To answer questions about a piece of 
-   software one might need to follow some other definitions which could be 
-   located in entirely different file. Including everything in the context
-   becomes impractical in case of large codebases. Rather than doing 
-   embedding lookup we utilize very widespread ctags functionality.
+   code one might need to navigate to other definitions which could be 
+   located in different files across the codebase. Including entire codebase 
+   in the context quickly becomes impractical. Rather than doing embedding
+   lookup we utilize very commonly used ctags to add potentially relevant
+   context to our queries;
  - KV cache warmup for llama.cpp. In cases of high-memory but low-compute
    hardware configuration for LLM inference (Apple devices, CPU-only machines)
    processing original prompt might take a while in cases of large context 
-   selection or long chat history. To help with that and further amortize the 
-   cost, it is possible to send and automate sending warmup queries to prefill
+   or long chat history. To help with that and further amortize the cost,
+   it is possible to send and automate sending warmup queries to prefill
    the KV cache. So the workflow could look like this:
-    - User selects some code in vim visual mode. 
+    - User selects some code in vim visual mode;
     - User runs a command (potentially with configured hotkey). That command
-      sends the incomplete message to the server and moves focus to the 
-      command line, where user can start typing the question. 
+      picks extra context, sends the incomplete message to the server and 
+      moves focus to the command line, where user can enter the question;
     - server starts processing the query in parallel with user typing the 
-      question, reducing overall wait time.
+      question, reducing overall wait time;
  - mixing different models in the same chat sessions. It is possible to send 
    original message to one model and use a different model for the follow-up
    questions. This allows to:
@@ -63,6 +64,12 @@ Features:
     - pick the right bot based on time/complexity of the issue
     - easily fallback to more expensive/slower model if the cheaper or faster
       one was not able to give an answer.
+
+Explaining code should be a much easier problem from both retrieval and 
+generation points of view. When asked to write a new code in a complicated
+codebase, search space for both 'providing context' and 'getting next token'
+seems much larger than in cases of explaining a specific piece of code, where
+one can just follow all the references.
 
 ==============================================================================
 2. Installation                                                  *vimqq-install*
@@ -78,7 +85,6 @@ The command above makes vimqq automatically loaded at vim start
 Update helptags in vim:
 >
     :helptags ~/.vim/pack/plugins/start/vimqq/doc
-
 
 vimqq will not work in 'compatible' mode. 'nocompatible' needs to be set.
 
@@ -119,16 +125,16 @@ Bot definition looks similar to local llama.cpp:
 ==============================================================================
 3. Usage                                                           *vimqq-usage*  
 
-Assuming we have a bot named "bot", we can start with asking a question:
+Assuming we have a bot named "llama", we can start by asking a question:
 >
-    :VQQSend @bot What are basics of unix philosophy?
+    :VQQSend @llama What are basics of unix philosophy?
 
 We can omit the tag as well, and the first configured bot will be used:
 >
     :VQQSend What are basics of unix philosophy?
 
 After running this command new window should open in vertical split showing
-the message sent and reply. If the "bot" is local llama bot, we should see
+the message sent and response. If it is local llama bot, we should see
 the reply being appended token by token.
 
 Pressing "q" in the window would change the window view to the list of 
@@ -136,7 +142,24 @@ past messages. Up/Down or j/k can be used to navigate the list and <cr>
 can be used to select individual chat.
 
 The chat titles are generated by the same model as was used to produce
-first reply in the chat thread.
+first reply in the chat thread, after the first response has arrived.
+
+Let's add a mapping to demonstrate more complicated use-case.
+>
+    xnoremap <silent> <leader>WW :<C-u>call VQQWarmupNewEx('@llama')<cr>
+
+Now, in visual mode user can select some lines of code, press <leader>WW and 
+the following should happen:
+  - vimqq will look at all ctags available within the selection and collect
+    context from destinations;
+  - it will send a warmup query with selected code, extra context pulled by
+    ctags exploration to the server. Server will start processing this
+    request and fill the KV cache;
+  - it will also prefill the command line with ":'<,'>VQQSendNewCtxEx". User
+    can start typing the specific question ('Why does it call foo() instead 
+    of bar()').
+  - sending a message will hit the same server which should be able to
+    fill in the cache and process our request much faster.
 
 ==============================================================================
 4. Commands                                                     *vimqq-commands*  
