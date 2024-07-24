@@ -151,10 +151,11 @@ More examples in the [demo_config.vim](demo_config.vim).
 - [ ] more custom examples
 - [ ] set right options (fixed width, etc)
 - [ ] open current chat
+- [ ] formatting for extended context to avoid wiping out cache
+- [ ] configirable extended context
 
 Later
 
-- [ ] context improvements: use entire file, expand context based on ctags?
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).
 
 Maybe never
@@ -162,6 +163,7 @@ Maybe never
 - [ ] use popup similar to fzf
 
 old completed:
+- [x] ctags context generation
 - [x] customize system prompt 
 - [x] doc/help
 - [x] generating title for chat

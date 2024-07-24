@@ -128,6 +128,10 @@ function! s:_pick_client(question)
     return [s:default_client, a:question]
 endfunction
 
+function! s:_expand_context(context)
+  return vimqq#utils#expand_context(a:context, 3, 2, 10)
+endfunction
+
 " -----------------------------------------------------------------------------
 " entry points to the plugin
 
@@ -141,7 +145,7 @@ function! s:qq_send_message(question, use_context, force_new_chat=v:false, expan
         if a:expand_context
             let l:context      = s:ui.get_visual_selection()
             let l:question     = s:fmt_question(l:context, l:question)
-            let l:extra_suffix = "\n\nExtra context:\n\n" . vimqq#utils#expand_context(l:context, 3, 5, 50)  
+            let l:extra_suffix = "\n\nExtra context:\n\n" . s:_expand_context(l:context)
         else
             let l:context = s:ui.get_visual_selection()
             let l:question = s:fmt_question(l:context, l:question)
@@ -169,7 +173,7 @@ function! s:qq_send_warmup(use_context, force_new_chat, expand_context, tag="")
     if a:use_context && !empty(l:context)
         if a:expand_context
             let l:content      = s:fmt_question(l:context, "")
-            let l:extra_suffix = "\n\nExtra context:\n\n" . vimqq#utils#expand_context(l:context, 3, 5, 30)  
+            let l:extra_suffix = "\n\nExtra context:\n\n" . s:_expand_context(l:context)
             let l:message      = [{"role": "user", "content": l:content, "extra_suffix": l:extra_suffix}]
         else
             let l:chat_id = s:current_chat_id()
