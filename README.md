@@ -438,6 +438,7 @@ Configuration is done using global variables with prefix `g:vqq`.
 - [ ] set right options (fixed width, etc)
 - [ ] open current chat
 - [ ] better prompt configuration
+- [ ] saving KV cache serverside
 
 
 Later
