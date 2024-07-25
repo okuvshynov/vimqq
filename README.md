@@ -29,7 +29,7 @@ What vimqq is not doing:
 
 ## requirements
 
-* Vim 8.2+
+* vim 8.2+
 * curl
 * llama.cpp if planning to use local models
 * Anthropic API subscription if planning to use claude family of models
