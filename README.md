@@ -433,8 +433,7 @@ Configuration is done using global variables with prefix `g:vqq`.
 ## TODO
 
 - [ ] simultaneous queries - lock the current chat
-- [ ] deleting chats
-- [ ] error handling in API calls
+- [ ] error handling in API calls and job start
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
 - [ ] double-check all buffer options (fixed width, etc)
 - [ ] better prompt configuration
@@ -446,7 +445,8 @@ Later
       something with language server? E.g. let LLM natigate with YCM-like commands? 
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).
 
-old completed:
+completed:
+- [x] deleting chats
 - [x] formatting for extended context to avoid wiping out cache
 - [x] configirable extended context
 - [x] ctags context generation

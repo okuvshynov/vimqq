@@ -256,7 +256,8 @@ With empty ctags, extra context will be empty as well.
 vimqq adds no global key mappings, only the navigation within chat buffer.
 
 In chat list view:
- - 'q'  will close the vim-qq window
+ - 'q' will close the vim-qq window
+ - 'd' will show and dialog confirmation and delete chat if user answers Yes.
  - <cr> will select chat session under cursor, open it and make current.
 
 In chat view:
