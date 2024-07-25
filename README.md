@@ -15,12 +15,7 @@ Features:
  - streaming response from llama.cpp server, so that user can start reading it as it is being generated. For example, Llama3-70B can produce 8-10 tokens per second on Apple M2 Ultra, which is very close to human reading rate. This way user will not waste much time waiting for reply;
  - KV cache warmup for llama.cpp. In cases of high-memory but low-compute hardware configuration for LLM inference (Apple devices, CPU-only machines) processing original prompt might take a while in cases of large context selection or long chat history. To help with that and further amortize the cost, it is possible to send and automate sending warmup queries to prefill the KV cache. In the video above llama.cpp server started working on processing the prompt + context at the same time as user was typing the question, and the reply started coming in immediately.
  - Both Claude/Anthropic remote models through paid API and local models via llama.cpp server (or compatible).
- - mixing different models in the same chat sessions. It is possible to send original message to one model and use a different model for the follow-up questions. This allows to:
-    - get multiple prospectives and opportunity to fix errors
-    - save on API calls if important
-    - pick the right bot based on time/complexity of the issue
-    - easily fallback to more expensive/slower model if the cheaper or faster
-      one was not able to give an answer.
+ - mixing different models in the same chat sessions. It is possible to send original message to one model and use a different model for the follow-up questions.
 
 What vimqq is not doing:
  - generating code in place, typing it in editor directly, all communication is done in the chat buffer. It is reasonably easy to copy/paste the code.
@@ -98,12 +93,7 @@ Features:
    via llama.cpp server (or compatible);
  - mixing different models in the same chat sessions. It is possible to send 
    original message to one model and use a different model for the follow-up
-   questions. This allows to:
-    - get multiple prospectives and opportunity to fix errors
-    - save on API calls if important
-    - pick the right bot based on time/complexity of the issue
-    - easily fallback to more expensive/slower model if the cheaper or faster
-      one was not able to give an answer.
+   questions.
 
 Explaining code should be a much easier problem from both retrieval and 
 generation points of view. When asked to write a new code in a complicated
