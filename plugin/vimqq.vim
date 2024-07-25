@@ -53,13 +53,8 @@ call s:ui.set_cb('chat_select_cb', {chat_id -> s:qq_show_chat(chat_id)})
 " If UI wants to show chat selection list, we need to get fresh list
 call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
 
-
-function! s:_expand_context(context)
-    return vimqq#utils#expand_context(a:context, 3, 2, 10)
-endfunction
-
 " -----------------------------------------------------------------------------
-" entry points to the plugin
+" This is 'internal API' - functions called by defined public commands
 
 " Sends new message to the server
 function! s:qq_send_message(question, use_context, force_new_chat=v:false, expand_context=v:false)
@@ -77,7 +72,7 @@ function! s:qq_send_message(question, use_context, force_new_chat=v:false, expan
         let l:selection = s:ui.get_visual_selection()
         let l:message.selection = l:selection
         if a:expand_context
-            let l:message.context =  s:_expand_context(l:selection)
+            let l:message.context = vimqq#context#expand(l:selection)
         endif
     endif
 
@@ -103,7 +98,7 @@ function! s:qq_send_warmup(use_context, force_new_chat, expand_context, tag="")
         let l:selection = s:ui.get_visual_selection()
         let l:message.selection = l:selection
         if a:expand_context
-            let l:message.context =  s:_expand_context(l:selection)
+            let l:message.context = vimqq#context#expand(l:selection)
         endif
     endif
 

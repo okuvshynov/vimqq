@@ -1,3 +1,8 @@
+if exists('g:autoloaded_vimqq_bots')
+    finish
+endif
+let g:autoloaded_vimqq_bots = 1
+
 " configuration
 let g:vqq_llama_servers = get(g:, 'vqq_llama_servers', [])
 let g:vqq_claude_models = get(g:, 'vqq_claude_models', [])
