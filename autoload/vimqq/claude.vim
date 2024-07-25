@@ -83,7 +83,7 @@ function! vimqq#claude#new(config = {}) abort
         let l:curl_cmd .= " -H 'anthropic-version: 2023-06-01'"
         let l:curl_cmd .= " -d '" . l:json_req . "'"
 
-        call vimqq#utils#keep_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
+        call vimqq#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
     endfunction
 
     function! l:claude._format_messages(messages) dict

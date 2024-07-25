@@ -56,7 +56,7 @@ function vimqq#llama#new(config = {}) abort
             \ 'exit_cb': {job_id, status -> self._on_status_exit(status)}
       \}
 
-      call vimqq#utils#keep_job(job_start(l:curl_cmd, l:job_conf))
+      call vimqq#jobs#start(l:curl_cmd, l:job_conf)
   endfunction
 
   function l:llama._send_chat_query(req, job_conf) dict
@@ -67,7 +67,7 @@ function vimqq#llama#new(config = {}) abort
       let l:curl_cmd .= " -H 'Content-Type: application/json'"
       let l:curl_cmd .= " -d '" . l:json_req . "'"
 
-      call vimqq#utils#keep_job(job_start(['/bin/sh', '-c', l:curl_cmd], a:job_conf))
+      call vimqq#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
   endfunction
 
   function! l:llama._on_stream_out(chat_id, msg) dict

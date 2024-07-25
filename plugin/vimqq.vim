@@ -54,7 +54,7 @@ endfunction
 " When the streaming is done and entire message is received, we mark it as
 " complete and kick off title generation if it is not computed yet
 for bot in s:bots.bots()
-    call bot.set_cb('title_done_cb', {chat_id, title -> s:_if_exists(function('s:chatsdb.set_title'), chat_id, title)})
+  call bot.set_cb('title_done_cb', {chat_id, title -> s:_if_exists({chat_id, title -> s:chatsdb.set_title(chat_id, title)}, chat_id, title)})
     call bot.set_cb('stream_done_cb', {chat_id, bot -> s:_if_exists(function('s:_on_stream_done'), chat_id, bot)})
     call bot.set_cb('token_cb', {chat_id, token -> s:_if_exists(function('s:_on_token_done'), chat_id, token)})
     call bot.set_cb('status_cb', {status, bot -> s:ui.update_statusline(status, bot.name())})

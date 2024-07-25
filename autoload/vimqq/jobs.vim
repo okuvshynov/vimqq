@@ -6,8 +6,7 @@ let g:autoloaded_vimqq_utils = 1
 let s:n_jobs_cleanup = 32
 let s:active_jobs    = []
 
-" async jobs management
-function! vimqq#utils#keep_job(job)
+function! s:_keep_job(job)
     let s:active_jobs += [a:job]
     if len(s:active_jobs) > s:n_jobs_cleanup
         for job in s:active_jobs[:]
@@ -18,3 +17,12 @@ function! vimqq#utils#keep_job(job)
     endif
 endfunction
 
+function! vimqq#jobs#start(command, config)
+    let l:job = job_start(a:command, a:config)
+    if job_status(l:job) == 'fail'
+        " TODO: handle errors
+        call vimqq#log#error('Job ' . a:command . 'failed to start.')
+        return
+    endif
+    call s:_keep_job(l:job)
+endfunction

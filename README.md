@@ -441,6 +441,7 @@ Configuration is done using global variables with prefix `g:vqq`.
 
 Later
 
+- [ ] working on Windows?
 - [ ] incremental context retrieval/search with tool use. Which ctags to follow, which symbols to lookup, etc.
       something with language server? E.g. let LLM natigate with YCM-like commands? 
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).
