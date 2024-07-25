@@ -104,8 +104,7 @@ function! vimqq#claude#new(config = {}) abort
     endfunction
 
     function! l:claude.send_warmup(chat_id, messages) dict
-      " we do nothing, as Claude API is stateless, no point in 
-      " preparing anything
+      " do nothing, as Claude API is stateless
     endfunction
 
     function! l:claude.send_chat(chat_id, messages) dict

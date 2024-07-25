@@ -210,16 +210,16 @@ endfunction
 
 " -----------------------------------------------------------------------------
 "  commands. this is the API for the plugin
-command!        -nargs=+ VQQSend        call s:qq_send_message(<q-args>, v:false, v:false)
-command!        -nargs=+ VQQSendNew     call s:qq_send_message(<q-args>, v:false, v:true)
-command! -range -nargs=+ VQQSendCtx     call s:qq_send_message(<q-args>, v:true,  v:false)
-command! -range -nargs=+ VQQSendNewCtx  call s:qq_send_message(<q-args>, v:true,  v:true)
+command!        -nargs=+ VQQSend         call s:qq_send_message(<q-args>, v:false, v:false)
+command!        -nargs=+ VQQSendNew      call s:qq_send_message(<q-args>, v:false, v:true)
+command! -range -nargs=+ VQQSendCtx      call s:qq_send_message(<q-args>, v:true,  v:false)
+command! -range -nargs=+ VQQSendNewCtx   call s:qq_send_message(<q-args>, v:true,  v:true)
 
 " gets bot name as parameter optionally
-command!        -nargs=? VQQWarm        call s:qq_send_warmup(v:false, v:false, v:false, <q-args>)
-command!        -nargs=? VQQWarmNew     call s:qq_send_warmup(v:false, v:true,  v:false, <q-args>)
-command! -range -nargs=? VQQWarmCtx     call s:qq_send_warmup(v:true,  v:false, v:false, <q-args>)
-command! -range -nargs=? VQQWarmNewCtx  call s:qq_send_warmup(v:true,  v:true,  v:false, <q-args>)
+command!        -nargs=? VQQWarm         call s:qq_send_warmup(v:false, v:false, v:false, <q-args>)
+command!        -nargs=? VQQWarmNew      call s:qq_send_warmup(v:false, v:true,  v:false, <q-args>)
+command! -range -nargs=? VQQWarmCtx      call s:qq_send_warmup(v:true,  v:false, v:false, <q-args>)
+command! -range -nargs=? VQQWarmNewCtx   call s:qq_send_warmup(v:true,  v:true,  v:false, <q-args>)
 
 " extra context using ctags
 command! -range -nargs=+ VQQSendCtxEx    call s:qq_send_message(<q-args>, v:true,  v:false, v:true)
@@ -227,9 +227,9 @@ command! -range -nargs=+ VQQSendNewCtxEx call s:qq_send_message(<q-args>, v:true
 command! -range -nargs=? VQQWarmCtxEx    call s:qq_send_warmup(v:true, v:false, v:true, <q-args>)
 command! -range -nargs=? VQQWarmNewCtxEx call s:qq_send_warmup(v:true, v:true, v:true, <q-args>)
 
-command!        -nargs=0 VQQList        call s:qq_show_chat_list()
-command!        -nargs=1 VQQOpenChat    call s:qq_show_chat(<f-args>)
-command!        -nargs=0 VQQToggle      call s:qq_toggle_window()
+command!        -nargs=0 VQQList         call s:qq_show_chat_list()
+command!        -nargs=1 VQQOpenChat     call s:qq_show_chat(<f-args>)
+command!        -nargs=0 VQQToggle       call s:qq_toggle_window()
 
 " -----------------------------------------------------------------------------
 "  Wrapper helper functions, useful for key mappings definitions
