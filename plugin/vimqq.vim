@@ -19,12 +19,10 @@ function! s:current_chat_id()
     return s:current_chat
 endfunction
 
-call vimqq#ui#new()
-
 let s:ui      = vimqq#ui#new()
 let s:chatsdb = vimqq#chatsdb#new()
 
-let s:clients = []
+let s:bots = []
 
 function! s:validate_bot_name(name) abort
     " Check if name is 'You'
@@ -38,7 +36,7 @@ function! s:validate_bot_name(name) abort
     endif
 
     " Check if a bot with the same name already exists
-    for client in s:clients
+    for client in s:bots
         if client.name() ==# a:name
             throw "A bot with the name '" . a:name . "' already exists"
         endif
@@ -50,7 +48,7 @@ for llama_conf in g:vqq_llama_servers
         throw "Each bot must have a 'bot_name' field"
     endif
     call s:validate_bot_name(llama_conf.bot_name)
-    call add(s:clients, vimqq#llama#new(llama_conf))
+    call add(s:bots, vimqq#llama#new(llama_conf))
 endfor
 
 for claude_conf in g:vqq_claude_models
@@ -58,16 +56,16 @@ for claude_conf in g:vqq_claude_models
         throw "Each bot must have a 'bot_name' field"
     endif
     call s:validate_bot_name(claude_conf.bot_name)
-    call add(s:clients, vimqq#claude#new(claude_conf))
+    call add(s:bots, vimqq#claude#new(claude_conf))
 endfor
 
-if empty(s:clients)
+if empty(s:bots)
     echo "no clients for vim-qq"
     finish
 endif
 
-let s:default_client = s:clients[0]
-for client in s:clients
+let s:default_client = s:bots[0]
+for client in s:bots
     if client.name() ==# g:vqq_default_bot
         let s:default_client = client
     endif
@@ -95,7 +93,7 @@ endfunction
 " if the chat we show is the one updated
 " When the streaming is done and entire message is received, we mark it as
 " complete and kick off title generation if it is not computed yet
-for c in s:clients
+for c in s:bots
     call c.set_cb('title_done_cb', {chat_id, title -> s:chatsdb.set_title(chat_id, title)})
     call c.set_cb('stream_done_cb', {chat_id, client -> s:_on_stream_done(chat_id, client)})
     call c.set_cb('status_cb', {status, client -> s:ui.update_statusline(status, client.name())})
@@ -109,7 +107,7 @@ call s:ui.set_cb('chat_select_cb', {chat_id -> s:qq_show_chat(chat_id)})
 call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
 
 function! s:_pick_client(question)
-    for c in s:clients
+    for c in s:bots
         let l:tag = '@' . c.name()
         if strpart(a:question, 0, len(l:tag)) ==# l:tag
             " removing tag before passing it to backend
