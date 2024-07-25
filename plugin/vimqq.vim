@@ -184,13 +184,6 @@ function! s:qq_send_warmup(use_context, force_new_chat, expand_context, tag="")
     call l:client.send_warmup(l:chat_id, l:messages)
 endfunction
 
-" show/hide qq window. window might contain individual chat or history of past
-" conversations. qq_show_chat and qq_show_chat_list functions are used to
-" switch between these two views
-function! s:qq_toggle_window()
-    call s:ui.toggle()
-endfunction
-
 " show list of chats to select from 
 function! s:qq_show_chat_list()
     let l:history = s:chatsdb.get_ordered_chats()
@@ -229,7 +222,7 @@ command! -range -nargs=? VQQWarmNewCtxEx call s:qq_send_warmup(v:true, v:true, v
 
 command!        -nargs=0 VQQList         call s:qq_show_chat_list()
 command!        -nargs=1 VQQOpenChat     call s:qq_show_chat(<f-args>)
-command!        -nargs=0 VQQToggle       call s:qq_toggle_window()
+command!        -nargs=0 VQQToggle       call s:ui.toggle()
 
 " -----------------------------------------------------------------------------
 "  Wrapper helper functions, useful for key mappings definitions
