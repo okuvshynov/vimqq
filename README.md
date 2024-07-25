@@ -14,10 +14,11 @@ What vimqq is not doing:
  - generating code in place, typing it in editor directly, all communication is done in the chat buffer. It is reasonably easy to copy/paste the code.
 
 Features:
- - Both Claude/Anthropic remote models through paid API and local models via llama.cpp server (or compatible).
- - streaming response from llama.cpp server, so that user can start reading it as it is being generated. For example, Llama3-70B can produce 8-10 tokens per second on Apple M2 Ultra, which is very close to human reading rate. This way user will not waste any time waiting for reply.
- - optional extra context via |ctags|. To answer questions about a piece of code one might need to navigate to other definitions which could be located in different files across the codebase. Including entire codebase in the context quickly becomes impractical. Rather than doing embedding lookup we utilize very commonly used ctags to add potentially relevant context to our queries;
+
+ - optional extra context via |ctags|. To answer questions about a piece of code one might need to navigate to other definitions which could be located in different files across the codebase. Including entire codebase in the context quickly becomes impractical. Rather than doing embedding lookup we utilize very commonly used ctags to add potentially relevant context to our queries; For example, in the video above ctags-based navigation was used to also pull `DisplayMode` definition to the context;
+ - streaming response from llama.cpp server, so that user can start reading it as it is being generated. For example, Llama3-70B can produce 8-10 tokens per second on Apple M2 Ultra, which is very close to human reading rate. This way user will not waste much time waiting for reply;
  - KV cache warmup for llama.cpp. In cases of high-memory but low-compute hardware configuration for LLM inference (Apple devices, CPU-only machines) processing original prompt might take a while in cases of large context selection or long chat history. To help with that and further amortize the cost, it is possible to send and automate sending warmup queries to prefill the KV cache. In the video above llama.cpp server started working on processing the prompt + context at the same time as user was typing the question, and the reply started coming in immediately.
+ - Both Claude/Anthropic remote models through paid API and local models via llama.cpp server (or compatible).
  - mixing different models in the same chat sessions. It is possible to send original message to one model and use a different model for the follow-up questions. This allows to:
     - get multiple prospectives and opportunity to fix errors
     - save on API calls if important
@@ -70,18 +71,16 @@ What vimqq is not doing:
    is done in the chat buffer. It is reasonably easy to copy/paste the code.
 
 Features:
- - Support for both Claude remote models through paid API and local models 
-   via llama.cpp server (or compatible);
- - streaming response from llama.cpp server, so that user can start
-   reading it as it is being generated. Llama3-70B can produce 8-10 tps 
-   on Apple M2 Ultra, which is very close to human reading rate. 
-   This way user will not waste any time waiting for reply;
  - optional extra context via |ctags|. To answer questions about a piece of 
    code one might need to navigate to other definitions which could be 
    located in different files across the codebase. Including entire codebase 
    in the context quickly becomes impractical. Rather than doing embedding
    lookup we utilize very commonly used ctags to add potentially relevant
    context to our queries;
+ - streaming response from llama.cpp server, so that user can start
+   reading it as it is being generated. Llama3-70B can produce 8-10 tps 
+   on Apple M2 Ultra, which is very close to human reading rate. 
+   This way user will not waste any time waiting for reply;
  - KV cache warmup for llama.cpp. In cases of high-memory but low-compute
    hardware configuration for LLM inference (Apple devices, CPU-only machines)
    processing original prompt might take a while in cases of large context 
@@ -94,6 +93,8 @@ Features:
       moves focus to the command line, where user can enter the question;
     - server starts processing the query in parallel with user typing the 
       question, reducing overall wait time;
+ - Support for both Claude remote models through paid API and local models 
+   via llama.cpp server (or compatible);
  - mixing different models in the same chat sessions. It is possible to send 
    original message to one model and use a different model for the follow-up
    questions. This allows to:
