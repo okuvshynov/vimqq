@@ -10,11 +10,7 @@ The commonly cited rule of thumb metric is that software engineers spend 10x mor
 
 Explaining code should be a much easier problem from both retrieval and generation points of view. When asked to write a new code in a complicated codebase, search space for both 'providing context' and 'getting next token' seems much larger than in cases of explaining a specific piece of code, where one can just follow all the references.
 
-What vimqq is not doing:
- - generating code in place, typing it in editor directly, all communication is done in the chat buffer. It is reasonably easy to copy/paste the code.
-
 Features:
-
  - optional extra context via |ctags|. To answer questions about a piece of code one might need to navigate to other definitions which could be located in different files across the codebase. Including entire codebase in the context quickly becomes impractical. Rather than doing embedding lookup we utilize very commonly used ctags to add potentially relevant context to our queries; For example, in the video above ctags-based navigation was used to also pull `DisplayMode` definition to the context;
  - streaming response from llama.cpp server, so that user can start reading it as it is being generated. For example, Llama3-70B can produce 8-10 tokens per second on Apple M2 Ultra, which is very close to human reading rate. This way user will not waste much time waiting for reply;
  - KV cache warmup for llama.cpp. In cases of high-memory but low-compute hardware configuration for LLM inference (Apple devices, CPU-only machines) processing original prompt might take a while in cases of large context selection or long chat history. To help with that and further amortize the cost, it is possible to send and automate sending warmup queries to prefill the KV cache. In the video above llama.cpp server started working on processing the prompt + context at the same time as user was typing the question, and the reply started coming in immediately.
@@ -26,6 +22,11 @@ Features:
     - easily fallback to more expensive/slower model if the cheaper or faster
       one was not able to give an answer.
 
+What vimqq is not doing:
+ - generating code in place, typing it in editor directly, all communication is done in the chat buffer. It is reasonably easy to copy/paste the code.
+
+
+
 ## requirements
 
 * Vim 8.2+
@@ -34,7 +35,7 @@ Features:
 * Anthropic API subscription if planning to use claude family of models
 * ctags if using extended context
 
-More information on installation and usage in help file:
+## Full docs
 
 ```text
 *vimqq.txt*  For Vim version 8.0  Last change: 2024 July 23
@@ -144,7 +145,7 @@ Download/prepare the models and start llama server:
 Add a bot endpoint configuration to vimrc file, for example
 >
     let g:vqq_llama_servers = [
-          \  {'bot_name': 'llama', 'addr': 'http://localhost:8088'},
+          \  {'bot_name': 'llama', 'addr': 'http://localhost:8080'},
     \]
 
 It is possible to have multiple bots with different names.
