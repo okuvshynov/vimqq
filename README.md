@@ -425,14 +425,14 @@ Configuration is done using global variables with prefix `g:vqq`.
 ## TODO
 
 - [ ] simultaneous queries - lock the current chat
-- [ ] error handling in API calls and job start
+- [ ] better error handling in API calls and job start
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
 - [ ] double-check all buffer options (fixed width, etc)
 - [ ] better prompt configuration
-- [ ] saving KV cache serverside
 
 Later
 
+- [ ] saving KV cache serverside
 - [ ] working on Windows?
 - [ ] incremental context retrieval/search with tool use. Which ctags to follow, which symbols to lookup, etc.
       something with language server? E.g. let LLM natigate with YCM-like commands? treesitter? etc.
