@@ -1,0 +1,80 @@
+" configuration
+let g:vqq_llama_servers = get(g:, 'vqq_llama_servers', [])
+let g:vqq_claude_models = get(g:, 'vqq_claude_models', [])
+let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
+
+function! s:_validate_name(name, bots)
+    if a:name ==# 'You'
+        echoe "Bot name 'You' is not allowed"
+        return v:false
+    endif
+
+    " Check if name contains only allowed characters
+    if a:name !~# '^[A-Za-z0-9_]\+$'
+        echoe "Bot name must contain only letters, numbers, and underscores"
+        return v:false
+    endif
+
+    " Check if a bot with the same name already exists
+    for client in a:bots
+        if client.name() ==# a:name
+            echoe "A bot with the name '" . a:name . "' already exists"
+            return v:false;
+        endif
+    endfor
+    return v:true
+endfunction
+
+function! s:_create(config_lists)
+    let l:res = []
+    for [config_list, Factory] in a:config_lists
+        for config in config_list
+            if !has_key(config, 'bot_name')
+                echoe "Each bot must have a 'bot_name' field"
+                continue
+            endif
+            if s:_validate_name(config.bot_name, l:res)
+                call add(l:res, Factory(config))
+            endif
+        endfor
+    endfor
+    return l:res
+endfunction
+
+function! vimqq#bots#new() abort
+    let l:bots = {}
+
+    let l:config_lists = [
+          \ [g:vqq_llama_servers, {conf -> vimqq#llama#new(conf)}],
+          \ [g:vqq_claude_models, {conf -> vimqq#claude#new(conf)}]
+    \]
+
+    let l:bots._bots = s:_create(l:config_lists)
+    if empty(l:bots._bots)
+        echoe "no bots defined for vim-qq"
+        finish
+    endif
+    let l:bots._default_bot = l:bots._bots[0]
+    for bot in l:bots._bots
+        if bot.name() ==# g:vqq_default_bot
+            let l:bots._default_bot = bot
+        endif
+    endfor
+
+    function! l:bots.bots() dict
+        return self._bots
+    endfunction
+
+    function! l:bots.select(question) dict
+        for bot in self._bots
+            let l:tag = '@' . bot.name()
+            if strpart(a:question, 0, len(l:tag)) ==# l:tag
+                " removing tag before passing it to backend
+                return [bot, strpart(a:question, len(l:tag))]
+            endif
+        endfor
+        return [self._default_bot, a:question]
+    endfunction
+
+    return l:bots
+endfunction

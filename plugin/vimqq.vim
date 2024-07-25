@@ -1,11 +1,6 @@
 " Copyright 2024 Oleksandr Kuvshynov
 
 " -----------------------------------------------------------------------------
-" configuration
-let g:vqq_llama_servers = get(g:, 'vqq_llama_servers', [])
-let g:vqq_claude_models = get(g:, 'vqq_claude_models', [])
-let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
-
 let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
 " -----------------------------------------------------------------------------
 " script-level mutable state
@@ -21,55 +16,7 @@ endfunction
 
 let s:ui      = vimqq#ui#new()
 let s:chatsdb = vimqq#chatsdb#new()
-
-let s:bots = []
-
-function! s:validate_bot_name(name) abort
-    " Check if name is 'You'
-    if a:name ==# 'You'
-        throw "Bot name 'You' is not allowed"
-    endif
-
-    " Check if name contains only allowed characters
-    if a:name !~# '^[A-Za-z0-9_]\+$'
-        throw "Bot name must contain only letters, numbers, and underscores"
-    endif
-
-    " Check if a bot with the same name already exists
-    for client in s:bots
-        if client.name() ==# a:name
-            throw "A bot with the name '" . a:name . "' already exists"
-        endif
-    endfor
-endfunction
-
-for llama_conf in g:vqq_llama_servers
-    if !has_key(llama_conf, 'bot_name')
-        throw "Each bot must have a 'bot_name' field"
-    endif
-    call s:validate_bot_name(llama_conf.bot_name)
-    call add(s:bots, vimqq#llama#new(llama_conf))
-endfor
-
-for claude_conf in g:vqq_claude_models
-    if !has_key(claude_conf, 'bot_name')
-        throw "Each bot must have a 'bot_name' field"
-    endif
-    call s:validate_bot_name(claude_conf.bot_name)
-    call add(s:bots, vimqq#claude#new(claude_conf))
-endfor
-
-if empty(s:bots)
-    echo "no clients for vim-qq"
-    finish
-endif
-
-let s:default_client = s:bots[0]
-for client in s:bots
-    if client.name() ==# g:vqq_default_bot
-        let s:default_client = client
-    endif
-endfor
+let s:bots    = vimqq#bots#new()
 
 " -----------------------------------------------------------------------------
 " Setting up wiring between modules
@@ -81,10 +28,10 @@ function! s:_on_token_done(chat_id, token)
     endif
 endfunction
 
-function! s:_on_stream_done(chat_id, client)
+function! s:_on_stream_done(chat_id, bot)
     call s:chatsdb.partial_done(a:chat_id)
     if !s:chatsdb.has_title(a:chat_id)
-        call a:client.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
+        call a:bot.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
     endif
 endfunction
 
@@ -93,11 +40,11 @@ endfunction
 " if the chat we show is the one updated
 " When the streaming is done and entire message is received, we mark it as
 " complete and kick off title generation if it is not computed yet
-for c in s:bots
-    call c.set_cb('title_done_cb', {chat_id, title -> s:chatsdb.set_title(chat_id, title)})
-    call c.set_cb('stream_done_cb', {chat_id, client -> s:_on_stream_done(chat_id, client)})
-    call c.set_cb('status_cb', {status, client -> s:ui.update_statusline(status, client.name())})
-    call c.set_cb('token_cb', {chat_id, token -> s:_on_token_done(chat_id, token)})
+for bot in s:bots.bots()
+    call bot.set_cb('title_done_cb', {chat_id, title -> s:chatsdb.set_title(chat_id, title)})
+    call bot.set_cb('stream_done_cb', {chat_id, bot -> s:_on_stream_done(chat_id, bot)})
+    call bot.set_cb('status_cb', {status, bot -> s:ui.update_statusline(status, bot.name())})
+    call bot.set_cb('token_cb', {chat_id, token -> s:_on_token_done(chat_id, token)})
 endfor
 
 " If chat is selected in UI, show it
@@ -106,16 +53,6 @@ call s:ui.set_cb('chat_select_cb', {chat_id -> s:qq_show_chat(chat_id)})
 " If UI wants to show chat selection list, we need to get fresh list
 call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
 
-function! s:_pick_client(question)
-    for c in s:bots
-        let l:tag = '@' . c.name()
-        if strpart(a:question, 0, len(l:tag)) ==# l:tag
-            " removing tag before passing it to backend
-            return [c, strpart(a:question, len(l:tag))]
-        endif
-    endfor
-    return [s:default_client, a:question]
-endfunction
 
 function! s:_expand_context(context)
     return vimqq#utils#expand_context(a:context, 3, 2, 10)
@@ -127,13 +64,13 @@ endfunction
 " Sends new message to the server
 function! s:qq_send_message(question, use_context, force_new_chat=v:false, expand_context=v:false)
     " pick the bot. we modify message inplace to allow removing bot tag.
-    let [l:client, l:question] = s:_pick_client(a:question)
+    let [l:bot, l:question] = s:bots.select(a:question)
 
     " in this case bot_name means 'who is asked/tagged'. the author of this message is user. 
     let l:message = {
           \ "role"     : "user",
           \ "message"  : l:question,
-          \ "bot_name" : l:client.name()
+          \ "bot_name" : l:bot.name()
     \ }
 
     if a:use_context
@@ -151,9 +88,9 @@ function! s:qq_send_message(question, use_context, force_new_chat=v:false, expan
     endif
     " timestamp and other metadata might get appended here
     call s:chatsdb.append_message(l:chat_id, l:message)
-    call s:chatsdb.reset_partial(l:chat_id, l:client.name())
+    call s:chatsdb.reset_partial(l:chat_id, l:bot.name())
     call s:qq_show_chat(l:chat_id)
-    call l:client.send_chat(l:chat_id, s:chatsdb.get_messages(l:chat_id))
+    call l:bot.send_chat(l:chat_id, s:chatsdb.get_messages(l:chat_id))
 endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.
@@ -176,10 +113,10 @@ function! s:qq_send_warmup(use_context, force_new_chat, expand_context, tag="")
         let l:chat_id = s:current_chat_id() 
     endif
 
-    let [l:client, _msg] = s:_pick_client(a:tag)
+    let [l:bot, _msg] = s:bots.select(a:tag)
     let l:messages = s:chatsdb.get_messages(l:chat_id) + [l:message]
 
-    call l:client.send_warmup(l:chat_id, l:messages)
+    call l:bot.send_warmup(l:chat_id, l:messages)
 endfunction
 
 " show list of chats to select from 

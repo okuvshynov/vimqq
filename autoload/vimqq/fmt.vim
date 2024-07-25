@@ -11,7 +11,6 @@ let s:template_extra =
       \  "Here's a code snippet: \n\n{vqq_selection}\n\n"
       \ ."Here's some extra context: \n\n{vqq_context}\n\n{vqq_message}"
 
-
 let g:vqq_template_selection =
       \ get(g:, 'vqq_template_selection', s:template_selection)
 let g:vqq_template_extra     =
@@ -22,7 +21,6 @@ let g:vqq_template_extra     =
 " effective warmup. 
 "
 " returns formatted content
-
 function! vimqq#fmt#content(message, folding_context=v:false)
     let l:replacements = {
         \ "message"  : "{vqq_message}",

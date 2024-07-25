@@ -432,6 +432,7 @@ Configuration is done using global variables with prefix `g:vqq`.
 
 ## TODO
 
+- [ ] simultaneous queries - lock the current chat
 - [ ] deleting chats
 - [ ] error handling in API calls
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
