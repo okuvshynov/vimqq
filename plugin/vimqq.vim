@@ -7,6 +7,9 @@ let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
 " this is the active chat id. New queries would go to this chat by default
 let s:current_chat = -1 
 
+" We need to handle the following here
+"  - chats might be deleted
+"  - if chat is 'awaiting response'
 function! s:current_chat_id()
     if s:current_chat == -1
         let s:current_chat = s:chatsdb.new_chat()
@@ -21,11 +24,17 @@ let s:bots    = vimqq#bots#new()
 " -----------------------------------------------------------------------------
 " Setting up wiring between modules
 
-function! s:_on_token_done(chat_id, token)
+" It is possible that chat will get deleted, and after that some callback
+" would arrive. Log and skip any further processing
+function! s:_if_exists(Fn, chat_id, ...)
     if !s:chatsdb.chat_exists(a:chat_id)
         call vimqq#log#info("callback on non-existent chat.")
         return
     endif
+    call call(a:Fn, [a:chat_id] + a:000)
+endfunction
+
+function! s:_on_token_done(chat_id, token)
     call s:chatsdb.append_partial(a:chat_id, a:token)
     if a:chat_id == s:current_chat
         call s:ui.append_partial(a:token)
@@ -33,10 +42,6 @@ function! s:_on_token_done(chat_id, token)
 endfunction
 
 function! s:_on_stream_done(chat_id, bot)
-    if !s:chatsdb.chat_exists(a:chat_id)
-        call vimqq#log#info("callback on non-existent chat.")
-        return
-    endif
     call s:chatsdb.partial_done(a:chat_id)
     if !s:chatsdb.has_title(a:chat_id)
         call a:bot.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
@@ -49,20 +54,36 @@ endfunction
 " When the streaming is done and entire message is received, we mark it as
 " complete and kick off title generation if it is not computed yet
 for bot in s:bots.bots()
-    call bot.set_cb('title_done_cb', {chat_id, title -> s:chatsdb.set_title(chat_id, title)})
-    call bot.set_cb('stream_done_cb', {chat_id, bot -> s:_on_stream_done(chat_id, bot)})
+    call bot.set_cb('title_done_cb', {chat_id, title -> s:_if_exists(function('s:chatsdb.set_title'), chat_id, title)})
+    call bot.set_cb('stream_done_cb', {chat_id, bot -> s:_if_exists(function('s:_on_stream_done'), chat_id, bot)})
+    call bot.set_cb('token_cb', {chat_id, token -> s:_if_exists(function('s:_on_token_done'), chat_id, token)})
     call bot.set_cb('status_cb', {status, bot -> s:ui.update_statusline(status, bot.name())})
-    call bot.set_cb('token_cb', {chat_id, token -> s:_on_token_done(chat_id, token)})
 endfor
 
 " If chat is selected in UI, show it
-call s:ui.set_cb('chat_select_cb', {chat_id -> s:qq_show_chat(chat_id)})
-
+call s:ui.set_cb('chat_select_cb', {chat_id -> s:_if_exists(function('s:qq_show_chat'), chat_id)})
+" If chat was requested for deletion, delete it and update UI
+call s:ui.set_cb('chat_delete_cb', {chat_id -> s:_if_exists(function('s:qq_delete_chat'), chat_id)})
 " If UI wants to show chat selection list, we need to get fresh list
 call s:ui.set_cb('chat_list_cb', { -> s:qq_show_chat_list()})
 
 " -----------------------------------------------------------------------------
 " This is 'internal API' - functions called by defined public commands
+
+" Deletes the chat. Shows a confirmation dialog to user first
+function! s:qq_delete_chat(chat_id)
+    let title = s:chatsdb.get_title(a:chat_id)
+    let choice = confirm("Are you sure you want to delete '" . title . "'?", "&Yes\n&No", 2)
+    if choice != 1
+        return
+    endif
+
+    call s:chatsdb.delete_chat(a:chat_id)
+    if s:current_chat == a:chat_id
+        let s:current_chat = -1
+    endif
+    call s:qq_show_chat_list()
+endfunction
 
 " Sends new message to the server
 function! s:qq_send_message(question, use_context, force_new_chat=v:false, expand_context=v:false)

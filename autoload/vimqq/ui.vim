@@ -138,8 +138,24 @@ function vimqq#ui#new() abort
         function! Toggle() closure
             call self.toggle()
         endfunction
+
+        " this one is interesting and I'm probably doing it wrong
+        " if as a result of deletion you need to render chat history again,
+        " we'll be redefining this closure while running within its context,
+        " so that stack would look like DeleteChat -> some_cb -> mode_ops ->
+        " display_chat_history. We cannot redefine it while it is running, so
+        " let's use timer to break the chain.
+        "
+        " TODO: should we do the same for all callbacks and move this to base
+        " module?
+        function! DeleteChat() closure
+            call timer_start(0, { -> self.call_cb('chat_delete_cb', l:chat_id_map[line('.')])})
+        endfunction
+
+
         nnoremap <silent> <buffer> <cr> :call ShowChat()<cr>
         nnoremap <silent> <buffer> q    :call Toggle()<cr>
+        nnoremap <silent> <buffer> d    :call DeleteChat()<cr>
     endfunction
 
     function l:ui.display_chat(messages, partial) dict

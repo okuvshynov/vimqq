@@ -10,20 +10,20 @@ let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
 
 function! s:_validate_name(name, bots)
     if a:name ==# 'You'
-        echoe "Bot name 'You' is not allowed"
+        call vimqq#log#error("Bot name 'You' is not allowed")
         return v:false
     endif
 
     " Check if name contains only allowed characters
     if a:name !~# '^[A-Za-z0-9_]\+$'
-        echoe "Bot name must contain only letters, numbers, and underscores"
+        call vimqq#log#error("Bot name must contain only letters, numbers, and underscores")
         return v:false
     endif
 
     " Check if a bot with the same name already exists
     for client in a:bots
         if client.name() ==# a:name
-            echoe "A bot with the name '" . a:name . "' already exists"
+            call vimqq#log#error("A bot with the name '" . a:name . "' already exists")
             return v:false;
         endif
     endfor
@@ -35,7 +35,7 @@ function! s:_create(config_lists)
     for [config_list, Factory] in a:config_lists
         for config in config_list
             if !has_key(config, 'bot_name')
-                echoe "Each bot must have a 'bot_name' field"
+                call vimqq#log#error("Each bot must have a 'bot_name' field")
                 continue
             endif
             if s:_validate_name(config.bot_name, l:res)
