@@ -18,8 +18,8 @@ rather than writing new code.
 ==============================================================================
 1. Introduction                                                    *vimqq-intro*
 
-While impressive, LLMs are still not that good at writing original code. It
-is especially true for the scenarios where the change is spread out across
+While impressive, LLMs are still not that good at writing new code. It is
+especially true for the scenarios where the change is spread out across
 multiple files in a huge repository, which is exactly what some very important
 and time consuming code changes are.
 

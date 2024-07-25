@@ -435,19 +435,14 @@ Configuration is done using global variables with prefix `g:vqq`.
 - [ ] deleting chats
 - [ ] error handling in API calls
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
-- [ ] set right options (fixed width, etc)
-- [ ] open current chat
+- [ ] double-check all buffer options (fixed width, etc)
 - [ ] better prompt configuration
 - [ ] saving KV cache serverside
 
-
 Later
 
+- [ ] incremental search with something like tool use. Which ctags to follow, which symbols to lookup, etc.
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).
-
-Maybe never
-- [ ] integration with fzf
-- [ ] use popup similar to fzf
 
 old completed:
 - [x] formatting for extended context to avoid wiping out cache
