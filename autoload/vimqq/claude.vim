@@ -39,6 +39,8 @@ function! vimqq#claude#new(config = {}) abort
 
         let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
 
+        call vimqq#log#info("claude " . self.name() . " total usage: " . msg)
+
         call self.call_cb('status_cb', msg, self)
     endfunction
 

@@ -442,7 +442,8 @@ Configuration is done using global variables with prefix `g:vqq`.
 
 Later
 
-- [ ] incremental search with something like tool use. Which ctags to follow, which symbols to lookup, etc.
+- [ ] incremental context retrieval/search with tool use. Which ctags to follow, which symbols to lookup, etc.
+      something with language server? E.g. let LLM natigate with YCM-like commands? 
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).
 
 old completed:

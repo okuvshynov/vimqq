@@ -41,6 +41,10 @@ function! vimqq#chatsdb#new() abort
         call self._save()
     endfunction
 
+    function! l:db.chat_exists(chat_id) dict
+        return has_key(self._chats, a:chat_id)
+    endfunction
+
     function! l:db.get_first_message(chat_id) dict
         return self._chats[a:chat_id].messages[0]
     endfunction

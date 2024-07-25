@@ -27,10 +27,15 @@ function vimqq#llama#new(config = {}) abort
   let l:llama._status_endpoint = l:server . '/health'
 
   " {{{ private:
+  
+  function l:llama._update_status(status)
+      call vimqq#log#info('bot ' . self.name() . ': ' . a:status)
+      call self.call_cb('status_cb', a:status, self)
+  endfunction
 
   function l:llama._on_status_exit(exit_status) dict
       if a:exit_status != 0
-          call self.call_cb('status_cb', "unavailable", self)
+          call self._update_status("unavailable")
       endif
       call timer_start(self._conf.healthcheck_ms, { -> self._get_status() })
   endfunction
@@ -38,9 +43,9 @@ function vimqq#llama#new(config = {}) abort
   function l:llama._on_status_out(msg) dict
       let l:status = json_decode(a:msg)
       if empty(l:status)
-          call self.call_cb('status_cb', "unavailable", self)
+          call self._update_status("unavailable")
       else
-          call self.call_cb('status_cb', l:status.status, self)
+          call self._update_status(l:status.status)
       endif
   endfunction
 

@@ -22,6 +22,10 @@ let s:bots    = vimqq#bots#new()
 " Setting up wiring between modules
 
 function! s:_on_token_done(chat_id, token)
+    if !s:chatsdb.chat_exists(a:chat_id)
+        call vimqq#log#info("callback on non-existent chat.")
+        return
+    endif
     call s:chatsdb.append_partial(a:chat_id, a:token)
     if a:chat_id == s:current_chat
         call s:ui.append_partial(a:token)
@@ -29,6 +33,10 @@ function! s:_on_token_done(chat_id, token)
 endfunction
 
 function! s:_on_stream_done(chat_id, bot)
+    if !s:chatsdb.chat_exists(a:chat_id)
+        call vimqq#log#info("callback on non-existent chat.")
+        return
+    endif
     call s:chatsdb.partial_done(a:chat_id)
     if !s:chatsdb.has_title(a:chat_id)
         call a:bot.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
@@ -121,6 +129,10 @@ function! s:qq_show_chat_list()
 endfunction
 
 function! s:qq_show_chat(chat_id)
+    if !s:chatsdb.chat_exists(a:chat_id)
+        call vimqq#log#info("Attempting to show non-existent chat")
+        return
+    endif
     let s:current_chat = a:chat_id
     let l:messages     = s:chatsdb.get_messages(a:chat_id)
     let l:partial      = s:chatsdb.get_partial(a:chat_id)
