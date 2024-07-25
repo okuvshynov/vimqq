@@ -435,7 +435,7 @@ Later
 
 - [ ] working on Windows?
 - [ ] incremental context retrieval/search with tool use. Which ctags to follow, which symbols to lookup, etc.
-      something with language server? E.g. let LLM natigate with YCM-like commands? 
+      something with language server? E.g. let LLM natigate with YCM-like commands? treesitter? etc.
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).
 
 completed:
