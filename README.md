@@ -424,6 +424,7 @@ Configuration is done using global variables with prefix `g:vqq`.
 
 ## TODO
 
+- [ ] for small projects just upload entire codebase to the context
 - [ ] simultaneous queries - lock the current chat
 - [ ] better error handling in API calls and job start
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
