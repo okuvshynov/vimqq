@@ -85,10 +85,26 @@ function! s:qq_delete_chat(chat_id)
     call s:qq_show_chat_list()
 endfunction
 
+function! s:_fill_context(message, context_mode)
+    let l:message = deepcopy(a:message)
+    if a:context_mode != "ctx_none"
+        let l:selection = s:ui.get_visual_selection()
+        let l:message.selection = l:selection
+        if a:context_mode == "ctx_ctags"
+            let l:message.context = vimqq#context#expand(l:selection)
+        endif
+        if a:context_mode == "ctx_full"
+            " TODO: get limited file types?
+            let l:message.context = vimqq#full_context#get()
+        endif
+    endif
+    return l:message
+endfunction
+
 " context_mode is 'ctx_none', 'ctx_range', 'ctx_ctags', 'ctx_full'
 " Sends new message to the server
-function! s:qq_send_message(question, context_mode, force_new_chat=v:false)
-    " pick the bot. we modify message inplace to allow removing bot tag.
+function! s:qq_send_message(context_mode, force_new_chat, question)
+    " pick the bot. we modify message to allow removing bot tag.
     let [l:bot, l:question] = s:bots.select(a:question)
 
     " in this case bot_name means 'who is asked/tagged'. the author of this message is user. 
@@ -98,17 +114,7 @@ function! s:qq_send_message(question, context_mode, force_new_chat=v:false)
           \ "bot_name" : l:bot.name()
     \ }
 
-    if a:context_mode != "ctx_none"
-        let l:selection = s:ui.get_visual_selection()
-        let l:message.selection = l:selection
-        if a:context_mode == "ctx_ctags"
-            let l:message.context = vimqq#context#expand(l:selection)
-        endif
-        if a:context_mode == "ctx_full"
-            " TODO: get limited file types?
-            let l:message.context = vimqq#full_context#get("*.vim")
-        endif
-    endif
+    let l:message = s:_fill_context(l:message, a:context_mode)
 
     if a:force_new_chat
         let l:chat_id = s:chatsdb.new_chat()
@@ -123,18 +129,12 @@ function! s:qq_send_message(question, context_mode, force_new_chat=v:false)
 endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.
-function! s:qq_send_warmup(use_context, force_new_chat, expand_context, tag="")
+function! s:qq_send_warmup(context_mode, force_new_chat, tag="")
     let l:message = {
           \ "role"     : "user",
           \ "message"  : "",
     \ }
-    if a:use_context
-        let l:selection = s:ui.get_visual_selection()
-        let l:message.selection = l:selection
-        if a:expand_context
-            let l:message.context = vimqq#context#expand(l:selection)
-        endif
-    endif
+    let l:message = s:_fill_context(l:message, a:context_mode)
 
     if a:force_new_chat
         let l:chat_id = s:chatsdb.new_chat()
@@ -171,28 +171,28 @@ endfunction
 
 " -----------------------------------------------------------------------------
 "  commands. this is the API for the plugin
-command!        -nargs=+ VQQSend         call s:qq_send_message(<q-args>, "ctx_none",  v:false)
-command!        -nargs=+ VQQSendNew      call s:qq_send_message(<q-args>, "ctx_none",  v:true)
-command! -range -nargs=+ VQQSendCtx      call s:qq_send_message(<q-args>, "ctx_range", v:false)
-command! -range -nargs=+ VQQSendNewCtx   call s:qq_send_message(<q-args>, "ctx_range", v:true)
+command!        -nargs=+ VQQSend         call s:qq_send_message("ctx_none",  v:false, <q-args>)
+command!        -nargs=+ VQQSendNew      call s:qq_send_message("ctx_none",  v:true,  <q-args>)
+command! -range -nargs=+ VQQSendCtx      call s:qq_send_message("ctx_range", v:false, <q-args>)
+command! -range -nargs=+ VQQSendNewCtx   call s:qq_send_message("ctx_range", v:true,  <q-args>)
 
 " gets bot name as parameter optionally
-command!        -nargs=? VQQWarm         call s:qq_send_warmup(v:false, v:false, v:false, <q-args>)
-command!        -nargs=? VQQWarmNew      call s:qq_send_warmup(v:false, v:true,  v:false, <q-args>)
-command! -range -nargs=? VQQWarmCtx      call s:qq_send_warmup(v:true,  v:false, v:false, <q-args>)
-command! -range -nargs=? VQQWarmNewCtx   call s:qq_send_warmup(v:true,  v:true,  v:false, <q-args>)
+command!        -nargs=? VQQWarm         call s:qq_send_warmup("ctx_none",  v:false, <q-args>)
+command!        -nargs=? VQQWarmNew      call s:qq_send_warmup("ctx_none",  v:true,  <q-args>)
+command! -range -nargs=? VQQWarmCtx      call s:qq_send_warmup("ctx_range", v:false, <q-args>)
+command! -range -nargs=? VQQWarmNewCtx   call s:qq_send_warmup("ctx_range", v:true,  <q-args>)
 
 " extra context using ctags
-command! -range -nargs=+ VQQSendCtxEx    call s:qq_send_message(<q-args>, "ctx_ctags",  v:false)
-command! -range -nargs=+ VQQSendNewCtxEx call s:qq_send_message(<q-args>, "ctx_ctags",  v:true)
-command! -range -nargs=? VQQWarmCtxEx    call s:qq_send_warmup(v:true, v:false, v:true, <q-args>)
-command! -range -nargs=? VQQWarmNewCtxEx call s:qq_send_warmup(v:true, v:true, v:true, <q-args>)
+command! -range -nargs=+ VQQSendCtxEx    call s:qq_send_message("ctx_ctags", v:false, <q-args>)
+command! -range -nargs=+ VQQSendNewCtxEx call s:qq_send_message("ctx_ctags", v:true,  <q-args>)
+command! -range -nargs=? VQQWarmCtxEx    call s:qq_send_warmup("ctx_ctags",  v:false, <q-args>)
+command! -range -nargs=? VQQWarmNewCtxEx call s:qq_send_warmup("ctx_ctags",  v:true,  <q-args>)
 
 command!        -nargs=0 VQQList         call s:qq_show_chat_list()
 command!        -nargs=1 VQQOpenChat     call s:qq_show_chat(<f-args>)
 command!        -nargs=0 VQQToggle       call s:ui.toggle()
 
-command! -range -nargs=+ VQQSendNewCtxFull call s:qq_send_message(<q-args>, "ctx_full",  v:true)
+command! -range -nargs=+ VQQSendNewCtxFull call s:qq_send_message("ctx_full",  v:true, <q-args>)
 " -----------------------------------------------------------------------------
 "  Wrapper helper functions, useful for key mappings definitions
 function! VQQWarmupEx(bot)

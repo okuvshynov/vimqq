@@ -46,6 +46,10 @@ function! vimqq#fmt#content(message, folding_context=v:false)
     if a:folding_context
         let l:res = substitute(
               \ l:res,
+              \ "{vqq_selection}",
+              \ "{{{ ...\n{vqq_selection}\n}}}", 'g')
+        let l:res = substitute(
+              \ l:res,
               \ "{vqq_context}",
               \ "{{{ ...\n{vqq_context}\n}}}", 'g')
     endif
