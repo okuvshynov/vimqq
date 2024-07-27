@@ -41,7 +41,16 @@ function! s:_on_token_done(chat_id, token)
     endif
 endfunction
 
-function! s:_on_stream_done(chat_id, bot)
+" we need a callback to decide when chat processing is done, if it is
+" success/error. We'll need to use it to prevent multiple queries being
+" sent for the same chat_id. 
+" For example, we have a queue for each chat. When we attempt to send a new
+" message to chat, we first check if queue is empty. If it is, we send a 
+" message + add the job to the queue in 'processing' state. Once done, we
+" remove it and check if more were added to the queue, and process them if
+" needed.
+
+function! s:_on_reply_complete(chat_id, bot)
     call s:chatsdb.partial_done(a:chat_id)
     if !s:chatsdb.has_title(a:chat_id)
         call a:bot.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
@@ -55,7 +64,7 @@ endfunction
 " complete and kick off title generation if it is not computed yet
 for bot in s:bots.bots()
     call bot.set_cb('title_done_cb', {chat_id, title -> s:_if_exists({chat_id, title -> s:chatsdb.set_title(chat_id, title)}, chat_id, title)})
-    call bot.set_cb('stream_done_cb', {chat_id, bot -> s:_if_exists(function('s:_on_stream_done'), chat_id, bot)})
+    call bot.set_cb('stream_done_cb', {chat_id, bot -> s:_if_exists(function('s:_on_reply_complete'), chat_id, bot)})
     call bot.set_cb('token_cb', {chat_id, token -> s:_if_exists(function('s:_on_token_done'), chat_id, token)})
     call bot.set_cb('status_cb', {status, bot -> s:ui.update_statusline(status, bot.name())})
 endfor
