@@ -100,11 +100,14 @@ function! s:_fill_context(message, context_mode)
         let l:selection = s:ui.get_visual_selection()
         let l:message.selection = l:selection
         if a:context_mode == "ctx_ctags"
-            let l:message.context = vimqq#context#expand(l:selection)
+            let l:message.context = vimqq#context#ctags(l:selection)
         endif
         if a:context_mode == "ctx_full"
             " TODO: get limited file types?
             let l:message.context = vimqq#full_context#get()
+        endif
+        if a:context_mode == "ctx_file"
+            let l:message.context = vimqq#context#file()
         endif
     endif
     return l:message
@@ -202,6 +205,7 @@ command!        -nargs=1 VQQOpenChat     call s:qq_show_chat(<f-args>)
 command!        -nargs=0 VQQToggle       call s:ui.toggle()
 
 command! -range -nargs=+ VQQSendNewCtxFull call s:qq_send_message("ctx_full",  v:true, <q-args>)
+command! -range -nargs=+ VQQSendNewCtxFiLe call s:qq_send_message("ctx_file",  v:true, <q-args>)
 " -----------------------------------------------------------------------------
 "  Wrapper helper functions, useful for key mappings definitions
 function! VQQWarmupEx(bot)
@@ -232,3 +236,11 @@ function! VQQQueryNew(bot)
     call feedkeys(":VQQSendNew " . a:bot . " ", 'n')
 endfunction
 
+"-----------------
+" the most important thing:
+" warmup for local bot + question for sonnet
+" context:
+"   - none
+"   - selection
+"   - ctags
+"   - file?

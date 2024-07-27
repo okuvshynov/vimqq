@@ -66,7 +66,7 @@ function! s:get_relevant_ctx(word, n_up, n_down)
     return join(getbufline(l:buf, l:start, l:end), "\n")
 endfunction
 
-function! vimqq#context#expand(selection)
+function! vimqq#context#ctags(selection)
     let n_up = g:vqq_exp_context_n_up
     let n_down = g:vqq_exp_context_n_down
     let n_tags = g:vqq_exp_context_n_tags
@@ -85,3 +85,6 @@ function! vimqq#context#expand(selection)
     return join(l:res, "\n")
 endfunction
 
+function! vimqq#context#file()
+    return join(getline(1, '$'), "\n")
+endfunction
