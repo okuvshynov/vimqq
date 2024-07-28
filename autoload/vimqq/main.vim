@@ -31,7 +31,7 @@ let s:bots    = vimqq#bots#new()
 " Setting up wiring between modules
 
 " It is possible that chat will get deleted, and after that some callback
-" would arrive. Log and skip any further processing
+" would arrive. Log and skip any further processing. 
 function! s:_if_exists(Fn, chat_id, ...)
     if !s:chatsdb.chat_exists(a:chat_id)
         call vimqq#log#info("callback on non-existent chat.")
@@ -47,14 +47,13 @@ function! s:_on_token_done(chat_id, token)
     endif
 endfunction
 
-" we need a callback to decide when chat processing is done, if it is
-" success/error. We'll need to use it to prevent multiple queries being
-" sent for the same chat_id. 
-" For example, we have a queue for each chat. When we attempt to send a new
-" message to chat, we first check if queue is empty. If it is, we send a 
-" message + add the job to the queue in 'processing' state. Once done, we
-" remove it and check if more were added to the queue, and process them if
-" needed.
+function! s:_update_queue_size()
+    let l:size = 0
+    for l:queue in values(s:queues)
+      let l:size += len(l:queue)
+    endfor
+    call s:ui.update_queue_size(l:size)
+endfunction 
 
 function! s:_on_reply_complete(chat_id, bot)
     call s:chatsdb.partial_done(a:chat_id)
@@ -64,11 +63,11 @@ function! s:_on_reply_complete(chat_id, bot)
 
     " remove from queue
     let l:queue = get(s:queues, a:chat_id, [])
+
     if empty(l:queue)
         vimqq#log#error('got reply for a chat with empty queue')
         return
     endif
-
     call remove(l:queue, 0)
 
     " kick off the next request if there was one
@@ -85,6 +84,7 @@ function! s:_on_reply_complete(chat_id, bot)
         endif
     endif
     let s:queues[a:chat_id] = l:queue
+    call s:_update_queue_size()
 endfunction
 
 " When server updates health status, we update status line
@@ -143,13 +143,13 @@ function! vimqq#main#delete_chat(chat_id)
     call vimqq#main#show_list()
 endfunction
 
-" context_mode is 'ctx_none', 'ctx_range', 'ctx_ctags', 'ctx_full'
 " Sends new message to the server
 function! vimqq#main#send_message(context_mode, force_new_chat, question)
     " pick the bot. we modify message to allow removing bot tag.
     let [l:bot, l:question] = s:bots.select(a:question)
 
-    " in this case bot_name means 'who is asked/tagged'. the author of this message is user. 
+    " In this case bot_name means 'who is asked/tagged'.
+    " Uhe author of this message is user. Rename to 'tagged_bot'
     let l:message = {
           \ "role"     : 'user',
           \ "message"  : l:question,
@@ -175,12 +175,14 @@ function! vimqq#main#send_message(context_mode, force_new_chat, question)
             " mark chat as 'in progress'
             call add(l:queue, [l:message, l:bot])
         else
+            " TODO: Don't show the chat in this case
             call vimqq#log#error('Unable to send message')
         endif
     else
         call add(l:queue, [l:message, l:bot])
     endif
     let s:queues[l:chat_id] = l:queue
+    call s:_update_queue_size()
 endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.

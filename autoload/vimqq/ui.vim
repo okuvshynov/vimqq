@@ -23,8 +23,8 @@ function vimqq#ui#new() abort
 
     call extend(l:ui, vimqq#base#new())
 
-    let l:ui._server_status = "unknown"
-    let l:ui._bot_status    = {}
+    let l:ui._bot_status = {}
+    let l:ui._queue_size = 0
 
     " {{{ private:
     function! l:ui._open_window() dict
@@ -37,6 +37,7 @@ function vimqq#ui#new() abort
             setlocal buftype=nofile
             setlocal bufhidden=hide
             setlocal noswapfile
+            setlocal nomodifiable
             setlocal wfw 
             function GetStatus() closure
                 let res = []
@@ -46,7 +47,11 @@ function vimqq#ui#new() abort
                 return join(res, ' | ')
             endfunction
 
-            setlocal statusline=status:\ %{GetStatus()}
+            function GetQueueSize() closure
+                return "queue: " . self._queue_size
+            endfunction
+
+            setlocal statusline=%{GetStatus()}%=%{GetQueueSize()}
         else
             let winnum = bufwinnr(l:bufnum)
             if winnum == -1
@@ -64,6 +69,7 @@ function vimqq#ui#new() abort
             call self._open_window()
         endif
 
+        setlocal modifiable
         let l:tstamp = "        "
         if has_key(a:message, 'timestamp')
             let l:tstamp = strftime(s:time_format . " ", a:message['timestamp'])
@@ -82,6 +88,7 @@ function vimqq#ui#new() abort
                 call append(line('$'), l)
             endif
         endfor
+        setlocal nomodifiable
 
         normal! G
     endfunction
@@ -96,11 +103,20 @@ function vimqq#ui#new() abort
         endif
     endfunction
 
+    function! l:ui.update_queue_size(queue_size) dict
+        if self._queue_size != a:queue_size
+            let self._queue_size = a:queue_size
+            redrawstatus!
+        endif
+    endfunction
+
     function! l:ui.append_partial(token) dict
         let l:bufnum    = bufnr('vim_qna_chat')
         let l:curr_line = getbufline(bufnum, '$')[0]
         let l:lines     = split(l:curr_line . a:token . "\n", '\n')
+        setlocal modifiable
         silent! call setbufline(l:bufnum, '$', l:lines)
+        setlocal nomodifiable
     endfunction
 
     function! l:ui.display_chat_history(history, current_chat) dict
