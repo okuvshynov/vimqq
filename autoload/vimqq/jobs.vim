@@ -20,9 +20,9 @@ endfunction
 function! vimqq#jobs#start(command, config)
     let l:job = job_start(a:command, a:config)
     if job_status(l:job) == 'fail'
-        " TODO: handle errors
         call vimqq#log#error('Job ' . a:command . 'failed to start.')
-        return
+        return v:false
     endif
     call s:_keep_job(l:job)
+    return v:true
 endfunction

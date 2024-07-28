@@ -83,7 +83,7 @@ function! vimqq#claude#new(config = {}) abort
         let l:curl_cmd .= " -H 'anthropic-version: 2023-06-01'"
         let l:curl_cmd .= " -d '" . l:json_req . "'"
 
-        call vimqq#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
+        return vimqq#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
     endfunction
 
     function! l:claude._format_messages(messages) dict
@@ -123,7 +123,7 @@ function! vimqq#claude#new(config = {}) abort
               \ 'close_cb': {channel      -> self._on_close(a:chat_id)}
         \ }
 
-        call self._send_query(req, l:job_conf)
+        return self._send_query(req, l:job_conf)
     endfunction
 
     " ask for a title we'll use. Uses first message in a chat
@@ -144,7 +144,7 @@ function! vimqq#claude#new(config = {}) abort
               \ 'close_cb': {channel      -> self._on_title_close(a:chat_id)}
         \ }
 
-        call self._send_query(req, l:job_conf)
+        return self._send_query(req, l:job_conf)
     endfunction
 
     " }}}

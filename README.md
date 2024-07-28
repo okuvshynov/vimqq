@@ -424,8 +424,8 @@ Configuration is done using global variables with prefix `g:vqq`.
 
 ## TODO
 
-- [ ] simultaneous queries - lock the current chat
-- [ ] better error handling in API calls and job start
+- [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
+- [x] better error handling in API calls and job start
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
 - [ ] double-check all buffer options (fixed width, etc)
 - [ ] better prompt configuration
@@ -439,6 +439,7 @@ Later
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).
 
 completed:
+- [x] simultaneous queries - lock the current chat
 - [x] for small projects just upload entire codebase to the context
 - [x] deleting chats
 - [x] formatting for extended context to avoid wiping out cache

@@ -20,6 +20,9 @@ function! s:current_chat_id()
     return s:current_chat
 endfunction
 
+" chat id -> queue of outgoing requests
+let s:queues = {}
+
 let s:ui      = vimqq#ui#new()
 let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#new()
@@ -58,6 +61,30 @@ function! s:_on_reply_complete(chat_id, bot)
     if !s:chatsdb.has_title(a:chat_id)
         call a:bot.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
     endif
+
+    " remove from queue
+    let l:queue = get(s:queues, a:chat_id, [])
+    if empty(l:queue)
+        vimqq#log#error('got reply for a chat with empty queue')
+        return
+    endif
+
+    call remove(l:queue, 0)
+
+    " kick off the next request if there was one
+    if !empty(l:queue)
+        let [l:message, l:bot] = remove(l:queue, 0)
+        call s:chatsdb.append_message(a:chat_id, l:message)
+        call s:chatsdb.reset_partial(a:chat_id, l:bot.name())
+        call vimqq#main#show_chat(a:chat_id)
+        if l:bot.send_chat(a:chat_id, s:chatsdb.get_messages(a:chat_id))
+            " mark chat as 'in progress'. Add it back to the queue
+            let l:queue = [[l:message, l:bot]] + l:queue
+        else
+            call vimqq#log#error('Unable to send message')
+        endif
+    endif
+    let s:queues[a:chat_id] = l:queue
 endfunction
 
 " When server updates health status, we update status line
@@ -136,11 +163,24 @@ function! vimqq#main#send_message(context_mode, force_new_chat, question)
     else
         let l:chat_id = s:current_chat_id() 
     endif
-    " timestamp and other metadata might get appended here
-    call s:chatsdb.append_message(l:chat_id, l:message)
-    call s:chatsdb.reset_partial(l:chat_id, l:bot.name())
-    call vimqq#main#show_chat(l:chat_id)
-    call l:bot.send_chat(l:chat_id, s:chatsdb.get_messages(l:chat_id))
+
+    let l:queue = get(s:queues, l:chat_id, [])
+
+    if empty(l:queue)
+        " timestamp and other metadata might get appended here
+        call s:chatsdb.append_message(l:chat_id, l:message)
+        call s:chatsdb.reset_partial(l:chat_id, l:bot.name())
+        call vimqq#main#show_chat(l:chat_id)
+        if l:bot.send_chat(l:chat_id, s:chatsdb.get_messages(l:chat_id))
+            " mark chat as 'in progress'
+            call add(l:queue, [l:message, l:bot])
+        else
+            call vimqq#log#error('Unable to send message')
+        endif
+    else
+        call add(l:queue, [l:message, l:bot])
+    endif
+    let s:queues[l:chat_id] = l:queue
 endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.
@@ -178,10 +218,6 @@ function! vimqq#main#show_chat(chat_id)
     let l:messages     = s:chatsdb.get_messages(a:chat_id)
     let l:partial      = s:chatsdb.get_partial(a:chat_id)
     call s:ui.display_chat(l:messages, l:partial)
-    for bot_name in g:vqq_warmup_on_chat_open
-        " no context, no new chat creation
-        call vimqq#main#send_warmup("ctx_none", v:false, "@" . bot_name)
-    endfor
 endfunction
 
 function! vimqq#main#toggle()

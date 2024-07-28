@@ -67,7 +67,7 @@ function vimqq#llama#new(config = {}) abort
       let l:curl_cmd .= " -H 'Content-Type: application/json'"
       let l:curl_cmd .= " -d '" . l:json_req . "'"
 
-      call vimqq#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
+      return vimqq#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
   endfunction
 
   function! l:llama._on_stream_out(chat_id, msg) dict
@@ -124,7 +124,7 @@ function vimqq#llama#new(config = {}) abort
       let req = self._prepare_request(a:messages)
       let req.n_predict = 0
 
-      call self._send_chat_query(req, {})
+      return self._send_chat_query(req, {})
   endfunction
 
   function! l:llama.send_chat(chat_id, messages) dict
@@ -137,7 +137,7 @@ function vimqq#llama#new(config = {}) abort
             \ 'close_cb': {channel      -> self._on_stream_close(a:chat_id)}
       \ }
 
-      call self._send_chat_query(req, l:job_conf)
+      return self._send_chat_query(req, l:job_conf)
   endfunction
 
   " ask for a title we'll use. Uses first message in a chat
@@ -155,7 +155,7 @@ function vimqq#llama#new(config = {}) abort
             \ 'out_cb': {channel, msg -> self._on_title_out(a:chat_id, msg)}
       \ }
 
-      call self._send_chat_query(req, l:job_conf)
+      return self._send_chat_query(req, l:job_conf)
   endfunction
 
   function! l:llama.name() dict
