@@ -8,7 +8,6 @@ let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
 let s:current_chat = -1 
 
 " We need to handle the following here
-"  - chats might be deleted
 "  - if chat is 'awaiting response'
 function! s:current_chat_id()
     if s:current_chat == -1
@@ -204,6 +203,7 @@ command!        -nargs=0 VQQList         call s:qq_show_chat_list()
 command!        -nargs=1 VQQOpenChat     call s:qq_show_chat(<f-args>)
 command!        -nargs=0 VQQToggle       call s:ui.toggle()
 
+" exprerimental, huge context
 command! -range -nargs=+ VQQSendNewCtxFull call s:qq_send_message("ctx_full",  v:true, <q-args>)
 command! -range -nargs=+ VQQSendNewCtxFiLe call s:qq_send_message("ctx_file",  v:true, <q-args>)
 " -----------------------------------------------------------------------------
@@ -236,11 +236,9 @@ function! VQQQueryNew(bot)
     call feedkeys(":VQQSendNew " . a:bot . " ", 'n')
 endfunction
 
-"-----------------
-" the most important thing:
-" warmup for local bot + question for sonnet
-" context:
-"   - none
-"   - selection
-"   - ctags
-"   - file?
+function! VQQWarmupDuoNew(wbot, qbot)
+    execute 'VQQWarmNewCtx ' . a:wbot 
+    call feedkeys(":'<,'>VQQSendNewCtx " . a:qbot . " ", 'n')
+endfunction
+
+

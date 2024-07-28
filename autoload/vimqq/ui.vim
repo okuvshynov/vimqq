@@ -223,7 +223,6 @@ function! s:setup_syntax()
 
     syntax match timestr    "^\d\d:\d\d"      nextgroup=userPrompt,botPrompt skipwhite
     syntax match userPrompt "You:"            contained nextgroup=taggedBot skipwhite
-    "syntax match botPrompt  "[A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
     syntax match botPrompt  "\%(You\)\@![A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
     syntax match taggedBot  "@[A-Za-z0-9_]\+" contained nextgroup=restOfLine
 
