@@ -25,6 +25,7 @@ command!        -nargs=0 VQQToggle       call vimqq#main#toggle()
 
 " exprerimental, huge context
 command! -range -nargs=+ VQQSendNewCtxFull call vimqq#main#send_message("ctx_full",  v:true, <q-args>)
+command! -range -nargs=+ VQQWarmNewCtxFull call vimqq#main#send_warmup("ctx_full",  v:true, <q-args>)
 command! -range -nargs=+ VQQSendNewCtxFiLe call vimqq#main#send_message("ctx_file",  v:true, <q-args>)
 " -----------------------------------------------------------------------------
 "  Wrapper helper functions, useful for key mappings definitions
@@ -60,5 +61,11 @@ function! VQQWarmupDuoNew(wbot, qbot)
     execute 'VQQWarmNewCtx ' . a:wbot 
     call feedkeys(":'<,'>VQQSendNewCtx " . a:qbot . " ", 'n')
 endfunction
+
+function! VQQWarmupDuoNewFull(wbot, qbot)
+    execute 'VQQWarmNewCtxFull ' . a:wbot 
+    call feedkeys(":'<,'>VQQSendNewCtxFull " . a:qbot . " ", 'n')
+endfunction
+
 
 

@@ -79,5 +79,5 @@ endfunction
 
 " TODO: remove debug
 function! FullContext()
-    call writefile(vimqq#full_context#get("*.vim"), "/tmp/fullctx.txt")
+    call writefile(split(vimqq#full_context#get("*.vim"), '\n'), "/tmp/fullctx.txt")
 endfunction
