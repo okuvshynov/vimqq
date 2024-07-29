@@ -114,9 +114,9 @@ function vimqq#ui#new() abort
         let l:bufnum    = bufnr('vim_qna_chat')
         let l:curr_line = getbufline(bufnum, '$')[0]
         let l:lines     = split(l:curr_line . a:token . "\n", '\n')
-        setlocal modifiable
+        silent! call setbufvar(l:bufnum, '&modifiable', 1)
         silent! call setbufline(l:bufnum, '$', l:lines)
-        setlocal nomodifiable
+        silent! call setbufvar(l:bufnum, '&modifiable', 0)
     endfunction
 
     function! l:ui.display_chat_history(history, current_chat) dict
