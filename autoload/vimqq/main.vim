@@ -167,7 +167,6 @@ function! vimqq#main#send_message(context_mode, force_new_chat, question)
     endif
 
     let l:queue = get(s:queues, l:chat_id, [])
-
     if empty(l:queue)
         " timestamp and other metadata might get appended here
         call s:chatsdb.append_message(l:chat_id, l:message)
@@ -331,4 +330,44 @@ function! vimqq#main#q(...) abort
         call vimqq#main#send_message(l:ctx_options, l:new_chat, l:message)
     endif
 endfunction
+
+function! vimqq#main#fork_chat(...) abort
+    let args = a:000
+    if s:current_chat == -1
+        vimqq#log#error('no chat to fork')
+        return
+    endif
+
+    if s:chatsdb.is_empty(s:current_chat)
+        vimqq#log#error('unable to fork empty chat')
+        return
+    endif
+
+    let l:message = deepcopy(s:chatsdb.get_first_message(s:current_chat))
+    let l:message.message = join(args, ' ')
+
+    let [l:bot, _msg] = s:bots.select('@' . l:message.bot_name)
+
+    let l:chat_id = s:chatsdb.new_chat()
+
+    let l:queue = get(s:queues, l:chat_id, [])
+    if empty(l:queue)
+        " timestamp and other metadata might get appended here
+        call s:chatsdb.append_message(l:chat_id, l:message)
+        call s:chatsdb.reset_partial(l:chat_id, l:bot.name())
+        call vimqq#main#show_chat(l:chat_id)
+        if l:bot.send_chat(l:chat_id, s:chatsdb.get_messages(l:chat_id))
+            " mark chat as 'in progress'
+            call add(l:queue, [l:message, l:bot])
+        else
+            " TODO: Don't show the chat in this case
+            call vimqq#log#error('Unable to send message')
+        endif
+    else
+        call add(l:queue, [l:message, l:bot])
+    endif
+    let s:queues[l:chat_id] = l:queue
+    call s:_update_queue_size()
+endfunction
+
 

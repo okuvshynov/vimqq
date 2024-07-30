@@ -55,6 +55,8 @@ Features:
     - pick the right bot based on time/complexity of the issue;
     - easily fallback to more expensive/slower model if the cheaper or faster
       one was not able to give an answer.
+ - ability to fork the existing chat, to start a new branch of the chat and 
+   reuse server-side cache for the context we keep.
 
 Explaining code should be a much easier problem from both retrieval and 
 generation points of view. When asked to write a new code in a complicated
@@ -161,9 +163,8 @@ First group of commands can be used to send messages.
     - `:Q`  sends/warms up a message with no range and optional arguments 
 
 The format for calling both commands is similar, except for the range part
-
 >
-  :Q [-nwsfpt] [@bot_name] message
+    :Q [-nwsfpt] [@bot_name] message
 
 Supported options:
   - `n` - Send message/warmup in [n]ew chat. If not provided, current chat will
@@ -180,6 +181,24 @@ Supported options:
           and get all source files (with hardcoded extensions). Can result
           in huge input context.
 
+    - `:QF` is a slightly different command.
+
+It forks the current chat reusing the context from the first message.
+It is useful in cases of long context, but when you want to start a new
+discussion thread. For example,
+>
+    :QF Suggest a simple task for junior engineer working on the project
+
+It will:
+  - take current chat's first message, keep the context and bot 
+  - modify the question with 'Suggest a ...'
+  - create new chat
+  - append amended message to new chat
+  - send new chat to the original bot
+This way we can reuse the context, which might be long (entire file/project)
+
+Note: this command might get merged to the Q/QQ commands. Similar to `n` 
+meaning 'ask in new chat' we might an option to 'ask in fork'.
 
 Next group of commands is UI-related.
 

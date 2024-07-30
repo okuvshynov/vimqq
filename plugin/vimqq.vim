@@ -17,7 +17,21 @@
 command! -range -nargs=+ QQ call vimqq#main#qq(<f-args>)
 command!        -nargs=+ Q  call vimqq#main#q(<f-args>)
 
-command!        -nargs=0 QQList         call vimqq#main#show_list()
-command!        -nargs=1 QQOpenChat     call vimqq#main#show_chat(<f-args>)
-command!        -nargs=0 QQToggle       call vimqq#main#toggle()
+" Fork the current chat reusing the context from the first message.
+" It is useful in cases of long context, but when you want to start a new
+" discussion thread. For example,
+"   :QF Suggest a simple task for junior engineer working on the project
+"
+" It will:
+"   - take current chat's first message, keep the context and bot 
+"   - modify the question with 'Suggest a ...'
+"   - create new chat
+"   - append amended message to new chat
+"   - send new chat to the original bot
+"
+" This way we can reuse the context, which might be long (entire file/project)
+command!        -nargs=+ QF call vimqq#main#fork_chat(<f-args>)
 
+command!        -nargs=0 QQList     call vimqq#main#show_list()
+command!        -nargs=1 QQOpenChat call vimqq#main#show_chat(<f-args>)
+command!        -nargs=0 QQToggle   call vimqq#main#toggle()
