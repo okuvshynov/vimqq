@@ -228,15 +228,15 @@ function! vimqq#main#toggle()
     call s:ui.toggle()
 endfunction
 
-let s:ctx_keys = {
-    \ 's' : 'selection',
-    \ 'f' : 'file',
-    \ 'p' : 'project',
-    \ 't' : 'ctags'
-\}
-
-" main command to handle everything
+" main commands
 function! vimqq#main#qq(...) abort
+    let l:ctx_keys = {
+        \ 's' : 'selection',
+        \ 'f' : 'file',
+        \ 'p' : 'project',
+        \ 't' : 'ctags'
+    \}
+
     let args = a:000
     let params = []
     let name = ''
@@ -270,7 +270,56 @@ function! vimqq#main#qq(...) abort
 
     let l:ctx_options = {}
 
-    for [k, v] in items(s:ctx_keys)
+    for [k, v] in items(l:ctx_keys)
+        if index(params, k) >= 0
+            let l:ctx_options[v] = 1
+        endif
+    endfor
+
+    if l:do_warmup
+        call vimqq#main#send_warmup(l:ctx_options, l:new_chat, l:message)
+    else
+        call vimqq#main#send_message(l:ctx_options, l:new_chat, l:message)
+    endif
+endfunction
+
+function! vimqq#main#q(...) abort
+    let l:ctx_keys = {
+        \ 'f' : 'file',
+        \ 'p' : 'project',
+    \}
+    let args = a:000
+    let params = []
+    let name = ''
+    let message = ''
+
+    " Parse optional params starting with '-'
+    " For example, -nfw would mean 
+    "  - send in [n]ew chat 
+    "  - include current [f]ile as context
+    "  - send a [w]armup query
+    "  
+    "  Supported options:
+    "  - n - [n]ew chat
+    "  - w - do [w]armup
+    "  - f - use current [f]ile as context
+    "  - p - use entire [p]roject as context --- be careful here
+    if len(args) > 0
+        let param_match = matchlist(args[0], '^-\(.\+\)')
+        if !empty(param_match)
+            let params = split(param_match[1], '\zs')
+            let args = args[1:]
+        endif
+    endif
+
+    let l:message = join(args, ' ')
+
+    let l:new_chat  = index(params, 'n') >= 0
+    let l:do_warmup = index(params, 'w') >= 0
+
+    let l:ctx_options = {}
+
+    for [k, v] in items(l:ctx_keys)
         if index(params, k) >= 0
             let l:ctx_options[v] = 1
         endif

@@ -425,6 +425,7 @@ Configuration is done using global variables with prefix `g:vqq`.
 ## TODO
 
 - [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
+- [ ] forking chats
 - [x] better error handling in API calls and job start
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
 - [ ] double-check all buffer options (fixed width, etc)

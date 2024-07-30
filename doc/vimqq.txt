@@ -23,9 +23,10 @@ especially true for the scenarios where the change is spread out across
 multiple files in a huge repository, which is exactly what some very important
 and time consuming code changes are.
 
-The commonly cited rule of thumb metric is that software engineers spend 10x 
-more time reading and comprehending the code rather than writing new code and
-vimqq is an attempt to help with this aspect of the workflow.
+They appear to be very useful in slightly different cases:
+ - explaining what some existing code does; 
+ - suggesting some existing tools/abstractions to use to improve the code;
+ - being a first line of code review - finding glaring errors
 
 What vimqq is not doing:
  - generating code in place, typing it in editor directly, all communication
@@ -38,30 +39,20 @@ Features:
    reading it as it is being generated. Llama3-70B can produce 8-10 tps 
    on Apple M2 Ultra, which is very close to human reading rate. 
    This way user will not waste any time waiting for reply;
- - optional extra context via |ctags|. To answer questions about a piece of 
-   code one might need to navigate to other definitions which could be 
-   located in different files across the codebase. Including entire codebase 
-   in the context quickly becomes impractical. Rather than doing embedding
-   lookup we utilize very commonly used ctags to add potentially relevant
-   context to our queries;
+ - flexible extra context - visual selection, ctags, current file, entire
+   project and combination of the above.
  - KV cache warmup for llama.cpp. In cases of high-memory but low-compute
    hardware configuration for LLM inference (Apple devices, CPU-only machines)
    processing original prompt might take a while in cases of large context 
    or long chat history. To help with that and further amortize the cost,
    it is possible to send and automate sending warmup queries to prefill
-   the KV cache. So the workflow could look like this:
-    - User selects some code in vim visual mode;
-    - User runs a command (potentially with configured hotkey). That command
-      picks extra context, sends the incomplete message to the server and 
-      moves focus to the command line, where user can enter the question;
-    - server starts processing the query in parallel with user typing the 
-      question, reducing overall wait time;
+   the KV cache. 
  - mixing different models in the same chat sessions. It is possible to send 
    original message to one model and use a different model for the follow-up
    questions. This allows to:
-    - get multiple prospectives and opportunity to fix errors
-    - save on API calls if important
-    - pick the right bot based on time/complexity of the issue
+    - get multiple prospectives and opportunity to fix errors;
+    - save on API cost if important;
+    - pick the right bot based on time/complexity of the issue;
     - easily fallback to more expensive/slower model if the cheaper or faster
       one was not able to give an answer.
 
@@ -69,7 +60,7 @@ Explaining code should be a much easier problem from both retrieval and
 generation points of view. When asked to write a new code in a complicated
 codebase, search space for both 'providing context' and 'getting next token'
 seems much larger than in cases of explaining a specific piece of code, where
-one can just follow all the references.
+one can just follow the references.
 
 ==============================================================================
 2. Installation                                                  *vimqq-install*
@@ -127,11 +118,11 @@ Bot definition looks similar to local llama.cpp:
 
 Assuming we have a bot named "llama", we can start by asking a question:
 >
-    :VQQSend @llama What are basics of unix philosophy?
+    :Q @llama What are basics of unix philosophy?
 
 We can omit the tag as well, and the first configured bot will be used:
 >
-    :VQQSend What are basics of unix philosophy?
+    :Q What are basics of unix philosophy?
 
 After running this command new window should open in vertical split showing
 the message sent and response. If it is local llama bot, we should see
@@ -146,109 +137,61 @@ first reply in the chat thread, after the first response has arrived.
 
 Let's add a mapping to demonstrate more complicated use-case.
 >
-    xnoremap <silent> <leader>WW :<C-u>call VQQWarmupNewEx('@llama')<cr>
+  xnoremap <leader>wst :<C-u>'<,'>QQ -wst @llama<cr>:'<,'>QQ -st @llama 
 
-Now, in visual mode user can select some lines of code, press <leader>WW and 
+Now, in visual mode user can select some lines of code, press <leader>wst and 
 the following should happen:
-  - vimqq will look at all ctags available within the selection and collect
+  - vimqq will get the visual [s]election;
+  - vimqq will look at all c[t]ags available within the selection and collect
     context from destinations;
-  - it will send a warmup query with selected code, extra context pulled by
+  - it will send a [w]armup query with selected code, extra context pulled by
     ctags exploration to the server. Server will start processing this
     request and fill the KV cache;
-  - it will also prefill the command line with ":'<,'>VQQSendNewCtxEx". User
+  - it will also prefill the command line with ":'<,'>QQ -st @llama ". User
     can start typing the specific question ('Why does it call foo() instead 
     of bar()').
-  - sending a message will hit the same server which should be able to
+  - sending a message will hit the same bot which should be able to
     fill in the cache and process our request much faster.
 
 ==============================================================================
 4. Commands                                                     *vimqq-commands*  
 
 First group of commands can be used to send messages.
+    - `:QQ` sends/warms up a message with range provided and optional arguments 
+    - `:Q`  sends/warms up a message with no range and optional arguments 
 
-    - `:VQQSend [@bot] message` sends a message to current chat.
-      It @bot tag is present, `@bot` will be used to generate response,
-      otherwise `g:vqq_default_bot` is used. Only the message itself is sent.
-
-    - `:VQQSendNew [@bot] message` sends a message to a new chat. 
-      It @bot tag is present, `@bot` will be used to generate response,
-      otherwise `g:vqq_default_bot` is used. Only the message itself is sent.
-
-    - `:VQQSendCtx [@bot] message` sends a message to current chat.
-      It @bot tag is present, `@bot` will be used to generate response,
-      otherwise `g:vqq_default_bot` is used. Both message and the current 
-      visual selection is sent.
-
-    - `:VQQSendNewCtx [@bot] message` sends a message to a new chat. 
-      It @bot tag is present, `@bot` will be used to generate response,
-      otherwise `g:vqq_default_bot` is used. Both message and the current 
-      visual selection is sent.
-
-    - `:VQQSendCtxEx [@bot] message` sends a message to current chat.
-      It @bot tag is present, `@bot` will be used to generate response,
-      otherwise `g:vqq_default_bot` is used. Both message and the current 
-      visual selection is sent. In addition to that, some context found
-      by exploring ctags in the selection might be also included.
-
-    - `:VQQSendNewCtxEx [@bot] message` sends a message to a new chat. 
-      It @bot tag is present, `@bot` will be used to generate response,
-      otherwise `g:vqq_default_bot` is used. Both message and the current 
-      visual selection is sent. In addition to that, some context found
-      by exploring ctags in the selection might be also included.
-
-    the following prompt template is used for the messages with context:
+The format for calling both commands is similar, except for the range part
 
 >
-    "Here's a code snippet:\n\n{vqq_ctx}\n\n{vqq_msg}"
+  :Q [-nwsfpt] [@bot_name] message
 
-    It can be modified by setting `g:vqq_context_template` variable.
+Supported options:
+  - `n` - Send message/warmup in [n]ew chat. If not provided, current chat will
+          be continued. If no chat is current, new chat will be still created.
+  - `w` - do [w]armup query. Warmup is a oneway query which sole purpose is
+          to prefill cache on server. `w` is no-op for claude, which has
+          stateless API.
+  - `s` - use visual [s]election as context. Unused for 'Q' command.
+  - `f` - use current [f]ile as context.
+  - `t` - follow c[t]ags from the selection and add some of the found sources
+          as context. Unused for 'Q' command.
+  - `p` - use entire [p]roject as context. The logic of identifying current
+          project is very naive, going up until we find '.git/' directory
+          and get all source files (with hardcoded extensions). Can result
+          in huge input context.
 
-Second group of commands is used for sending warmup queries.
-
-    - `:VQQWarm [@bot]` will send current chat messages as a warmup query. 
-      It @bot tag is present, `@bot` will be used to generate response,
-      otherwise `g:vqq_default_bot` is used.
-
-    - `:VQQWarmNew [@bot]` will send new chat as a warmup query. 
-      It @bot tag is present, `@bot` will be used to generate response,
-      otherwise `g:vqq_default_bot` is used. This warmup might be still
-      useful in case of long system prompt.
-
-    - `:VQQWarmCtx [@bot]` will send current chat messages as a warmup query. 
-      Will also include the visual selection. It @bot tag is present, `@bot`
-      will be used to generate response, otherwise `g:vqq_default_bot` is used.
-
-    - `:VQQWarmNewCtx [@bot]` will send new chat as a warmup query. 
-      Will also include the visual selection. It @bot tag is present, `@bot`
-      will be used to generate response, otherwise `g:vqq_default_bot` is used.
-
-    - `:VQQWarmCtxEx [@bot]` will send current chat messages as a warmup query. 
-      Will also include the visual selection. It @bot tag is present, `@bot`
-      will be used to generate response, otherwise `g:vqq_default_bot` is used.
-      In addition to that, some context found by exploring ctags in
-      the selection might be also included.
-
-    - `:VQQWarmNewCtxEx [@bot]` will send new chat as a warmup query. 
-      Will also include the visual selection. It @bot tag is present, `@bot`
-      will be used to generate response, otherwise `g:vqq_default_bot` is used.
-      In addition to that, some context found by exploring ctags in
-      the selection might be also included.
 
 Next group of commands is UI-related.
 
-    - `:VQQList` will show the list of past chat threads. User can navigate the
+    - `:QQList` will show the list of past chat threads. User can navigate the
       list and select chat session by pressing <CR>. This action will make chat
       session current.
 
-    - `:VQQOpenChat chat_id` opens chat with id=`chat_id`. This action will make
+    - `:QQOpenChat chat_id` opens chat with id=`chat_id`. This action will make
       chat session current.
 
-    - `:VQQToggle` shows/hides vimqq window.
+    - `:QQToggle` shows/hides vimqq window.
 
-A few notes about extra context selection. It depends on the existence of 
-ctags for the codebase and will roughly follow default <CTRL+]> logic.
-vimqq will pick several ctags and some area above/below potential location.
-With empty ctags, extra context will be empty as well.
 
 ==============================================================================
 5. Mappings                                                     *vimqq-mappings*  
@@ -263,36 +206,12 @@ In chat list view:
 In chat view:
  - 'q' will open the chat list view while keeping the same current chat.
 
-It is a good idea to define some for yourself, but before that we need to
-look at several helper functions:
+It is useful, however, to define some of your own.
 
-  - `VQQWarmup(bot)` will call `:VQQWarmCtx bot` and prefill command line with
-    `:'<,'>VQQSendCtx bot`, so that user can start typing question immediately.
-
-  - `VQQWarmupNew(bot)` will call `:VQQWarmNewCtx bot` and prefill command
-    line with `:'<,'>VQQSendNewCtx bot`, so that user can start typing 
-    question immediately.
-
-  - `VQQWarmupEx(bot)` will call `:VQQWarmCtxEx bot` and prefill command line
-    with `:'<,'>VQQSendCtxEx bot`, so that user can start typing question
-    immediately.
-
-  - `VQQWarmupNewEx(bot)` will call `:VQQWarmNewCtxEx bot` and prefill command
-    line with `:'<,'>VQQSendNewCtxEx bot`, so that user can start typing 
-    question immediately.
-
-  - `VQQQuery(bot)` will prefill command line with `:'<,'>VQQSend bot`,
-    so that user can start typing question immediately.
-
-  - `VQQQueryNew(bot)` will prefill command line with `:'<,'>VQQSendNew bot`,
-    so that user can start typing question immediately.
-
-Using these functions we can define custom key mappings to improve productivity.
-
-Let's assume we have configured two bots: `llama70` and `sonnet`:
+Let's assume we have configured two bots: `llama` and `sonnet`:
 >
     let g:vqq_llama_servers = [
-          \  {'bot_name': 'llama70', 'addr': 'http://localhost:8080'}
+          \  {'bot_name': 'llama', 'addr': 'http://localhost:8080'}
     \]
     let g:vqq_claude_models = [
           \  {'bot_name': 'sonnet', 'model': 'claude-3-5-sonnet-20240620'}
@@ -300,41 +219,28 @@ Let's assume we have configured two bots: `llama70` and `sonnet`:
 
 Now we can define some key mappings
 >
-    " [w]armup llama70b
-    xnoremap <silent> <leader>w :<C-u>call VQQWarmup('@llama70')<cr>
-    " [w]armup new chat llama70b
-    xnoremap <silent> <leader>ww :<C-u>call VQQWarmupNew('@llama70')<cr>
-    " [W]armup llama70b with extra context
-    xnoremap <silent> <leader>W :<C-u>call VQQWarmupEx('@llama70')<cr>
-    " [W]armup new chat llama70b with extra context
-    xnoremap <silent> <leader>WW :<C-u>call VQQWarmupNewEx('@llama70')<cr>
-    " [q]uery llama70b
-    nnoremap <silent> <leader>q :<C-u>call VQQQuery('@llama70')<cr>
-    nnoremap <silent> <leader>qq :<C-u>call VQQQueryNew('@llama70')<cr>
-    " query [s]onnet without selected context
-    nnoremap <silent> <leader>s :<C-u>call VQQQuery('@sonnet')<cr>
-    nnoremap <silent> <leader>ss :<C-u>call VQQQueryNew('@sonnet')<cr>
-    " query [s]onnet with selected context in visual mode
-    xnoremap <silent> <leader>s :<C-u>call VQQWarmup('@sonnet')<cr>
-    xnoremap <silent> <leader>ss :<C-u>call VQQWarmupNew('@sonnet')<cr>
+    " [w]armup llama
+    xnoremap <leader>w  :<C-u>'<,'>QQ -ws @llama<cr>:'<,'>QQ -s @llama
+    " [w]armup llama in [n]ew chat
+    xnoremap <leader>wn :<C-u>'<,'>QQ -wns @llama<cr>:'<,'>QQ -ns @llama
 
-For example, <leader>ww in visual mode will get the selection, send warmup
-query to llama70 bot, prefill command line with :'<,'>VQQSendNewCtx @llama70 
-and wait for user input to complete the query.
+    " [q]uery llama
+    nnoremap <leader>q :<C-u>Q @llama
+    " [q]uery llama in [n]ew chat
+    nnoremap <leader>qn :<C-u>Q -n @llama
 
-For extra ctags-based context generation we can press <leader>WW and then
-type in the question.
+    " [w]armup llama with entire [f]ile context
+    nnoremap <leader>wf :<C-u>Q -wf @llama<cr>:Q -f @llama
+    " [w]armup llama with entire [f]ile context in [n]ew chat
+    nnoremap <leader>wfn :<C-u>Q -wfn @llama<cr>:Q -fn @llama
 
-Note that because warmup is no-op for remote sonnet model, we can reuse
-the same `VQQWarmup` functions to capture context and prepare the prompt.
+    " [w]armup llama with entire [p]roject context
+    nnoremap <leader>wp :<C-u>Q -wp @llama<cr>:Q -p @llama
+    " [w]armup llama with entire [p]roject context in [n]ew chat
+    nnoremap <leader>wpn :<C-u>Q -wpn @llama<cr>:Q -pn @llama
 
-All the commands above expect some user message. We can also prepare some key
-mapping for predefined messages for commonly used patterns. For example:
->
-    " [E]xplain
-    xnoremap <silent> <leader>E :<C-u>execute "'<,'>VQQSendNewCtx @llama70 Explain how this code works."<cr>
-    " [I]mprove
-    xnoremap <silent> <leader>I :<C-u>execute "'<,'>VQQSendNewCtx @llama70 How would you improve this code?"<cr>
+    " [w]armup llama with [s]election + c[t]ags 
+    xnoremap <leader>wst :<C-u>Q -wst @llama<cr>:Q -st @llama
 
 ==============================================================================
 6. Configuration                                                  *vimqq-config*  

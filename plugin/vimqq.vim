@@ -15,5 +15,9 @@
 "  - p - use entire [p]roject as context -- be careful here
 "  - t - use c[t]ags from the selection as context
 command! -range -nargs=+ QQ call vimqq#main#qq(<f-args>)
-command!        -nargs=+ Q  call vimqq#main#qq(<f-args>)
+command!        -nargs=+ Q  call vimqq#main#q(<f-args>)
+
+command!        -nargs=0 QQList         call vimqq#main#show_list()
+command!        -nargs=1 QQOpenChat     call vimqq#main#show_chat(<f-args>)
+command!        -nargs=0 QQToggle       call vimqq#main#toggle()
 
