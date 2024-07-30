@@ -11,6 +11,12 @@ let s:template_extra =
       \  "Here's a code snippet: \n\n{vqq_selection}\n\n"
       \ ."Here's some extra context: \n\n{vqq_context}\n\n{vqq_message}"
 
+let s:template_context = 
+      \  "Here's a code snippet: \n\n{vqq_context}\n\n{vqq_message}"
+
+
+let g:vqq_template_context =
+      \ get(g:, 'vqq_template_context', s:template_context)
 let g:vqq_template_selection =
       \ get(g:, 'vqq_template_selection', s:template_selection)
 let g:vqq_template_extra     =
@@ -31,13 +37,21 @@ function! vimqq#fmt#content(message, folding_context=v:false)
     let l:res = "{vqq_message}"
 
     let l:templates = [
-        \ ["context"   , g:vqq_template_extra],
-        \ ["selection" , g:vqq_template_selection]
+        \ [["context", "selection"]   , g:vqq_template_extra],
+        \ [["context"]   , g:vqq_template_context],
+        \ [["selection"] , g:vqq_template_selection]
     \ ]
 
     " pick the widest context
-    for [key, template] in l:templates
-        if has_key(a:message, key)
+    for [keys, template] in l:templates
+        let b:ok = v:true
+        for key in keys
+            if !has_key(a:message, key)
+                let b:ok = v:false
+                break
+            endif
+        endfor
+        if b:ok
             let l:res = template
             break
         endif

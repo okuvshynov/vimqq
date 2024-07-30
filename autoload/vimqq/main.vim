@@ -106,24 +106,26 @@ call s:ui.set_cb('chat_delete_cb', {chat_id -> s:_if_exists(function('vimqq#main
 " If UI wants to show chat selection list, we need to get fresh list
 call s:ui.set_cb('chat_list_cb', { -> vimqq#main#show_list()})
 
-function! s:_fill_context(message, context_mode)
+function! s:_with_context(message, context_modes)
     let l:message = deepcopy(a:message)
-    if a:context_mode != "ctx_none"
+
+    if has_key(a:context_modes, "selection")
         let l:selection = s:ui.get_visual_selection()
         let l:message.selection = l:selection
-        if a:context_mode == "ctx_ctags"
-            let l:message.context = vimqq#context#ctags(l:selection)
-        endif
-        if a:context_mode == "ctx_full"
-            " TODO: get limited file types?
-            let l:message.context = vimqq#full_context#get()
-        endif
-        if a:context_mode == "ctx_file"
-            let l:message.context = vimqq#context#file()
-        endif
+    endif
+    if has_key(a:context_modes, "ctags")
+        let l:selection = s:ui.get_visual_selection()
+        let l:message.context = get(l:message, 'context', '') . vimqq#context#ctags(l:selection)
+    endif
+    if has_key(a:context_modes, "file")
+        let l:message.context = get(l:message, 'context', '') . vimqq#context#file()
+    endif
+    if has_key(a:context_modes, "project")
+        let l:message.context = get(l:message, 'context', '') . vimqq#full_context#get()
     endif
     return l:message
 endfunction
+
 
 " -----------------------------------------------------------------------------
 " This is 'internal API' - functions called by defined public commands
@@ -156,7 +158,7 @@ function! vimqq#main#send_message(context_mode, force_new_chat, question)
           \ "bot_name" : l:bot.name()
     \ }
 
-    let l:message = s:_fill_context(l:message, a:context_mode)
+    let l:message = s:_with_context(l:message, a:context_mode)
 
     if a:force_new_chat
         let l:chat_id = s:chatsdb.new_chat()
@@ -191,7 +193,7 @@ function! vimqq#main#send_warmup(context_mode, force_new_chat, tag="")
           \ "role"     : "user",
           \ "message"  : "",
     \ }
-    let l:message = s:_fill_context(l:message, a:context_mode)
+    let l:message = s:_with_context(l:message, a:context_mode)
 
     if a:force_new_chat
         let l:chat_id = s:chatsdb.new_chat()
@@ -225,3 +227,59 @@ endfunction
 function! vimqq#main#toggle()
     call s:ui.toggle()
 endfunction
+
+let s:ctx_keys = {
+    \ 's' : 'selection',
+    \ 'f' : 'file',
+    \ 'p' : 'project',
+    \ 't' : 'ctags'
+\}
+
+" main command to handle everything
+function! vimqq#main#qq(...) abort
+    let args = a:000
+    let params = []
+    let name = ''
+    let message = ''
+
+    " Parse optional params starting with '-'
+    " For example, -nfw would mean 
+    "  - send in [n]ew chat 
+    "  - include current [f]ile as context
+    "  - send a [w]armup query
+    "  
+    "  Supported options:
+    "  - n - [n]ew chat
+    "  - w - do [w]armup
+    "  - s - use visual [s]election as context
+    "  - f - use current [f]ile as context
+    "  - p - use entire [p]roject as context --- be careful here
+    "  - t - use c[t]ags from the selection as context
+    if len(args) > 0
+        let param_match = matchlist(args[0], '^-\(.\+\)')
+        if !empty(param_match)
+            let params = split(param_match[1], '\zs')
+            let args = args[1:]
+        endif
+    endif
+
+    let l:message = join(args, ' ')
+
+    let l:new_chat  = index(params, 'n') >= 0
+    let l:do_warmup = index(params, 'w') >= 0
+
+    let l:ctx_options = {}
+
+    for [k, v] in items(s:ctx_keys)
+        if index(params, k) >= 0
+            let l:ctx_options[v] = 1
+        endif
+    endfor
+
+    if l:do_warmup
+        call vimqq#main#send_warmup(l:ctx_options, l:new_chat, l:message)
+    else
+        call vimqq#main#send_message(l:ctx_options, l:new_chat, l:message)
+    endif
+endfunction
+
