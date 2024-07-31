@@ -228,7 +228,7 @@ function! vimqq#main#toggle()
 endfunction
 
 " main commands
-function! vimqq#main#qq(...) abort
+function! vimqq#main#qq(args) abort
     let l:ctx_keys = {
         \ 's' : 'selection',
         \ 'f' : 'file',
@@ -236,7 +236,7 @@ function! vimqq#main#qq(...) abort
         \ 't' : 'ctags'
     \}
 
-    let args = a:000
+    let args = split(a:args, ' ')
     let params = []
     let name = ''
     let message = ''
@@ -282,12 +282,12 @@ function! vimqq#main#qq(...) abort
     endif
 endfunction
 
-function! vimqq#main#q(...) abort
+function! vimqq#main#q(args) abort
     let l:ctx_keys = {
         \ 'f' : 'file',
         \ 'p' : 'project',
     \}
-    let args = a:000
+    let args = split(a:args, ' ')
     let params = []
     let name = ''
     let message = ''
@@ -331,8 +331,8 @@ function! vimqq#main#q(...) abort
     endif
 endfunction
 
-function! vimqq#main#fork_chat(...) abort
-    let args = a:000
+function! vimqq#main#fork_chat(args) abort
+    let args = split(a:args, ' ')
     if s:current_chat == -1
         vimqq#log#error('no chat to fork')
         return

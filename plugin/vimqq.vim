@@ -14,8 +14,8 @@
 "  - f - use current [f]ile as context
 "  - p - use entire [p]roject as context -- be careful here
 "  - t - use c[t]ags from the selection as context
-command! -range -nargs=+ QQ call vimqq#main#qq(<f-args>)
-command!        -nargs=+ Q  call vimqq#main#q(<f-args>)
+command! -range -nargs=+ QQ call vimqq#main#qq(<q-args>)
+command!        -nargs=+ Q  call vimqq#main#q(<q-args>)
 
 " Fork the current chat reusing the context from the first message.
 " It is useful in cases of long context, but when you want to start a new
@@ -30,7 +30,7 @@ command!        -nargs=+ Q  call vimqq#main#q(<f-args>)
 "   - send new chat to the original bot
 "
 " This way we can reuse the context, which might be long (entire file/project)
-command!        -nargs=+ QF call vimqq#main#fork_chat(<f-args>)
+command!        -nargs=+ QF call vimqq#main#fork_chat(<q-args>)
 
 command!        -nargs=0 QQList     call vimqq#main#show_list()
 command!        -nargs=1 QQOpenChat call vimqq#main#show_chat(<f-args>)
