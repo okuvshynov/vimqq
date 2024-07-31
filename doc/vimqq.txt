@@ -4,8 +4,8 @@ VIMQQ ~
 
 Author: Oleksandr Kuvshynov
 
-AI plugin with a focus on local model evaluation, code reading and refinement
-rather than writing new code.
+AI plugin with a focus on local model evaluation, code reading, refinement and
+coaching rather than writing new code.
 
 1. Introduction ................................................ |vimqq-intro|
 2. Installation .............................................. |vimqq-install|
@@ -26,7 +26,8 @@ and time consuming code changes are.
 They appear to be very useful in slightly different cases:
  - explaining what some existing code does; 
  - suggesting some existing tools/abstractions to use to improve the code;
- - being a first line of code review - finding glaring errors
+ - being a first line of code review - finding glaring errors;
+ - being a tutor or coach - here's a code I've written, what could I study? 
 
 What vimqq is not doing:
  - generating code in place, typing it in editor directly, all communication
@@ -49,20 +50,15 @@ Features:
    the KV cache. 
  - mixing different models in the same chat sessions. It is possible to send 
    original message to one model and use a different model for the follow-up
-   questions. This allows to:
-    - get multiple prospectives and opportunity to fix errors;
-    - save on API cost if important;
-    - pick the right bot based on time/complexity of the issue;
-    - easily fallback to more expensive/slower model if the cheaper or faster
-      one was not able to give an answer.
- - ability to fork the existing chat, to start a new branch of the chat and 
+   questions.
+ - ability to fork the existing chat, start a new branch of the chat and 
    reuse server-side cache for the context we keep.
 
-Explaining code should be a much easier problem from both retrieval and 
+Working with code should be a much easier problem from both retrieval and 
 generation points of view. When asked to write a new code in a complicated
 codebase, search space for both 'providing context' and 'getting next token'
 seems much larger than in cases of explaining a specific piece of code, where
-one can just follow the references.
+one can follow the references.
 
 ==============================================================================
 2. Installation                                                  *vimqq-install*
