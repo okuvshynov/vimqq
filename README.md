@@ -34,7 +34,9 @@ What vimqq is not doing:
 
 ## TODO
 
-- [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent?
+- [ ] incremental context retrieval/search with tool use. Which ctags to follow, which symbols to lookup, etc.
+      something with language server? E.g. let LLM natigate with YCM-like commands? treesitter? etc.
+- [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
 - [ ] double-check all buffer options (fixed width, etc)
 - [ ] better prompt configuration
@@ -43,6 +45,4 @@ Later
 
 - [ ] saving KV cache serverside
 - [ ] working on Windows?
-- [ ] incremental context retrieval/search with tool use. Which ctags to follow, which symbols to lookup, etc.
-      something with language server? E.g. let LLM natigate with YCM-like commands? treesitter? etc.
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).

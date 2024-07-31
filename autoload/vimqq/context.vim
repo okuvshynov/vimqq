@@ -6,9 +6,9 @@ endif
 
 let g:autoloaded_vimqq_context = 1
 
-let g:vqq_exp_context_n_tags = get(g:, 'vqq_exp_context_n_tags', 4)
+let g:vqq_exp_context_n_tags = get(g:, 'vqq_exp_context_n_tags', 2)
 let g:vqq_exp_context_n_up   = get(g:, 'vqq_exp_context_n_up', 4)
-let g:vqq_exp_context_n_down = get(g:, 'vqq_exp_context_n_down', 4)
+let g:vqq_exp_context_n_down = get(g:, 'vqq_exp_context_n_down', 10)
 
 " extra context management.
 " currently using ctags + naive heuristic
