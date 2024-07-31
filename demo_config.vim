@@ -37,5 +37,5 @@ nnoremap <leader>wpn :<C-u>Q -wpn @llama<cr>:Q -pn @llama
 " [w]armup llama with [s]election + c[t]ags 
 xnoremap <leader>wst :<C-u>'<,'>QQ -wst @llama<cr>:'<,'>QQ -st @llama 
 
-" fork current chat
+" [f]ork current chat
 nnoremap <leader>f :<C-u>QF 

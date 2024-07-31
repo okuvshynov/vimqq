@@ -35,8 +35,6 @@ What vimqq is not doing:
 ## TODO
 
 - [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
-- [ ] forking chats
-- [x] better error handling in API calls and job start
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
 - [ ] double-check all buffer options (fixed width, etc)
 - [ ] better prompt configuration
@@ -50,6 +48,8 @@ Later
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).
 
 completed:
+- [x] forking chats
+- [x] better error handling in API calls and job start
 - [x] simultaneous queries - lock the current chat
 - [x] for small projects just upload entire codebase to the context
 - [x] deleting chats
