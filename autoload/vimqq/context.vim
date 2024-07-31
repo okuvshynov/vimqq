@@ -78,7 +78,6 @@ function! s:get_visual_selection()
     return join(lines, "\n")
 endfunction
 
-
 function! vimqq#context#ctags(selection)
     let n_up = g:vqq_exp_context_n_up
     let n_down = g:vqq_exp_context_n_down
@@ -101,7 +100,6 @@ endfunction
 function! vimqq#context#file()
     return join(getline(1, '$'), "\n")
 endfunction
-
 
 function! vimqq#context#fill(message, context_modes)
     let l:message = deepcopy(a:message)

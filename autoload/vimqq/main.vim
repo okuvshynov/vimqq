@@ -10,14 +10,14 @@ let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
 let s:ui      = vimqq#ui#new()
 let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#new()
-
 let s:state   = vimqq#state#new(s:chatsdb)
 
 " -----------------------------------------------------------------------------
 " Setting up wiring between modules
 
-" It is possible that chat will get deleted, and after that some callback
-" would arrive. Log and skip any further processing. 
+" Safely invoke a callback function for a chat, handling the case where the chat
+" may have been deleted before the callback is processed. If the chat no longer
+" exists, log a message and skip executing the callback.
 function! s:_if_exists(Fn, chat_id, ...)
     if !s:chatsdb.chat_exists(a:chat_id)
         call vimqq#log#info("callback on non-existent chat.")
@@ -40,20 +40,21 @@ function! s:_on_reply_complete(chat_id, bot)
     endif
 
     if s:state.reply_complete(a:chat_id)
+        " TODO: do we need this?
         call vimqq#main#show_chat(a:chat_id)
     endif
     call s:ui.update_queue_size(s:state.queue_size())
 endfunction
 
-" When server updates health status, we update status line
-" When server produces new streamed token, we update db and maybe update ui, 
-" if the chat we show is the one updated
-" When the streaming is done and entire message is received, we mark it as
-" complete and kick off title generation if it is not computed yet
 for bot in s:bots.bots()
+    " When title is ready, we set it in db
     call bot.set_cb('title_done_cb', {chat_id, title -> s:_if_exists(s:chatsdb.set_title, chat_id, title)})
+    " When the streaming is done and entire message is received, we mark it as
+    " complete and kick off title generation if it is not computed yet
     call bot.set_cb('stream_done_cb', {chat_id, bot -> s:_if_exists(function('s:_on_reply_complete'), chat_id, bot)})
+    " When server produces new streamed token, we update db and maybe update ui, 
     call bot.set_cb('token_cb', {chat_id, token -> s:_if_exists(function('s:_on_token_done'), chat_id, token)})
+    " When server updates health status, we update status line
     call bot.set_cb('status_cb', {status, bot -> s:ui.update_statusline(status, bot.name())})
 endfor
 
@@ -142,7 +143,45 @@ function! vimqq#main#toggle()
     call s:ui.toggle()
 endfunction
 
-" main commands
+function! s:_execute(args, ctx_keys)
+    let args = split(a:args, ' ')
+    let params = []
+    let name = ''
+    let message = ''
+
+    " Parse optional params starting with '-'
+    " For example, -nfw would mean 
+    "  - send in [n]ew chat 
+    "  - include current [f]ile as context
+    "  - send a [w]armup query
+    if len(args) > 0
+        let param_match = matchlist(args[0], '^-\(.\+\)')
+        if !empty(param_match)
+            let params = split(param_match[1], '\zs')
+            let args = args[1:]
+        endif
+    endif
+
+    let l:message = join(args, ' ')
+
+    let l:new_chat  = index(params, 'n') >= 0
+    let l:do_warmup = index(params, 'w') >= 0
+
+    let l:ctx_options = {}
+
+    for [k, v] in items(a:ctx_keys)
+        if index(params, k) >= 0
+            let l:ctx_options[v] = 1
+        endif
+    endfor
+    if l:do_warmup
+        call vimqq#main#send_warmup(l:ctx_options, l:new_chat, l:message)
+    else
+        call vimqq#main#send_message(l:ctx_options, l:new_chat, l:message)
+    endif
+endfunction
+
+" -----------------------------------------------------------------------------
 function! vimqq#main#qq(args) abort
     let l:ctx_keys = {
         \ 's' : 'selection',
@@ -151,50 +190,7 @@ function! vimqq#main#qq(args) abort
         \ 't' : 'ctags'
     \}
 
-    let args = split(a:args, ' ')
-    let params = []
-    let name = ''
-    let message = ''
-
-    " Parse optional params starting with '-'
-    " For example, -nfw would mean 
-    "  - send in [n]ew chat 
-    "  - include current [f]ile as context
-    "  - send a [w]armup query
-    "  
-    "  Supported options:
-    "  - n - [n]ew chat
-    "  - w - do [w]armup
-    "  - s - use visual [s]election as context
-    "  - f - use current [f]ile as context
-    "  - p - use entire [p]roject as context --- be careful here
-    "  - t - use c[t]ags from the selection as context
-    if len(args) > 0
-        let param_match = matchlist(args[0], '^-\(.\+\)')
-        if !empty(param_match)
-            let params = split(param_match[1], '\zs')
-            let args = args[1:]
-        endif
-    endif
-
-    let l:message = join(args, ' ')
-
-    let l:new_chat  = index(params, 'n') >= 0
-    let l:do_warmup = index(params, 'w') >= 0
-
-    let l:ctx_options = {}
-
-    for [k, v] in items(l:ctx_keys)
-        if index(params, k) >= 0
-            let l:ctx_options[v] = 1
-        endif
-    endfor
-
-    if l:do_warmup
-        call vimqq#main#send_warmup(l:ctx_options, l:new_chat, l:message)
-    else
-        call vimqq#main#send_message(l:ctx_options, l:new_chat, l:message)
-    endif
+    call s:_execute(a:args, l:ctx_keys)
 endfunction
 
 function! vimqq#main#q(args) abort
@@ -202,48 +198,7 @@ function! vimqq#main#q(args) abort
         \ 'f' : 'file',
         \ 'p' : 'project',
     \}
-    let args = split(a:args, ' ')
-    let params = []
-    let name = ''
-    let message = ''
-
-    " Parse optional params starting with '-'
-    " For example, -nfw would mean 
-    "  - send in [n]ew chat 
-    "  - include current [f]ile as context
-    "  - send a [w]armup query
-    "  
-    "  Supported options:
-    "  - n - [n]ew chat
-    "  - w - do [w]armup
-    "  - f - use current [f]ile as context
-    "  - p - use entire [p]roject as context --- be careful here
-    if len(args) > 0
-        let param_match = matchlist(args[0], '^-\(.\+\)')
-        if !empty(param_match)
-            let params = split(param_match[1], '\zs')
-            let args = args[1:]
-        endif
-    endif
-
-    let l:message = join(args, ' ')
-
-    let l:new_chat  = index(params, 'n') >= 0
-    let l:do_warmup = index(params, 'w') >= 0
-
-    let l:ctx_options = {}
-
-    for [k, v] in items(l:ctx_keys)
-        if index(params, k) >= 0
-            let l:ctx_options[v] = 1
-        endif
-    endfor
-
-    if l:do_warmup
-        call vimqq#main#send_warmup(l:ctx_options, l:new_chat, l:message)
-    else
-        call vimqq#main#send_message(l:ctx_options, l:new_chat, l:message)
-    endif
+    call s:_execute(a:args, l:ctx_keys)
 endfunction
 
 function! vimqq#main#fork_chat(args) abort
