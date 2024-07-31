@@ -34,7 +34,7 @@ What vimqq is not doing:
 
 ## TODO
 
-- [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
+- [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent?
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
 - [ ] double-check all buffer options (fixed width, etc)
 - [ ] better prompt configuration
@@ -46,39 +46,3 @@ Later
 - [ ] incremental context retrieval/search with tool use. Which ctags to follow, which symbols to lookup, etc.
       something with language server? E.g. let LLM natigate with YCM-like commands? treesitter? etc.
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).
-
-completed:
-- [x] forking chats
-- [x] better error handling in API calls and job start
-- [x] simultaneous queries - lock the current chat
-- [x] for small projects just upload entire codebase to the context
-- [x] deleting chats
-- [x] formatting for extended context to avoid wiping out cache
-- [x] configirable extended context
-- [x] ctags context generation
-- [x] customize system prompt 
-- [x] doc/help
-- [x] generating title for chat
-- [x] visual selection is incorrect
-- [x] date/time of last message in chat selection
-- [x] ordering in chat selection
-- [x] navigating within chat session
-- [x] encapsulate all access to session data. For all updates have callbacks from chat store, do not append anything directly.
-- [x] refactor to something mvc-like (ui, db, client, main logic)
-- [x] prefetch on chat selection
-- [x] improve status line - show number of tokens, botname
-- [x] installation/distribution/correct directory structure
-- [x] multi-agent support - chat with multiple bots
-- [x] Command to show/hide history window
-- [x] Saving chats locally
-- [x] sessions support
-- [x] work with llama.cpp chat
-- [x] server status in chat window
-- [x] appending to the history, so we can ask follow-up question. `:QQ something something` needs to append question to the current chat. 
-- [x] creating new chats. `:QQN something something` would be new?
-- [x] session selection/loading
-- [x] session list
-- [x] change shortcuts, define commands the right way, now it is a mess
-- [x] check what's up with cache reuse and \n\n token.
-- [x] session dictionary
-- [x] code review. Ask to provide input without writing code itself. 
