@@ -20,8 +20,7 @@ Ideal scenario (we are not quite there yet) that it would work similar to [guten
 
 #### Entire small project in context
 
-Main use-case I was interested in is continuous work on small/medium project. I have multiple small/medium projects where entire code + documentation is fitting into the 128k context of modern models.
-I'd like to be able to keep chatting about it (including starting new chats) and asking for very specific improvements without having to process the entire project again and again.
+Main use-case I was interested in is continuous work on small/medium project. I have multiple projects where entire code + documentation is fitting into the 128k context of modern models. I'd like to be able to keep chatting about it (including starting new chats) and asking for very specific improvements without having to process the entire project again and again.
 
 Let's look at the example of [cubestat](https://github.com/okuvshynov/cubestat) - command-line monitoring tool.
 
@@ -57,9 +56,7 @@ GPU {x} vram util') will become an instance of 'metric'.
 ...
 ```
 
-Note that context is hidden in vim fold, but it is still part of the message.
-
-If we would skip the warmup, we'll have to wait for the same 3 minutes to process the context.
+Note that provided context is hidden in vim fold, but it is still part of the message. If we would skip the warmup, we'll have to wait for the same 3 minutes to process the context.
 
 After we got the code, we can ask follow-up questions:
 ```
@@ -70,7 +67,7 @@ Now imagine that we are done with metrics for now and need to take a look at oth
 ```
 :QF how would you refactor label2 and label10 functions and extract shared functionality?
 ```
-The fork currently keeps the context of the very first message but modifies the message itself and sends it in the new chat session. By doing that we can start chat from scratch, with context only.
+The fork currently keeps the context of the very first message but modifies the message itself and sends it in the new chat session. By doing that we can start chat from scratch, but keep context cache.
 
 We can press 'q' in the chat window and navigate to chat list. We'll see two separate chats:
 
@@ -125,7 +122,7 @@ Just fill in the command line and wait for user input
 
 https://github.com/user-attachments/assets/d0fd63c0-3ddf-41e4-a9d0-b1fa63ebd80d
 
-Both instances had fresh server instance with no context. As you can see, in warmup case we start seeing output right away, while for no-warmup case we have to wait for 5-10 seconds which is annotying and can result in losing focus.
+In both situations had fresh server instance with no cache. As you can see, in warmup case we start seeing output right away, while for no-warmup case we have to wait for 5-10 seconds which is annotying and can result in losing focus.
 
 ### Running local models
 
@@ -133,7 +130,7 @@ All the numbers below are for running llama70b 3.1 instruct, quantized to 8 bit 
 
 1. Stream output. The output here is primary for human consumption, no tool interactions yet. Therefore, if we keep up with human reading speed, it is good enough, we don't need 1000 t/s. For the configuration above I was getting ~8-9 t/s which seems reasonable.
 2. Warmup queries. Processing the prompt with large context becomes slow. To overcome that, we can send a warmup query with the context before user started typing the question. This way we can amortize context processing cost and reduce time to first token significantly
-3. chat forking. This is a further exploration of the utilizing context cache efficiently.
+3. chat forking. This is another way to utilize context cache efficiently.
 
 Any serverside performance improvements (e.g. speculative decoding) should be incremental to this. 
 
@@ -144,7 +141,7 @@ Claude API is stateless. Internally they might (and should) make some caching/be
 - it can still add up over time;
 - project might be larger, and you still might want to include all of it
 - it might have a psychological effect of 'is it worth to ask this question'? It's better to not have to think about it at all
-- we can reasonably expect opus 3.5 to be significantly better and 5x more expensive compared to sonnet 3.5. Even if it would be much better for higher-level discussion and planning, it would become very important to be able to swicth to cheaper/local model in the middle of discussion and avoid O(n^2) cost for expensive model
+- we can reasonably expect opus 3.5 to be significantly better and 5x more expensive compared to sonnet 3.5. Even if it would be so much better for higher-level discussion and planning, that we'd prefer to use it over local alternative, it would become very important to be able to swicth to cheaper/local model in the middle of discussion and avoid O(n^2) cost for expensive model
   
 ## requirements
 
