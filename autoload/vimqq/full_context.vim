@@ -7,7 +7,7 @@ endif
 let s:file_patterns = "*.vim,*.txt,*.md,*.cpp,*.c,*.h,*.hpp,*.py,*.rs"
 let g:vqq_context_filetypes = get(g:, 'vqq_context_filetypes', s:file_patterns)
 
-"let g:autoloaded_vimqq_full_context = 1
+let g:autoloaded_vimqq_full_context = 1
 
 " recursively build a list of [[file_path/name, content]]
 " for all files matching pattern (e.g. "*.cpp,*.c,*.h")
@@ -75,9 +75,4 @@ function! vimqq#full_context#get(pattern=g:vqq_context_filetypes)
     let l:root  = s:find_root()
     let l:files = s:list_files(l:root, a:pattern) 
     return join(s:combine_files(l:files), "\n")
-endfunction
-
-" TODO: remove debug
-function! FullContext()
-    call writefile(split(vimqq#full_context#get("*.vim"), '\n'), "/tmp/fullctx.txt")
 endfunction

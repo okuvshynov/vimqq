@@ -7,25 +7,11 @@ let g:autoloaded_vqq_main = 1
 " -----------------------------------------------------------------------------
 let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
 " -----------------------------------------------------------------------------
-" script-level mutable state
-" this is the active chat id. New queries would go to this chat by default
-let s:current_chat = -1 
-
-" We need to handle the following here
-"  - if chat is 'awaiting response'
-function! s:current_chat_id()
-    if s:current_chat == -1
-        let s:current_chat = s:chatsdb.new_chat()
-    endif
-    return s:current_chat
-endfunction
-
-" chat id -> queue of outgoing requests
-let s:queues = {}
-
 let s:ui      = vimqq#ui#new()
 let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#new()
+
+let s:state   = vimqq#state#new(s:chatsdb)
 
 " -----------------------------------------------------------------------------
 " Setting up wiring between modules
@@ -42,18 +28,10 @@ endfunction
 
 function! s:_on_token_done(chat_id, token)
     call s:chatsdb.append_partial(a:chat_id, a:token)
-    if a:chat_id == s:current_chat
+    if a:chat_id == s:state.get_chat_id()
         call s:ui.append_partial(a:token)
     endif
 endfunction
-
-function! s:_update_queue_size()
-    let l:size = 0
-    for l:queue in values(s:queues)
-      let l:size += len(l:queue)
-    endfor
-    call s:ui.update_queue_size(l:size)
-endfunction 
 
 function! s:_on_reply_complete(chat_id, bot)
     call s:chatsdb.partial_done(a:chat_id)
@@ -61,30 +39,10 @@ function! s:_on_reply_complete(chat_id, bot)
         call a:bot.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
     endif
 
-    " remove from queue
-    let l:queue = get(s:queues, a:chat_id, [])
-
-    if empty(l:queue)
-        vimqq#log#error('got reply for a chat with empty queue')
-        return
-    endif
-    call remove(l:queue, 0)
-
-    " kick off the next request if there was one
-    if !empty(l:queue)
-        let [l:message, l:bot] = remove(l:queue, 0)
-        call s:chatsdb.append_message(a:chat_id, l:message)
-        call s:chatsdb.reset_partial(a:chat_id, l:bot.name())
+    if s:state.reply_complete(a:chat_id)
         call vimqq#main#show_chat(a:chat_id)
-        if l:bot.send_chat(a:chat_id, s:chatsdb.get_messages(a:chat_id))
-            " mark chat as 'in progress'. Add it back to the queue
-            let l:queue = [[l:message, l:bot]] + l:queue
-        else
-            call vimqq#log#error('Unable to send message')
-        endif
     endif
-    let s:queues[a:chat_id] = l:queue
-    call s:_update_queue_size()
+    call s:ui.update_queue_size(s:state.queue_size())
 endfunction
 
 " When server updates health status, we update status line
@@ -106,27 +64,6 @@ call s:ui.set_cb('chat_delete_cb', {chat_id -> s:_if_exists(function('vimqq#main
 " If UI wants to show chat selection list, we need to get fresh list
 call s:ui.set_cb('chat_list_cb', { -> vimqq#main#show_list()})
 
-function! s:_with_context(message, context_modes)
-    let l:message = deepcopy(a:message)
-
-    if has_key(a:context_modes, "selection")
-        let l:selection = s:ui.get_visual_selection()
-        let l:message.selection = l:selection
-    endif
-    if has_key(a:context_modes, "ctags")
-        let l:selection = s:ui.get_visual_selection()
-        let l:message.context = get(l:message, 'context', '') . vimqq#context#ctags(l:selection)
-    endif
-    if has_key(a:context_modes, "file")
-        let l:message.context = get(l:message, 'context', '') . vimqq#context#file()
-    endif
-    if has_key(a:context_modes, "project")
-        let l:message.context = get(l:message, 'context', '') . vimqq#full_context#get()
-    endif
-    return l:message
-endfunction
-
-
 " -----------------------------------------------------------------------------
 " This is 'internal API' - functions called by defined public commands
 
@@ -139,8 +76,8 @@ function! vimqq#main#delete_chat(chat_id)
     endif
 
     call s:chatsdb.delete_chat(a:chat_id)
-    if s:current_chat == a:chat_id
-        let s:current_chat = -1
+    if s:state.get_chat_id() == a:chat_id
+        s:state.set_chat_id(-1)
     endif
     call vimqq#main#show_list()
 endfunction
@@ -158,32 +95,14 @@ function! vimqq#main#send_message(context_mode, force_new_chat, question)
           \ "bot_name" : l:bot.name()
     \ }
 
-    let l:message = s:_with_context(l:message, a:context_mode)
+    let l:message = vimqq#context#fill(l:message, a:context_mode)
 
-    if a:force_new_chat
-        let l:chat_id = s:chatsdb.new_chat()
-    else
-        let l:chat_id = s:current_chat_id() 
-    endif
-
-    let l:queue = get(s:queues, l:chat_id, [])
-    if empty(l:queue)
-        " timestamp and other metadata might get appended here
-        call s:chatsdb.append_message(l:chat_id, l:message)
-        call s:chatsdb.reset_partial(l:chat_id, l:bot.name())
+    let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
+    if s:state.enqueue_query(l:chat_id, l:bot, l:message)
         call vimqq#main#show_chat(l:chat_id)
-        if l:bot.send_chat(l:chat_id, s:chatsdb.get_messages(l:chat_id))
-            " mark chat as 'in progress'
-            call add(l:queue, [l:message, l:bot])
-        else
-            " TODO: Don't show the chat in this case
-            call vimqq#log#error('Unable to send message')
-        endif
-    else
-        call add(l:queue, [l:message, l:bot])
     endif
-    let s:queues[l:chat_id] = l:queue
-    call s:_update_queue_size()
+
+    call s:ui.update_queue_size(s:state.queue_size())
 endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.
@@ -192,13 +111,9 @@ function! vimqq#main#send_warmup(context_mode, force_new_chat, tag="")
           \ "role"     : "user",
           \ "message"  : "",
     \ }
-    let l:message = s:_with_context(l:message, a:context_mode)
+    let l:message = vimqq#context#fill(l:message, a:context_mode)
 
-    if a:force_new_chat
-        let l:chat_id = s:chatsdb.new_chat()
-    else
-        let l:chat_id = s:current_chat_id() 
-    endif
+    let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
 
     let [l:bot, _msg] = s:bots.select(a:tag)
     let l:messages = s:chatsdb.get_messages(l:chat_id) + [l:message]
@@ -209,7 +124,7 @@ endfunction
 " show list of chats to select from 
 function! vimqq#main#show_list()
     let l:history = s:chatsdb.get_ordered_chats()
-    call s:ui.display_chat_history(l:history, s:current_chat)
+    call s:ui.display_chat_history(l:history, s:state.get_chat_id())
 endfunction
 
 function! vimqq#main#show_chat(chat_id)
@@ -217,9 +132,9 @@ function! vimqq#main#show_chat(chat_id)
         call vimqq#log#info("Attempting to show non-existent chat")
         return
     endif
-    let s:current_chat = a:chat_id
-    let l:messages     = s:chatsdb.get_messages(a:chat_id)
-    let l:partial      = s:chatsdb.get_partial(a:chat_id)
+    call s:state.set_chat_id(a:chat_id)
+    let l:messages = s:chatsdb.get_messages(a:chat_id)
+    let l:partial  = s:chatsdb.get_partial(a:chat_id)
     call s:ui.display_chat(l:messages, l:partial)
 endfunction
 
@@ -333,41 +248,26 @@ endfunction
 
 function! vimqq#main#fork_chat(args) abort
     let args = split(a:args, ' ')
-    if s:current_chat == -1
+    let l:src_chat_id = s:state.get_chat_id()
+    if l:src_chat_id == -1
         vimqq#log#error('no chat to fork')
         return
     endif
 
-    if s:chatsdb.is_empty(s:current_chat)
+    if s:chatsdb.is_empty(l:src_chat_id)
         vimqq#log#error('unable to fork empty chat')
         return
     endif
 
-    let l:message = deepcopy(s:chatsdb.get_first_message(s:current_chat))
+    let l:message = deepcopy(s:chatsdb.get_first_message(l:src_chat_id))
     let l:message.message = join(args, ' ')
 
     let [l:bot, _msg] = s:bots.select('@' . l:message.bot_name)
 
     let l:chat_id = s:chatsdb.new_chat()
 
-    let l:queue = get(s:queues, l:chat_id, [])
-    if empty(l:queue)
-        " timestamp and other metadata might get appended here
-        call s:chatsdb.append_message(l:chat_id, l:message)
-        call s:chatsdb.reset_partial(l:chat_id, l:bot.name())
+    if s:state.enqueue_query(l:chat_id, l:bot, l:message)
         call vimqq#main#show_chat(l:chat_id)
-        if l:bot.send_chat(l:chat_id, s:chatsdb.get_messages(l:chat_id))
-            " mark chat as 'in progress'
-            call add(l:queue, [l:message, l:bot])
-        else
-            " TODO: Don't show the chat in this case
-            call vimqq#log#error('Unable to send message')
-        endif
-    else
-        call add(l:queue, [l:message, l:bot])
     endif
-    let s:queues[l:chat_id] = l:queue
-    call s:_update_queue_size()
+    call s:ui.update_queue_size(s:state.queue_size())
 endfunction
-
-

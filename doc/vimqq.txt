@@ -308,7 +308,11 @@ Configuration is done using global variables with prefix `g:vqq`.
       Optional, default is "%b %d %H:%M ", for example "July 23, 18:05"
 
     - `g:vqq_chats_file`. Path to json file to store message history.
-        Optional, default is expand('~/.vim/vqq_chats.json')
+      Optional, default is expand('~/.vim/vqq_chats.json')
+
+    - `g:vqq_context_filetypes`. When extracring project-level context,
+      this list of patterns will be used to include files. 
+      Default: "*.vim,*.txt,*.md,*.cpp,*.c,*.h,*.hpp,*.py,*.rs"
 
 ==============================================================================
 7. Changelog                                                   *vimqq-changelog*  
