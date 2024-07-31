@@ -11,6 +11,31 @@
 
 Ideal scenario (we are not quite there yet) that it would work similar to gutentags - you install it once and forget about it.
 
+### Demo
+
+#### Importance of warmup.
+
+The left window the following shortcut was used:
+
+```
+" [w]armup llama with [s]election + c[t]ags
+xnoremap <leader>wst :<C-u>'<,'>QQ -wst @llama<cr>:'<,'>QQ -st @llama
+```
+
+First, we send warmup query, then we prefill command line and wait for user input
+
+The right window was using the following:
+```
+" [q]uery llama with [s]election + c[t]ags
+xnoremap <leader>qst :<C-u>'<,'>QQ -st @llama
+```
+
+Just fill in the command line and wait for user input
+
+https://github.com/user-attachments/assets/d0fd63c0-3ddf-41e4-a9d0-b1fa63ebd80d
+
+As we can see, there's almost no wait time for warmup option.
+
 ### Examples I was interested in
 
 Not much about code completion.
