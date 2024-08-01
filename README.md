@@ -122,7 +122,7 @@ Just fill in the command line and wait for user input
 
 https://github.com/user-attachments/assets/d0fd63c0-3ddf-41e4-a9d0-b1fa63ebd80d
 
-In both situations had fresh server instance with no cache. As you can see, in warmup case we start seeing output right away, while for no-warmup case we have to wait for 5-10 seconds which is annotying and can result in losing focus.
+In both situations we queried fresh server instance with no cache. As you can see, in warmup case we start seeing output right away, while for no-warmup case we have to wait for 5-10 seconds which is annoying and can result in losing focus.
 
 ### Running local models
 
