@@ -6,9 +6,37 @@ endif
 
 let g:autoloaded_vimqq_context = 1
 
-let g:vqq_exp_context_n_tags = get(g:, 'vqq_exp_context_n_tags', 2)
-let g:vqq_exp_context_n_up   = get(g:, 'vqq_exp_context_n_up', 4)
-let g:vqq_exp_context_n_down = get(g:, 'vqq_exp_context_n_down', 10)
+let g:vqq_exp_context_n_tags = get(g:, 'vqq_exp_context_n_tags', 10)
+let g:vqq_exp_context_n_up   = get(g:, 'vqq_exp_context_n_up', 10)
+let g:vqq_exp_context_n_down = get(g:, 'vqq_exp_context_n_down', 50)
+
+
+function! s:escape_search_pattern(pattern)
+    " Remove leading and trailing delimiters if present
+    let pattern = a:pattern
+    if pattern[0] == '/' && pattern[len(pattern) - 1] == '/'
+        let pattern = pattern[1:len(pattern) - 2]
+    endif
+
+    " Escape special characters, but handle ^ and $ separately
+    let escaped = ''
+    let i = 0
+    while i < len(pattern)
+        if i == 0 && pattern[i] == '^'
+            let escaped .= '^'
+        elseif i == len(pattern) - 1 && pattern[i] == '$'
+            let escaped .= '$'
+        elseif pattern[i] =~ '[*.\[\]^$]'
+            let escaped .= '\' . pattern[i]
+        else
+            let escaped .= pattern[i]
+        endif
+        let i += 1
+    endwhile
+
+    " Add delimiters back
+    return '/' . escaped . '/'
+endfunction
 
 " extra context management.
 " currently using ctags + naive heuristic
@@ -51,11 +79,11 @@ function! s:get_relevant_ctx(word, n_up, n_down)
     if l:lnum == 0  
         let l:saved_view = winsaveview()
         let l:saved_buf = bufnr('%')
-        silent execute 'buffer ' . l:buf
+        silent! execute 'buffer ' . l:buf
         call cursor(1, 1)
-        silent execute l:tag.cmd
+        silent! execute s:escape_search_pattern(l:tag.cmd)
         let l:lnum = line('.')
-        silent execute 'buffer ' . l:saved_buf
+        silent! execute 'buffer ' . l:saved_buf
         call winrestview(l:saved_view)
     endif
 
