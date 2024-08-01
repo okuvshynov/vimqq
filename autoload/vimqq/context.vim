@@ -136,12 +136,12 @@ function! vimqq#context#fill(message, context_modes)
         let l:selection = s:get_visual_selection()
         let l:message.selection = l:selection
     endif
-    if has_key(a:context_modes, "ctags")
-        let l:selection = s:get_visual_selection()
-        let l:message.context = get(l:message, 'context', '') . vimqq#context#ctags(l:selection)
-    endif
     if has_key(a:context_modes, "file")
         let l:message.context = get(l:message, 'context', '') . vimqq#context#file()
+    endif
+    if has_key(a:context_modes, "ctags")
+        let l:source = join([get(l:message, 'selection', ''), get(l:message, 'context', '')], '\n\n')
+        let l:message.context = get(l:message, 'context', '') . vimqq#context#ctags(l:source)
     endif
     if has_key(a:context_modes, "project")
         let l:message.context = get(l:message, 'context', '') . vimqq#full_context#get()

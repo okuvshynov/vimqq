@@ -197,6 +197,7 @@ function! vimqq#main#q(args) abort
     let l:ctx_keys = {
         \ 'f' : 'file',
         \ 'p' : 'project',
+        \ 't' : 'ctags'
     \}
     call s:_execute(a:args, l:ctx_keys)
 endfunction
