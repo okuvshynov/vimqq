@@ -15,27 +15,29 @@ let g:vqq_claude_models = [
 \]
 
 " [w]armup llama
-xnoremap <leader>w  :<C-u>'<,'>QQ -ws @llama<cr>:'<,'>QQ -s @llama 
+xnoremap <leader>w  :<C-u>'<,'>QQ -ws @llama<cr>:'<,'>QQ -s @llama<Space>
 " [w]armup llama in [n]ew chat
-xnoremap <leader>wn :<C-u>'<,'>QQ -wns @llama<cr>:'<,'>QQ -ns @llama 
+xnoremap <leader>wn :<C-u>'<,'>QQ -wns @llama<cr>:'<,'>QQ -ns @llama<Space>
 
 " [q]uery llama
-nnoremap <leader>q :<C-u>Q @llama 
+nnoremap <leader>q :<C-u>Q @llama<Space>
 " [q]uery llama in [n]ew chat
-nnoremap <leader>qn :<C-u>Q -n @llama 
+nnoremap <leader>qn :<C-u>Q -n @llama<Space>
 
 " [w]armup llama with entire [f]ile context
-nnoremap <leader>wf :<C-u>Q -wf @llama<cr>:Q -f @llama 
+nnoremap <leader>wf :<C-u>Q -wf @llama<cr>:Q -f @llama<Space>
 " [w]armup llama with entire [f]ile context in [n]ew chat
-nnoremap <leader>wfn :<C-u>Q -wfn @llama<cr>:Q -fn @llama 
+nnoremap <leader>wfn :<C-u>Q -wfn @llama<cr>:Q -fn @llama<Space>
 
 " [w]armup llama with entire [p]roject context
-nnoremap <leader>wp :<C-u>Q -wp @llama<cr>:Q -p @llama 
+nnoremap <leader>wp :<C-u>Q -wp @llama<cr>:Q -p @llama<Space>
 " [w]armup llama with entire [p]roject context in [n]ew chat
-nnoremap <leader>wpn :<C-u>Q -wpn @llama<cr>:Q -pn @llama 
-
-" [w]armup llama with [s]election + c[t]ags 
-xnoremap <leader>wst :<C-u>'<,'>QQ -wst @llama<cr>:'<,'>QQ -st @llama 
+nnoremap <leader>wpn :<C-u>Q -wpn @llama<cr>:Q -pn @llama<Space>
 
 " [f]ork current chat
-nnoremap <leader>f :<C-u>QF 
+nnoremap <leader>f :<C-u>QF<Space>
+
+" chat [l]ist
+nnoremap <leader>ll :<C-u>QQList<cr>
+" [t]oggle window
+nnoremap <leader>qq :<C-u>QQToggle<cr>
