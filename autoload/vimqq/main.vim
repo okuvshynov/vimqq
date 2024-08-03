@@ -27,6 +27,9 @@ function! s:_if_exists(Fn, chat_id, ...)
 endfunction
 
 function! s:_on_token_done(chat_id, token)
+    if empty(s:chatsdb.get_partial(a:chat_id).content)
+        call vimqq#log#debug('first token')
+    endif
     call s:chatsdb.append_partial(a:chat_id, a:token)
     if a:chat_id == s:state.get_chat_id()
         call s:ui.append_partial(a:token)
@@ -85,11 +88,12 @@ endfunction
 
 " Sends new message to the server
 function! vimqq#main#send_message(context_mode, force_new_chat, question)
-    " pick the bot. we modify message to allow removing bot tag.
+    call vimqq#cmdwatch#stop()
+    " pick the bot. we modify message and remove bot tag
     let [l:bot, l:question] = s:bots.select(a:question)
 
     " In this case bot_name means 'who is asked/tagged'.
-    " Uhe author of this message is user. Rename to 'tagged_bot'
+    " The author of this message is user. TODO: Rename to 'tagged_bot'
     let l:message = {
           \ "role"     : 'user',
           \ "message"  : l:question,
@@ -119,7 +123,8 @@ function! vimqq#main#send_warmup(context_mode, force_new_chat, tag="")
     let [l:bot, _msg] = s:bots.select(a:tag)
     let l:messages = s:chatsdb.get_messages(l:chat_id) + [l:message]
 
-    call l:bot.send_warmup(l:chat_id, l:messages)
+    call l:bot.send_warmup(l:messages)
+    call vimqq#cmdwatch#start(l:bot, l:messages)
 endfunction
 
 " show list of chats to select from 
@@ -183,6 +188,7 @@ endfunction
 
 " -----------------------------------------------------------------------------
 function! vimqq#main#qq(args) abort
+    call vimqq#log#debug('qq: sending message')
     let l:ctx_keys = {
         \ 's' : 'selection',
         \ 'f' : 'file',
@@ -194,11 +200,13 @@ function! vimqq#main#qq(args) abort
 endfunction
 
 function! vimqq#main#q(args) abort
+    call vimqq#log#debug('q: sending message')
     let l:ctx_keys = {
         \ 'f' : 'file',
         \ 'p' : 'project',
         \ 't' : 'ctags'
     \}
+
     call s:_execute(a:args, l:ctx_keys)
 endfunction
 

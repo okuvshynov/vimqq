@@ -75,7 +75,9 @@ function! vimqq#bots#new() abort
             let l:tag = '@' . bot.name()
             if strpart(a:question, 0, len(l:tag)) ==# l:tag
                 " removing tag before passing it to backend
-                return [bot, strpart(a:question, len(l:tag))]
+                let i = len(l:tag)
+                let i += (len(a:question) > i ? 1 : 0)
+                return [bot, strpart(a:question, i)]
             endif
         endfor
         return [self._default_bot, a:question]

@@ -120,7 +120,7 @@ function vimqq#llama#new(config = {}) abort
 
   " warmup query to pre-fill the cache on the server.
   " We ask for 0 tokens and ignore the response.
-  function! l:llama.send_warmup(chat_id, messages) dict
+  function! l:llama.send_warmup(messages) dict
       let req = self._prepare_request(a:messages)
       let req.n_predict = 0
 
