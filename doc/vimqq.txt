@@ -5,7 +5,7 @@ VIMQQ ~
 Author: Oleksandr Kuvshynov
 
 AI plugin with a focus on local model evaluation, code reading, refinement and
-coaching rather than writing new code.
+coaching rather than code completion/implementing something new.
 
 1. Introduction ................................................ |vimqq-intro|
 2. Installation .............................................. |vimqq-install|
@@ -27,7 +27,8 @@ They appear to be very useful in slightly different cases:
  - explaining what some existing code does; 
  - suggesting some existing tools/abstractions to use to improve the code;
  - being a first line of code review - finding glaring errors;
- - being a tutor or coach - here's a code I've written, what could I study? 
+ - being a tutor or coach - here's some code I've written, what should I
+   learn to improve?
 
 What vimqq is not doing:
  - generating code in place, typing it in editor directly, all communication
@@ -48,17 +49,14 @@ Features:
    or long chat history. To help with that and further amortize the cost,
    it is possible to send and automate sending warmup queries to prefill
    the KV cache. 
+ - dynamic warmup on typing - in case of long questions, it is a good idea
+   to prefill question itself
  - mixing different models in the same chat sessions. It is possible to send 
    original message to one model and use a different model for the follow-up
    questions.
  - ability to fork the existing chat, start a new branch of the chat and 
    reuse server-side cache for the context we keep.
 
-Working with code should be a much easier problem from both retrieval and 
-generation points of view. When asked to write a new code in a complicated
-codebase, search space for both 'providing context' and 'getting next token'
-seems much larger than in cases of explaining a specific piece of code, where
-one can follow the references.
 
 ==============================================================================
 2. Installation                                                  *vimqq-install*
@@ -94,7 +92,7 @@ Download/prepare the models and start llama server:
 Add a bot endpoint configuration to vimrc file, for example
 >
     let g:vqq_llama_servers = [
-          \  {'bot_name': 'llama', 'addr': 'http://localhost:8088'},
+          \  {'bot_name': 'llama', 'addr': 'http://localhost:8080'},
     \]
 
 It is possible to have multiple bots with different names.
@@ -154,7 +152,7 @@ the following should happen:
 ==============================================================================
 4. Commands                                                     *vimqq-commands*  
 
-First group of commands can be used to send messages.
+First group of commands are used to send messages.
     - `:QQ` sends/warms up a message with range provided and optional arguments 
     - `:Q`  sends/warms up a message with no range and optional arguments 
 
@@ -235,27 +233,31 @@ Let's assume we have configured two bots: `llama` and `sonnet`:
 Now we can define some key mappings
 >
     " [w]armup llama
-    xnoremap <leader>w  :<C-u>'<,'>QQ -ws @llama<cr>:'<,'>QQ -s @llama
+    xnoremap <leader>w  :<C-u>'<,'>QQ -ws @llama<cr>:'<,'>QQ -s @llama<Space>
     " [w]armup llama in [n]ew chat
-    xnoremap <leader>wn :<C-u>'<,'>QQ -wns @llama<cr>:'<,'>QQ -ns @llama
+    xnoremap <leader>wn :<C-u>'<,'>QQ -wns @llama<cr>:'<,'>QQ -ns @llama<Space>
 
     " [q]uery llama
-    nnoremap <leader>q :<C-u>Q @llama
+    nnoremap <leader>q :<C-u>Q @llama<Space>
     " [q]uery llama in [n]ew chat
-    nnoremap <leader>qn :<C-u>Q -n @llama
+    nnoremap <leader>qn :<C-u>Q -n @llama<Space>
 
     " [w]armup llama with entire [f]ile context
-    nnoremap <leader>wf :<C-u>Q -wf @llama<cr>:Q -f @llama
+    nnoremap <leader>wf :<C-u>Q -wf @llama<cr>:Q -f @llama<Space>
     " [w]armup llama with entire [f]ile context in [n]ew chat
-    nnoremap <leader>wfn :<C-u>Q -wfn @llama<cr>:Q -fn @llama
+    nnoremap <leader>wfn :<C-u>Q -wfn @llama<cr>:Q -fn @llama<Space>
 
     " [w]armup llama with entire [p]roject context
-    nnoremap <leader>wp :<C-u>Q -wp @llama<cr>:Q -p @llama
+    nnoremap <leader>wp :<C-u>Q -wp @llama<cr>:Q -p @llama<Space>
     " [w]armup llama with entire [p]roject context in [n]ew chat
-    nnoremap <leader>wpn :<C-u>Q -wpn @llama<cr>:Q -pn @llama
+    nnoremap <leader>wpn :<C-u>Q -wpn @llama<cr>:Q -pn @llama<Space>
 
-    " [w]armup llama with [s]election + c[t]ags 
-    xnoremap <leader>wst :<C-u>Q -wst @llama<cr>:Q -st @llama
+    " [f]ork current chat
+    nnoremap <leader>f :<C-u>QF<Space>
+
+    " chat [l]ist
+    nnoremap <leader>ll :<C-u>QQList<cr>
+
 
 ==============================================================================
 6. Configuration                                                  *vimqq-config*  
@@ -314,6 +316,17 @@ Configuration is done using global variables with prefix `g:vqq`.
       this list of patterns will be used to include files. 
       Default: "*.vim,*.txt,*.md,*.cpp,*.c,*.h,*.hpp,*.py,*.rs"
 
+    - `g:vqq_autowarm_cmd_ms`. When doing warmup queries vimqq can keep
+      sending warmup queries as user types the message. It is useful in
+      the cases of longer messages with detailed instructions. This logic
+      is based on two events: previous warmup finished and message in the
+      command-line has changed. If both of them are true, new warmup will
+      be sent. To the best of my knowlegde, vim doesn't provide a way to
+      listen to the cmdline update events, but we can check its value
+      periodically. This parameter defines this period. Default - 1000ms.
+
+
 ==============================================================================
 7. Changelog                                                   *vimqq-changelog*  
 
+ vim:tw=78:ts=8:ft=help:noet:nospell

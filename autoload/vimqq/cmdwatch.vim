@@ -5,7 +5,7 @@ endif
 let g:autoloaded_vimqq_cmdwatch = 1
 
 " if we sent warmup query, start timer 
-let g:vqq_autowarm_cmd_ms = get(g:, 'vqq_autowarm_cmd_ms', 2500)
+let g:vqq_autowarm_cmd_ms = get(g:, 'vqq_autowarm_cmd_ms', 1000)
 
 let s:cmdwatch = 'off'
 " we use this for warmup
@@ -15,7 +15,7 @@ let s:message_updated = v:false
 let s:last_warmup_done = v:false
 
 function! s:_send_warmup()
-    if s:message_updated && s:last_warmup_done
+    if s:cmdwatch == 'on' && s:message_updated && s:last_warmup_done
         let s:message_updated = v:false
         let s:last_warmup_done = v:false
         call vimqq#log#debug('sending next warmup')
@@ -24,7 +24,8 @@ function! s:_send_warmup()
 endfunction
 
 function! s:_check_cmd()
-    if mode() != 'c' || s:cmdwatch == 'off' || empty(s:messages)
+    call vimqq#log#debug('_check_cmd: ' . s:cmdwatch . " | " . len(s:messages))
+    if s:cmdwatch == 'off' || empty(s:messages)
         let s:cmdwatch = 'off'
         let s:messages = []
         return
@@ -48,11 +49,15 @@ function! s:_check_cmd()
     if s:messages[len(s:messages) - 1].message != l:message
         let s:messages[len(s:messages) - 1].message = l:message
         let s:message_updated = v:true
-        call s:_send_warmup()
     else
         call vimqq#log#debug('message not changed')
     endif
-    call timer_start(g:vqq_autowarm_cmd_ms, { -> s:_check_cmd()})
+endfunction
+
+function! s:_cmd_loop()
+    call s:_check_cmd()
+    call s:_send_warmup()
+    call timer_start(g:vqq_autowarm_cmd_ms, { -> s:_cmd_loop()})
 endfunction
 
 function! vimqq#cmdwatch#start(bot, messages)
@@ -62,7 +67,7 @@ function! vimqq#cmdwatch#start(bot, messages)
       let s:bot = a:bot
       let s:cmdwatch = 'on'
       let s:message_updated = v:false
-      call timer_start(g:vqq_autowarm_cmd_ms, { -> s:_check_cmd()})
+      call timer_start(g:vqq_autowarm_cmd_ms, { -> s:_cmd_loop()})
   endif
 endfunction
 
@@ -75,6 +80,7 @@ function! vimqq#cmdwatch#next()
     call vimqq#log#debug('next warmup')
     if s:cmdwatch == 'on'
         let s:last_warmup_done = v:true
+        call s:_check_cmd()
         call s:_send_warmup()
     endif
 endfunction
