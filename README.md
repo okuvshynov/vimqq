@@ -14,6 +14,12 @@ While there are many copilot-like plugins for different IDEs, I couldn't quite f
 
 Ideal scenario (we are not quite there yet) that it would work similar to [gutentags](https://github.com/ludovicchabant/vim-gutentags) - you install it once and forget about it.
 
+In order to make local model experience better, following features were implemented:
+1. automatic cache warmup on context selection;
+2. dynamic cache warmup during message input (while user types);
+3. token streaming into vim buffer, so we can see output right away;
+4. chat forking, so we can reuse large initial context (e.g. entire file/project) and start new conversation from that point. 
+
 ### Example
 
 #### Entire small project in context
