@@ -59,6 +59,8 @@ for bot in s:bots.bots()
     call bot.set_cb('token_cb', {chat_id, token -> s:_if_exists(function('s:_on_token_done'), chat_id, token)})
     " When server updates health status, we update status line
     call bot.set_cb('status_cb', {status, bot -> s:ui.update_statusline(status, bot.name())})
+    " When warmup is done we check if we have updated message and send new warmup
+    call bot.set_cb('warmup_done_cb', { -> vimqq#cmdwatch#next()})
 endfor
 
 " If chat is selected in UI, show it

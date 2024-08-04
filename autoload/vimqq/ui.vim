@@ -17,6 +17,8 @@ let g:vqq_time_format = get(g:, 'vqq_time_format', "%b %d %H:%M ")
 " format to use for each message. Not configurable, we have hardcoded syntax
 let s:time_format = "%H:%M"
 
+let s:showing = 'list'
+
 " -----------------------------------------------------------------------------
 function vimqq#ui#new() abort
     let l:ui = {}
@@ -111,15 +113,18 @@ function vimqq#ui#new() abort
     endfunction
 
     function! l:ui.append_partial(token) dict
-        let l:bufnum    = bufnr('vim_qna_chat')
-        let l:curr_line = getbufline(bufnum, '$')[0]
-        let l:lines     = split(l:curr_line . a:token . "\n", '\n')
-        silent! call setbufvar(l:bufnum, '&modifiable', 1)
-        silent! call setbufline(l:bufnum, '$', l:lines)
-        silent! call setbufvar(l:bufnum, '&modifiable', 0)
+        if s:showing == 'chat'
+            let l:bufnum    = bufnr('vim_qna_chat')
+            let l:curr_line = getbufline(bufnum, '$')[0]
+            let l:lines     = split(l:curr_line . a:token . "\n", '\n')
+            silent! call setbufvar(l:bufnum, '&modifiable', 1)
+            silent! call setbufline(l:bufnum, '$', l:lines)
+            silent! call setbufvar(l:bufnum, '&modifiable', 0)
+        endif
     endfunction
 
     function! l:ui.display_chat_history(history, current_chat) dict
+        let s:showing = 'list'
         let l:titles = []
         let l:chat_id_map = {}
 
@@ -174,6 +179,7 @@ function vimqq#ui#new() abort
     endfunction
 
     function l:ui.display_chat(messages, partial) dict
+        let s:showing = 'chat'
         call self._open_window()
 
         mapclear <buffer>
