@@ -7,13 +7,16 @@ Author: Oleksandr Kuvshynov
 AI plugin with a focus on local model evaluation, code reading, refinement and
 coaching rather than code completion/implementing something new.
 
-1. Introduction ................................................ |vimqq-intro|
-2. Installation .............................................. |vimqq-install|
-3. Usage ....................................................... |vimqq-usage|
-4. Commands ................................................. |vimqq-commands|
-5. Mappings ................................................. |vimqq-mappings|
-6. Configuration .............................................. |vimqq-config|
-7. Changelog ............................................... |vimqq-changelog|
+1. Introduction ........................................ |vimqq-intro|
+2. Installation ........................................ |vimqq-install|
+3. Usage ............................................... |vimqq-usage|
+4. Commands ............................................ |vimqq-commands|
+  4.1. Message sending ................................. |vimqq-commands-msg|
+  4.2. Forking ......................................... |vimqq-commands-fork|
+  4.3. UI Controls ..................................... |vimqq-commands-ui|
+5. Mappings ............................................ |vimqq-mappings|
+6. Configuration ....................................... |vimqq-config|
+7. Changelog ........................................... |vimqq-changelog|
 
 ==============================================================================
 1. Introduction                                                    *vimqq-intro*
@@ -152,6 +155,9 @@ the following should happen:
 ==============================================================================
 4. Commands                                                     *vimqq-commands*  
 
+------------------------------------------------------------------------------
+4.1. Message sending                                        *vimqq-commands-msg*
+
 First group of commands are used to send messages.
     - `:QQ` sends/warms up a message with range provided and optional arguments 
     - `:Q`  sends/warms up a message with no range and optional arguments 
@@ -175,6 +181,9 @@ Supported options:
           and get all source files (with hardcoded extensions). Can result
           in huge input context.
 
+------------------------------------------------------------------------------
+4.1. Forking                                               *vimqq-commands-fork*
+
     - `:QF` is a slightly different command.
 
 It forks the current chat reusing the context from the first message.
@@ -194,7 +203,8 @@ This way we can reuse the context, which might be long (entire file/project)
 Note: this command might get merged to the Q/QQ commands. Similar to `n` 
 meaning 'ask in new chat' we might an option to 'ask in fork'.
 
-Next group of commands is UI-related.
+------------------------------------------------------------------------------
+4.1. UI Control                                              *vimqq-commands-ui*
 
     - `:QQList` will show the list of past chat threads. User can navigate the
       list and select chat session by pressing <CR>. This action will make chat
@@ -324,6 +334,13 @@ Configuration is done using global variables with prefix `g:vqq`.
       be sent. To the best of my knowlegde, vim doesn't provide a way to
       listen to the cmdline update events, but we can check its value
       periodically. This parameter defines this period. Default - 1000ms.
+
+    - `g:vqq_log_file`. File location where to append logs.
+      Default is `~/.vim/vimqq.log` 
+
+    - `g:vqq_log_level`. Controls how much to log. Can be one of
+      'DEBUG', 'INFO', 'ERROR', 'NONE'. All messages logged with 
+      configured level or higher will be appended to the file.
 
 
 ==============================================================================

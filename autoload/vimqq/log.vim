@@ -7,7 +7,7 @@ endif
 let g:autoloaded_vimqq_log = 1
 
 let g:vqq_log_file = get(g:, 'vqq_log_file', expand("~/.vim/vimqq.log"))
-let g:vqq_log_level = get(g:, 'vqq_log_level', 'DEBUG')
+let g:vqq_log_level = get(g:, 'vqq_log_level', 'INFO')
 
 let s:log_levels = {
     \ 'DEBUG': 0,
