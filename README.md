@@ -161,6 +161,8 @@ Claude API is stateless. Internally they might (and should) make some caching/be
 
 ## TODO
 
+- [ ] queue. Some predefined template where I can pick some context and then I let it work
+- [ ] all open files context?
 - [ ] incremental context retrieval/search with tool use. Which ctags to follow, which symbols to lookup, etc.
       something with language server? E.g. let LLM navigate with YCM-like commands? treesitter? etc.
 - [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
