@@ -1,7 +1,5 @@
 # vim quick question (vim-qq)
 
-https://github.com/user-attachments/assets/d0c3a4d7-b1a0-4bc0-815b-a945f1ffe6a3
-
 AI plugin for VIM with focus on chat, local model evaluation, code understanding and refinement, rather than writing new code/providing autocomplete.
 
 While there are many copilot-like plugins for different IDEs, I couldn't quite find what I needed. The requirements I had were:
@@ -33,7 +31,7 @@ First, we can send warmup query to get the context for the project processed:
 
 Depending on local model used, hardware available and the size of the project this might take some time. On M2 Ultra and llama3.1 70B quantized to 8bit it takes a few minutes for cubestat. We process ~100 tokens/second and need to process 20000 tokens total.
 
-We can put this command to `autocmd` to kick off when our project is opened or even put it in vimrc.
+We can put this command to `autocmd` to kick off when our project is opened or put it in vimrc.
 
 Now we can give our assistant some task:
 ```
@@ -158,7 +156,7 @@ Claude API is stateless. Internally they might (and should) make some caching/be
 ## TODO
 
 - [ ] incremental context retrieval/search with tool use. Which ctags to follow, which symbols to lookup, etc.
-      something with language server? E.g. let LLM natigate with YCM-like commands? treesitter? etc.
+      something with language server? E.g. let LLM navigate with YCM-like commands? treesitter? etc.
 - [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
 - [ ] double-check all buffer options (fixed width, etc)
@@ -167,7 +165,7 @@ Claude API is stateless. Internally they might (and should) make some caching/be
 Later
 
 - [ ] saving KV cache serverside
-- [ ] working on Windows?
+- [ ] test on Windows
 - [ ] recording some feedback (e.g. good answer, wrong answer, etc).
 
 ### More examples
