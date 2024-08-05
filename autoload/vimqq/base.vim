@@ -8,6 +8,9 @@ function! vimqq#base#new() abort
     let l:base = {}
     let l:base._callbacks = {}
     function! l:base.set_cb(key, fn) dict
+        if type(a:fn) != v:t_func
+            throw 'vimqq#base: callback must be a function'
+        endif
         let self._callbacks[a:key] = a:fn
     endfunction
 

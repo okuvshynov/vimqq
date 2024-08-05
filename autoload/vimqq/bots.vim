@@ -32,14 +32,14 @@ endfunction
 
 function! s:_create(config_lists)
     let l:res = []
-    for [config_list, Factory] in a:config_lists
+    for [config_list, BotFactory] in a:config_lists
         for config in config_list
             if !has_key(config, 'bot_name')
                 call vimqq#log#error("Each bot must have a 'bot_name' field")
                 continue
             endif
             if s:_validate_name(config.bot_name, l:res)
-                call add(l:res, Factory(config))
+                call add(l:res, BotFactory(config))
             endif
         endfor
     endfor
@@ -73,10 +73,13 @@ function! vimqq#bots#new() abort
     function! l:bots.select(question) dict
         for bot in self._bots
             let l:tag = '@' . bot.name()
+            if len(a:question) > len(l:tag)
+                let l:tag .= ' '
+            endif
+            call vimqq#log#debug(l:tag . "|")
             if strpart(a:question, 0, len(l:tag)) ==# l:tag
                 " removing tag before passing it to backend
                 let i = len(l:tag)
-                let i += (len(a:question) > i ? 1 : 0)
                 return [bot, strpart(a:question, i)]
             endif
         endfor
