@@ -1,11 +1,12 @@
-# vim quick question (vim-qq)
+# Vim quick question (vim-qq)
 
-AI plugin for VIM with focus on chat, local model evaluation, code understanding and refinement, rather than writing new code/providing autocomplete.
+AI plugin for Vim with focus on chat, local model evaluation, code understanding and refinement, rather than writing new code/providing autocomplete.
 
-While there are many copilot-like plugins for different IDEs, I couldn't quite find what I needed. The requirements I had were:
+While there are many copilot-like plugins for different IDEs/editor (cody ai, tabby, etc.), I couldn't quite find what I needed. The requirements I had were:
 
-- work with reasonably modern vim;
-- work with local model evaluation. be fast enough to be practical;
+- work with reasonably modern Vim, e.g. one preinstalled on MacOS;
+- work with local model evaluation. fast enough to be practical;
+- works on Apple M1/M2 devices, which have limited compute power and would be slow to process long context;
 - work with remote paid API as well;
 - support switching models in the middle of discussion.
 - focus on explanation/brainstorming/refactoring rather than autocomplete/generation.
@@ -17,7 +18,7 @@ Ideal scenario (we are not quite there yet) that it would work similar to [guten
 In order to make local model experience better, following features were implemented:
 1. automatic cache warmup on context selection;
 2. dynamic cache warmup during message input (while user types);
-3. token streaming into vim buffer, so we can see output right away;
+3. token streaming into Vim buffer, so we can see output right away;
 4. chat forking, so we can reuse large initial context (e.g. entire file/project) and start new conversation from that point. 
 
 ### Example
@@ -60,7 +61,7 @@ GPU {x} vram util') will become an instance of 'metric'.
 ...
 ```
 
-Note that provided context is hidden in vim fold, but it is still part of the message. If we would skip the warmup, we'll have to wait for the same 3 minutes to process the context.
+Note that provided context is hidden in Vim fold, but it is still part of the message. If we would skip the warmup, we'll have to wait for the same 3 minutes to process the context.
 
 After we got the code, we can ask follow-up questions:
 ```
@@ -149,7 +150,7 @@ Claude API is stateless. Internally they might (and should) make some caching/be
   
 ## requirements
 
-* vim 8.2+
+* Vim 8.2+
 * curl
 * llama.cpp if planning to use local models
 * Anthropic API subscription if planning to use claude family of models
