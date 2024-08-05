@@ -9,7 +9,7 @@ While there are many copilot-like plugins for different IDEs/editor (cody ai, ta
 - works on Apple M1/M2 devices, which have limited compute power and would be slow to process long context;
 - work with remote paid API as well;
 - support switching models in the middle of discussion.
-- focus on explanation/brainstorming/refactoring rather than autocomplete/generation.
+- focus on explanation/brainstorming/refactoring rather than autocomplete/generation - be able to run models which can explain some code to you.
 - flexible way to include context with reasonable defaults.
 - as few dependencies as possible.
 
