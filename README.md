@@ -12,6 +12,7 @@ While there are many copilot-like plugins for different IDEs/editor (cody ai, ta
 - focus on explanation/brainstorming/refactoring rather than autocomplete/generation - be able to run models which can explain some code to you.
 - flexible way to include context with reasonable defaults.
 - as few dependencies as possible.
+- while it needs to be fast enough to be usable, I expect myself to read and understand everything, so going much faster than my reading comprehension rate would be pointless. 10 t/s is good enough.
 
 Ideal scenario (we are not quite there yet) that it would work similar to [gutentags](https://github.com/ludovicchabant/vim-gutentags) - you install it once and forget about it.
 
