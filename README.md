@@ -1,6 +1,6 @@
 # Vim quick question (vim-qq)
 
-AI plugin for Vim with focus on chat, local model evaluation, code understanding and refinement, rather than providing autocomplete.
+AI plugin for Vim with focus on local model evaluation, code understanding and refinement, rather than providing autocomplete.
 
 While there are many copilot-like plugins for different IDEs/editor (cody ai, tabby, etc.), I couldn't quite find what I needed. The requirements I had were:
 
