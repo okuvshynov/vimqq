@@ -8,6 +8,7 @@ let g:vqq_llama_servers = get(g:, 'vqq_llama_servers', [])
 let g:vqq_claude_models = get(g:, 'vqq_claude_models', [])
 let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
 
+" Validate a bot name to ensure it's unique and follows naming conventions
 function! s:_validate_name(name, bots)
     if a:name ==# 'You'
         call vimqq#log#error("Bot name 'You' is not allowed")
@@ -30,6 +31,7 @@ function! s:_validate_name(name, bots)
     return v:true
 endfunction
 
+" Create a list of bot instances from configuration lists
 function! s:_create(config_lists)
     let l:res = []
     for [config_list, BotFactory] in a:config_lists
@@ -46,6 +48,7 @@ function! s:_create(config_lists)
     return l:res
 endfunction
 
+" Create a new bot manager instance
 function! vimqq#bots#new() abort
     let l:bots = {}
 
