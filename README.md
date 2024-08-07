@@ -1,6 +1,6 @@
 # Vim quick question (vim-qq)
 
-AI plugin for Vim with focus on chat, local model evaluation, code understanding and refinement, rather than writing new code/providing autocomplete.
+AI plugin for Vim with focus on chat, local model evaluation, code understanding and refinement, rather than providing autocomplete.
 
 While there are many copilot-like plugins for different IDEs/editor (cody ai, tabby, etc.), I couldn't quite find what I needed. The requirements I had were:
 
@@ -8,11 +8,11 @@ While there are many copilot-like plugins for different IDEs/editor (cody ai, ta
 - work with local model evaluation. fast enough to be practical;
 - work on Apple M1/M2 devices, which have limited compute power and would be slow to process long context;
 - work with remote paid API as well;
-- support switching models in the middle of discussion, e.g. from Claude Sonnet to local Llama 70
-- focus on explanation/brainstorming/refactoring rather than autocomplete/generation - be able to run models which can explain some code to you.
-- flexible way to include context with reasonable defaults.
-- as few dependencies as possible.
-- while it needs to be fast enough to be usable, I expect myself to read and understand everything, so going much faster than my reading comprehension rate would be pointless. 10 t/s is good enough.
+- support switching models in the middle of discussion, e.g. from Claude Sonnet to local Llama 70 and back;
+- focus on explanation/brainstorming/refactoring rather than autocomplete/generation - be able to run models which can explain some code to you;
+- flexible way to include context;
+- as few dependencies as possible;
+- I expect myself to read and understand everything, so going much faster than my reading comprehension rate would be pointless. 10 t/s is good enough.
 
 Ideal scenario (we are not quite there yet) that it would work similar to [gutentags](https://github.com/ludovicchabant/vim-gutentags) - you install it once and forget about it.
 
@@ -20,7 +20,7 @@ In order to make local model experience better, following features were implemen
 1. automatic cache warmup on context selection;
 2. dynamic cache warmup during message input (while user types);
 3. token streaming into Vim buffer, so we can see output right away;
-4. chat forking, so we can reuse large initial context (e.g. entire file/project) and start new conversation from that point. 
+4. chat forking, so we can reuse large initial context (e.g. entire project/subset of files) and start new conversation from that point. 
 
 ### Example
 
