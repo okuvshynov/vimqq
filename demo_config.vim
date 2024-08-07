@@ -20,26 +20,37 @@ let g:vqq_claude_models = [
 xnoremap <leader>w  :<C-u>'<,'>QQ -ws @llama<cr>:'<,'>QQ -s @llama<Space>
 " [w]armup llama in [n]ew chat
 xnoremap <leader>wn :<C-u>'<,'>QQ -wns @llama<cr>:'<,'>QQ -ns @llama<Space>
+
 " Warmup + prefill for query only in normal mode
 " [w]armup llama
 nnoremap <leader>w  :<C-u>Q -w @llama<cr>:Q @llama<Space>
 " [w]armup llama in [n]ew chat
 nnoremap <leader>wn :<C-u>Q -wn @llama<cr>:Q -n @llama<Space>
 
+" Query without warmup
 " [q]uery llama
 nnoremap <leader>q :<C-u>Q @llama<Space>
 " [q]uery llama in [n]ew chat
 nnoremap <leader>qn :<C-u>Q -n @llama<Space>
 
+" Warmup/query with entire file context
 " [w]armup llama with entire [f]ile context
 nnoremap <leader>wf :<C-u>Q -wf @llama<cr>:Q -f @llama<Space>
 " [w]armup llama with entire [f]ile context in [n]ew chat
 nnoremap <leader>wfn :<C-u>Q -wfn @llama<cr>:Q -fn @llama<Space>
+" [w]armup llama with entire [f]ile context + [s]election
+xnoremap <leader>wf :<C-u>'<,'>QQ -wfs @llama<cr>:'<,'>QQ -fs @llama<Space>
+" [w]armup llama with entire [f]ile context + [s]election in [n]ew chat
+xnoremap <leader>wfn :<C-u>'<,'>QQ -wfsn @llama<cr>:'<,'>QQ -fsn @llama<Space>
 
 " [w]armup llama with entire [p]roject context
 nnoremap <leader>wp :<C-u>Q -wp @llama<cr>:Q -p @llama<Space>
 " [w]armup llama with entire [p]roject context in [n]ew chat
 nnoremap <leader>wpn :<C-u>Q -wpn @llama<cr>:Q -pn @llama<Space>
+" [w]armup llama with entire [p]roject context + [s]election
+xnoremap <leader>wp :<C-u>'<,'>QQ -wps @llama<cr>:'<,'>QQ -ps @llama<Space>
+" [w]armup llama with entire [p]roject context + [s]election in [n]ew chat
+xnoremap <leader>wpn :<C-u>'<,'>QQ -wpsn @llama<cr>:'<,'>QQ -psn @llama<Space>
 
 " [f]ork current chat
 nnoremap <leader>f :<C-u>QF<Space>
