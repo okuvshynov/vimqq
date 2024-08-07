@@ -43,6 +43,11 @@ xnoremap <leader>wf :<C-u>'<,'>QQ -wfs @llama<cr>:'<,'>QQ -fs @llama<Space>
 " [w]armup llama with entire [f]ile context + [s]election in [n]ew chat
 xnoremap <leader>wfn :<C-u>'<,'>QQ -wfsn @llama<cr>:'<,'>QQ -fsn @llama<Space>
 
+" [w]armup llama with c[t]agts following from the selection
+xnoremap <leader>wt  :<C-u>'<,'>QQ -wst @llama<cr>:'<,'>QQ -st @llama<Space>
+" [w]armup llama with c[t]agts following from the selection in [n]ew chat
+xnoremap <leader>wtn :<C-u>'<,'>QQ -wnts @llama<cr>:'<,'>QQ -nts @llama<Space>
+
 " [w]armup llama with entire [p]roject context
 nnoremap <leader>wp :<C-u>Q -wp @llama<cr>:Q -p @llama<Space>
 " [w]armup llama with entire [p]roject context in [n]ew chat
