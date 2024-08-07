@@ -90,7 +90,7 @@ function! vimqq#chatsdb#new() abort
         return sort(l:chat_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
     endfunction
 
-    " TODO - should we return a copy and not a reference?
+    " We return a reference here, not a copy.
     function! l:db.get_messages(chat_id) dict
         return self._chats[a:chat_id].messages
     endfunction

@@ -163,11 +163,10 @@ Claude API is stateless. Internally they might (and should) make some caching/be
 
 ## TODO
 
+- [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
 - [ ] Collect message from various pieces of content? 
-- [ ] all open files context?
 - [ ] incremental context retrieval/search with tool use. Which ctags to follow, which symbols to lookup, etc.
       something with language server? E.g. let LLM navigate with YCM-like commands? treesitter? etc.
-- [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
 - [ ] double-check all buffer options (fixed width, etc)
 - [ ] better prompt configuration

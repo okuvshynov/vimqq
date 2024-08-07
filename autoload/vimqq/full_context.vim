@@ -3,11 +3,10 @@
 if exists('g:autoloaded_vimqq_full_context')
     finish
 endif
-
-let s:file_patterns = "*.vim,*.txt,*.md,*.cpp,*.c,*.h,*.hpp,*.py,*.rs"
-let g:vqq_context_filetypes = get(g:, 'vqq_context_filetypes', s:file_patterns)
-
 let g:autoloaded_vimqq_full_context = 1
+
+let s:filetypes = "*.vim,*.txt,*.md,*.cpp,*.c,*.h,*.hpp,*.py,*.rs"
+let g:vqq_context_filetypes = get(g:, 'vqq_context_filetypes', s:filetypes)
 
 " recursively build a list of [[file_path/name, content]]
 " for all files matching pattern (e.g. "*.cpp,*.c,*.h")
