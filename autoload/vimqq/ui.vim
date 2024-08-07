@@ -18,6 +18,7 @@ let g:vqq_time_format = get(g:, 'vqq_time_format', "%b %d %H:%M ")
 let s:time_format = "%H:%M"
 
 let s:showing = 'list'
+let s:buffer_name = 'vimqq_chat'
 
 " -----------------------------------------------------------------------------
 function vimqq#ui#new() abort
@@ -31,11 +32,11 @@ function vimqq#ui#new() abort
     " {{{ private:
     function! l:ui._open_window() dict
         " Check if the buffer already exists
-        let l:bufnum = bufnr('vim_qna_chat')
+        let l:bufnum = bufnr(s:buffer_name)
         if l:bufnum == -1
             " Create a new buffer in a vertical split
             silent! execute 'topleft vertical ' . g:vqq_width . ' new'
-            silent! execute 'edit vim_qna_chat'
+            silent! execute 'edit ' . s:buffer_name
             setlocal buftype=nofile
             setlocal bufhidden=hide
             setlocal noswapfile
@@ -114,7 +115,7 @@ function vimqq#ui#new() abort
 
     function! l:ui.append_partial(token) dict
         if s:showing == 'chat'
-            let l:bufnum    = bufnr('vim_qna_chat')
+            let l:bufnum    = bufnr(s:buffer_name)
             let l:curr_line = getbufline(bufnum, '$')[0]
             let l:lines     = split(l:curr_line . a:token . "\n", '\n')
             silent! call setbufvar(l:bufnum, '&modifiable', 1)
@@ -206,11 +207,11 @@ function vimqq#ui#new() abort
     endfunction
 
     function! l:ui.toggle() dict
-        let bufnum = bufnr('vim_qna_chat')
+        let bufnum = bufnr(s:buffer_name)
         if bufnum == -1
             call self._open_window()
         else
-            let l:winid = bufwinid('vim_qna_chat')
+            let l:winid = bufwinid(s:buffer_name)
             if l:winid != -1
                 call win_gotoid(l:winid)
                 silent! execute 'hide'
@@ -245,5 +246,5 @@ endfunction
 
 augroup VQQSyntax
   autocmd!
-  autocmd BufRead,BufNewFile *vim_qna_chat* call s:setup_syntax()
+  execute 'autocmd BufRead,BufNewFile *' . s:buffer_name . ' call s:setup_syntax()'
 augroup END
