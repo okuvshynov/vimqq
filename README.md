@@ -153,6 +153,7 @@ Claude API is stateless. Internally they might (and should) make some caching/be
 
 ## TODO
 
+- [ ] personal profile collection
 - [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
 - [ ] Collect message from various pieces of content? 
 - [ ] fork with context - select something, hit the key and that would be extra context.
