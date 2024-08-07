@@ -29,7 +29,6 @@ function vimqq#llama#new(config = {}) abort
   " {{{ private:
   
   function l:llama._update_status(status)
-      call vimqq#log#info('bot ' . self.name() . ': ' . a:status)
       call self.call_cb('status_cb', a:status, self)
   endfunction
 

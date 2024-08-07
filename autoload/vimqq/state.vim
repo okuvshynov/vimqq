@@ -9,6 +9,7 @@ function! vimqq#state#new(db) abort
     
     let l:state._db     = a:db
     let l:state._queues = {}
+    let l:state._latencies = {}
     
     " this is the active chat id. New queries would go to this chat by default
     let l:state._curr_chat_id = -1
@@ -92,6 +93,24 @@ function! vimqq#state#new(db) abort
         endif
         let self._queues[a:chat_id] = l:queue
         return l:sent
+    endfunction
+
+    function! l:state.user_started_waiting(chat_id) dict
+        if exists('*reltime')
+            let self._latencies[a:chat_id] = reltime()
+        endif
+    endfunction
+
+    function! l:state.first_token(chat_id) dict
+        if exists('*reltime')
+            if has_key(self._latencies, a:chat_id)
+                let latency = reltimefloat(reltime(self._latencies[a:chat_id]))
+                call vimqq#log#info(printf('TTFT %.3f s', latency))
+                unlet self._latencies[a:chat_id]
+            else
+                call vimqq#log#error('token for chat with no start point.')
+            endif
+        endif
     endfunction
 
     return l:state

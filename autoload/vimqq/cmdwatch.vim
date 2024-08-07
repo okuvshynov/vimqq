@@ -24,7 +24,6 @@ function! s:_send_warmup()
 endfunction
 
 function! s:_check_cmd()
-    call vimqq#log#debug('_check_cmd: ' . s:cmdwatch . " | " . len(s:messages))
     " TODO: do we need to check that mode() == 'c'?
     if s:cmdwatch == 'off' || empty(s:messages)
         let s:cmdwatch = 'off'

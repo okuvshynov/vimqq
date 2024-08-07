@@ -28,7 +28,7 @@ endfunction
 
 function! s:_on_token_done(chat_id, token)
     if empty(s:chatsdb.get_partial(a:chat_id).content)
-        call vimqq#log#debug('first token')
+        call s:state.first_token(a:chat_id)
     endif
     call s:chatsdb.append_partial(a:chat_id, a:token)
     if a:chat_id == s:state.get_chat_id()
@@ -105,6 +105,8 @@ function! vimqq#main#send_message(context_mode, force_new_chat, question)
     let l:message = vimqq#context#fill(l:message, a:context_mode)
 
     let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
+    call s:state.user_started_waiting(l:chat_id)
+    call vimqq#log#debug('user started waiting')
     if s:state.enqueue_query(l:chat_id, l:bot, l:message)
         call vimqq#main#show_chat(l:chat_id)
     endif
@@ -137,7 +139,7 @@ endfunction
 
 function! vimqq#main#show_chat(chat_id)
     if !s:chatsdb.chat_exists(a:chat_id)
-        call vimqq#log#info("Attempting to show non-existent chat")
+        call vimqq#log#error("Attempting to show non-existent chat")
         return
     endif
     call s:state.set_chat_id(a:chat_id)
