@@ -169,6 +169,7 @@ There are more options we can add:
 
 ### Other
 
+- [ ] work with llamafile. 
 - [ ] title generation invalidates part of KV cache; need to change this and/or regenerate from scratch.
 - [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
 - [ ] fork with context - select something, hit the key and that would be extra context.
