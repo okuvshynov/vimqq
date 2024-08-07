@@ -153,15 +153,28 @@ Claude API is stateless. Internally they might (and should) make some caching/be
 
 ## TODO
 
-- [ ] personal profile collection
+### Better context
+
+Current options for context selection are:
+1. No context, just the question
+2. Visual selection in editor
+3. Entire current file
+4. Selection + files with ctags destinations from the selection
+5. Entire project
+
+There are more options we can add:
+1. Embeddings
+2. Language-specific static analysis tools (e.g. Jedi for python)
+3. Tool-based exploration where model will tell us what to look up
+
+### Other
+
+- [ ] title generation invalidates part of KV cache; need to change this and/or regenerate from scratch.
 - [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
-- [ ] Collect message from various pieces of content? 
 - [ ] fork with context - select something, hit the key and that would be extra context.
-- [ ] incremental context retrieval/search with tool use. Which ctags to follow, which symbols to lookup, etc.
-      something with language server? E.g. let LLM navigate with YCM-like commands? treesitter? etc.
-- [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
 - [ ] double-check all buffer options (fixed width, etc)
 - [ ] better prompt configuration
+- [ ] update system prompt with some personal info/autocollecting that info
 
 Later
 
