@@ -165,6 +165,7 @@ Claude API is stateless. Internally they might (and should) make some caching/be
 
 - [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
 - [ ] Collect message from various pieces of content? 
+- [ ] fork with context - select something, hit the key and that would be extra context.
 - [ ] incremental context retrieval/search with tool use. Which ctags to follow, which symbols to lookup, etc.
       something with language server? E.g. let LLM navigate with YCM-like commands? treesitter? etc.
 - [ ] more custom examples like 'explain', 'cleanup', 'improve readability', 'give an example of using ...'
