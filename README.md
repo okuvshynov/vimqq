@@ -130,16 +130,6 @@ https://github.com/user-attachments/assets/d0fd63c0-3ddf-41e4-a9d0-b1fa63ebd80d
 
 In both situations we queried fresh server instance with no cache. As you can see, in warmup case we start seeing output right away, while for no-warmup case we have to wait for 5-10 seconds which is annoying and can result in losing focus.
 
-### Running local models
-
-All the numbers below are for running llama70b 3.1 instruct, quantized to 8 bit on M2 Ultra.
-
-1. Stream output. The output here is primary for human consumption, no tool interactions yet. Therefore, if we keep up with human reading speed, it is good enough, we don't need 1000 t/s. For the configuration above I was getting ~8-9 t/s which seems reasonable.
-2. Warmup queries. Processing the prompt with large context becomes slow. To overcome that, we can send a warmup query with the context before user started typing the question. This way we can amortize context processing cost and reduce time to first token significantly
-3. chat forking. This is another way to utilize context cache efficiently.
-
-Any serverside performance improvements (e.g. speculative decoding) should be incremental to this. 
-
 ### Cost of remote API.
 
 Claude API is stateless. Internally they might (and should) make some caching/best effort stickiness, but from the outside each API call is getting charged as if it is evaluated from scratch. This means, for a long conversation you get O(N^2) cost. For example, if you started with a large context for your project (say, 20k tokens) and had a discussion for 20 rounds, you'll get charged for 400k tokens input. It is still pretty cheap for current sonnet 3.5 model, ~$1.2, but:
