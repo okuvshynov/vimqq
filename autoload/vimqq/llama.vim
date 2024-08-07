@@ -50,6 +50,9 @@ function vimqq#llama#new(config = {}) abort
   endfunction
 
   function l:llama._get_status() dict
+      if self._conf.healthcheck_ms < 0
+          return
+      endif
       let l:curl_cmd = ["curl", "--max-time", "5", self._status_endpoint]
       let l:job_conf = {
             \ 'out_cb' : {channel, msg   -> self._on_status_out(msg)},
