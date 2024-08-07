@@ -5,7 +5,7 @@ VIMQQ ~
 Author: Oleksandr Kuvshynov
 
 AI plugin with a focus on local model evaluation, code reading, refinement and
-coaching rather than code completion/implementing something new.
+coaching rather than code completion/implementing something e2e.
 
 1. Introduction ........................................ |vimqq-intro|
 2. Installation ........................................ |vimqq-install|
@@ -21,21 +21,18 @@ coaching rather than code completion/implementing something new.
 ==============================================================================
 1. Introduction                                                    *vimqq-intro*
 
-While impressive, LLMs are still not that good at writing new code. It is
-especially true for the scenarios where the change is spread out across
-multiple files in a huge repository, which is exactly what some very important
-and time consuming code changes are.
-
-They appear to be very useful in slightly different cases:
+LLMs appear to be very useful in different cases:
  - explaining what some existing code does; 
  - suggesting some existing tools/abstractions to use to improve the code;
  - being a first line of code review - finding glaring errors;
  - being a tutor or coach - here's some code I've written, what should I
    learn to improve?
+ - early prototyping;
 
 What vimqq is not doing:
  - generating code in place, typing it in editor directly, all communication
    is done in the chat buffer. It is reasonably easy to copy/paste the code.
+ - providing any form of autocomplete.  
 
 Features:
  - Support for both Claude remote models through paid API and local models 
