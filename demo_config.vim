@@ -14,10 +14,17 @@ let g:vqq_claude_models = [
       \  {'bot_name': 'sonnet', 'model': 'claude-3-5-sonnet-20240620', 'max_tokens' : 4096}
 \]
 
+
+" Warmup + prefill for visual selection
 " [w]armup llama
 xnoremap <leader>w  :<C-u>'<,'>QQ -ws @llama<cr>:'<,'>QQ -s @llama<Space>
 " [w]armup llama in [n]ew chat
 xnoremap <leader>wn :<C-u>'<,'>QQ -wns @llama<cr>:'<,'>QQ -ns @llama<Space>
+" Warmup + prefill for query only in normal mode
+" [w]armup llama
+nnoremap <leader>w  :<C-u>Q -w @llama<cr>:Q @llama<Space>
+" [w]armup llama in [n]ew chat
+nnoremap <leader>wn :<C-u>Q -wn @llama<cr>:Q -n @llama<Space>
 
 " [q]uery llama
 nnoremap <leader>q :<C-u>Q @llama<Space>

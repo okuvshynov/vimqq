@@ -15,7 +15,7 @@ let s:state   = vimqq#state#new(s:chatsdb)
 " -----------------------------------------------------------------------------
 " Setting up wiring between modules
 
-" Safely invoke a callback function for a chat, handling the case where the chat
+" invoke a callback function for a chat, handling the case where the chat
 " may have been deleted before the callback is processed. If the chat no longer
 " exists, log a message and skip executing the callback.
 function! s:_if_exists(Fn, chat_id, ...)
@@ -26,8 +26,11 @@ function! s:_if_exists(Fn, chat_id, ...)
     call call(a:Fn, [a:chat_id] + a:000)
 endfunction
 
+" append the received token to message in database, and optionally to UI,
+" if the chat is currently open
 function! s:_on_token_done(chat_id, token)
     if empty(s:chatsdb.get_partial(a:chat_id).content)
+        " to track TTFT latency
         call s:state.first_token(a:chat_id)
     endif
     call s:chatsdb.append_partial(a:chat_id, a:token)
@@ -36,12 +39,14 @@ function! s:_on_token_done(chat_id, token)
     endif
 endfunction
 
+" when we received complete message, we generate title, mark query as complete
 function! s:_on_reply_complete(chat_id, bot)
     call s:chatsdb.partial_done(a:chat_id)
     if !s:chatsdb.has_title(a:chat_id)
         call a:bot.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
     endif
 
+    " this might call the next query in queue
     if s:state.reply_complete(a:chat_id)
         " TODO: do we need this?
         call vimqq#main#show_chat(a:chat_id)
@@ -51,22 +56,40 @@ endfunction
 
 for bot in s:bots.bots()
     " When title is ready, we set it in db
-    call bot.set_cb('title_done_cb', {chat_id, title -> s:_if_exists(s:chatsdb.set_title, chat_id, title)})
+    call bot.set_cb(
+          \ 'title_done_cb', 
+          \ {chat_id, title -> s:_if_exists(s:chatsdb.set_title, chat_id, title)}
+    \ )
     " When the streaming is done and entire message is received, we mark it as
     " complete and kick off title generation if it is not computed yet
-    call bot.set_cb('stream_done_cb', {chat_id, bot -> s:_if_exists(function('s:_on_reply_complete'), chat_id, bot)})
+    call bot.set_cb(
+          \ 'stream_done_cb', 
+          \ {chat_id, bot -> s:_if_exists(function('s:_on_reply_complete'), chat_id, bot)}
+    \ )
     " When server produces new streamed token, we update db and maybe update ui, 
-    call bot.set_cb('token_cb', {chat_id, token -> s:_if_exists(function('s:_on_token_done'), chat_id, token)})
+    call bot.set_cb(
+          \ 'token_cb',
+          \ {chat_id, token -> s:_if_exists(function('s:_on_token_done'), chat_id, token)}
+    \ )
     " When server updates health status, we update status line
-    call bot.set_cb('status_cb', {status, bot -> s:ui.update_statusline(status, bot.name())})
+    call bot.set_cb(
+          \ 'status_cb',
+          \ {status, bot -> s:ui.update_statusline(status, bot.name())}
+    \ )
     " When warmup is done we check if we have updated message and send new warmup
     call bot.set_cb('warmup_done_cb', { -> vimqq#cmdwatch#next()})
 endfor
 
 " If chat is selected in UI, show it
-call s:ui.set_cb('chat_select_cb', {chat_id -> s:_if_exists(function('vimqq#main#show_chat'), chat_id)})
-" If chat was requested for deletion, delete it and update UI
-call s:ui.set_cb('chat_delete_cb', {chat_id -> s:_if_exists(function('vimqq#main#delete_chat'), chat_id)})
+call s:ui.set_cb(
+      \ 'chat_select_cb', 
+      \ {chat_id -> s:_if_exists(function('vimqq#main#show_chat'), chat_id)}
+\ )
+" If chat was requested for deletion, show confirmation, delete it and update UI
+call s:ui.set_cb(
+      \ 'chat_delete_cb',
+      \ {chat_id -> s:_if_exists(function('vimqq#main#delete_chat'), chat_id)}
+\ )
 " If UI wants to show chat selection list, we need to get fresh list
 call s:ui.set_cb('chat_list_cb', { -> vimqq#main#show_list()})
 
@@ -83,6 +106,7 @@ function! vimqq#main#delete_chat(chat_id)
 
     call s:chatsdb.delete_chat(a:chat_id)
     if s:state.get_chat_id() == a:chat_id
+        " TODO - select next chat instead
         s:state.set_chat_id(-1)
     endif
     call vimqq#main#show_list()
