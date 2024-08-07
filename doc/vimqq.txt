@@ -201,7 +201,7 @@ It will:
 This way we can reuse the context, which might be long (entire file/project)
 
 Note: this command might get merged to the Q/QQ commands. Similar to `n` 
-meaning 'ask in new chat' we might an option to 'ask in fork'.
+meaning 'ask in new chat' we might add an option to 'ask in fork'.
 
 ------------------------------------------------------------------------------
 4.1. UI Control                                              *vimqq-commands-ui*

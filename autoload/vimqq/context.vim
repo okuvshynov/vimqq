@@ -6,11 +6,6 @@ endif
 
 let g:autoloaded_vimqq_context = 1
 
-let g:vqq_exp_context_n_tags = get(g:, 'vqq_exp_context_n_tags', 10)
-let g:vqq_exp_context_n_up   = get(g:, 'vqq_exp_context_n_up', 10)
-let g:vqq_exp_context_n_down = get(g:, 'vqq_exp_context_n_down', 50)
-
-
 function! s:escape_search_pattern(pattern)
     " Remove leading and trailing delimiters if present
     let pattern = a:pattern
@@ -38,22 +33,17 @@ function! s:escape_search_pattern(pattern)
     return '/' . escaped . '/'
 endfunction
 
-" extra context management.
-" currently using ctags + naive heuristic
-
-" This is not very good. It just gets N lines down, M lines up to fetch
-" potential comments.
-function! s:get_relevant_ctx(word, n_up, n_down)
+" Get file referenced in ctags
+function! s:get_relevant_ctx(word)
     let l:taglist = taglist('^' . a:word . '$')
     if empty(l:taglist)
         let l:taglist = taglist('^' . a:word)
     endif
 
     if empty(l:taglist)
-        return []
+        return ["", []]
     endif
 
-    " TODO: is this correct? are we always in the current buffer?
     let l:curbuf = bufnr('%')
 
     let l:tag = {}
@@ -87,11 +77,8 @@ function! s:get_relevant_ctx(word, n_up, n_down)
         call winrestview(l:saved_view)
     endif
 
-    let l:start = max([1, l:lnum - a:n_up])
-    let l:end = l:lnum + a:n_down
-
     silent call bufload(l:buf)
-    return join(getbufline(l:buf, l:start, l:end), "\n")
+    return [l:tag.filename, join(getbufline(l:buf, 1, '$'), "\n")]
 endfunction
 
 function! s:get_visual_selection()
@@ -107,19 +94,16 @@ function! s:get_visual_selection()
 endfunction
 
 function! vimqq#context#ctags(selection)
-    let n_up = g:vqq_exp_context_n_up
-    let n_down = g:vqq_exp_context_n_down
-    let n_tags = g:vqq_exp_context_n_tags
-
     let l:words = split(a:selection, '\W\+')
     let l:res = []
+    let l:included = {}
     for word in l:words
-        let lines = s:get_relevant_ctx(word, n_up, n_down)
-        if !empty(lines)
+        let [file, lines] = s:get_relevant_ctx(word)
+        if !empty(lines) && !has_key(l:included, file)
+            call vimqq#log#info('including ' . word . ' -> ' . file . ' to context')
+            call add(l:res, "///// FILE: " . file . " /////")
             call add(l:res, lines)
-            if len(l:res) >= n_tags
-                break
-            endif
+            let l:included[file] = 1
         endif
     endfor 
     return join(l:res, "\n")
