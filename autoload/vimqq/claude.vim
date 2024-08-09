@@ -65,12 +65,16 @@ function! vimqq#claude#new(config = {}) abort
 
     function l:claude._on_close(chat_id) dict
         let l:response = json_decode(join(self._reply_by_id[a:chat_id], '\n'))
-        let l:message  = l:response.content[0].text
-        call self._update_usage(l:response.usage)
-        " we pretend it's one huge update
-        call self.call_cb('token_cb', a:chat_id, l:message)
-        " and immediately done
-        call self.call_cb('stream_done_cb', a:chat_id, self)
+        if has_key(l:response, 'content') && !empty(l:response.content) && has_key(l:response.content[0], 'text')
+            let l:message  = l:response.content[0].text
+            call self._update_usage(l:response.usage)
+            " we pretend it's one huge update
+            call self.call_cb('token_cb', a:chat_id, l:message)
+            " and immediately done
+            call self.call_cb('stream_done_cb', a:chat_id, self)
+        else
+            vimqq#log#error('Unable to process response: ' . l:response)
+        endif
     endfunction
 
     function! l:claude._send_query(req, job_conf) dict

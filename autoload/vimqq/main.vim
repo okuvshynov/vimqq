@@ -12,8 +12,26 @@ let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
 
+let s:warmup_bots = []
+for bot in s:bots.bots()
+    if index(g:vqq_warmup_on_chat_open, bot.name()) != -1
+        call add(s:warmup_bots, bot)
+    endif
+endfor
+
 " -----------------------------------------------------------------------------
 " Setting up wiring between modules
+
+function! s:_send_warmup(chat_id)
+    if !s:chatsdb.chat_exists(a:chat_id)
+        call vimqq#log#info("callback on non-existent chat.")
+        return
+    endif
+    for bot in s:warmup_bots
+        let messages = s:chatsdb.get_messages(a:chat_id)
+        call bot.send_warmup(messages)
+    endfor
+endfunction
 
 " invoke a callback function for a chat, handling the case where the chat
 " may have been deleted before the callback is processed. If the chat no longer
@@ -54,11 +72,21 @@ function! s:_on_reply_complete(chat_id, bot)
     call s:ui.update_queue_size(s:state.queue_size())
 endfunction
 
+function! s:_on_title_done(chat_id, title)
+    call s:chatsdb.set_title(a:chat_id, a:title)
+    call s:_send_warmup(a:chat_id)
+endfunction
+
+function! s:_on_chat_select(chat_id)
+    call vimqq#main#show_chat(a:chat_id)
+    call s:_send_warmup(a:chat_id)
+endfunction
+
 for bot in s:bots.bots()
     " When title is ready, we set it in db
     call bot.set_cb(
           \ 'title_done_cb', 
-          \ {chat_id, title -> s:_if_exists(s:chatsdb.set_title, chat_id, title)}
+          \ {chat_id, title -> s:_if_exists(function('s:_on_title_done'), chat_id, title)}
     \ )
     " When the streaming is done and entire message is received, we mark it as
     " complete and kick off title generation if it is not computed yet
@@ -83,7 +111,7 @@ endfor
 " If chat is selected in UI, show it
 call s:ui.set_cb(
       \ 'chat_select_cb', 
-      \ {chat_id -> s:_if_exists(function('vimqq#main#show_chat'), chat_id)}
+      \ {chat_id -> s:_if_exists(function('s:_on_chat_select'), chat_id)}
 \ )
 " If chat was requested for deletion, show confirmation, delete it and update UI
 call s:ui.set_cb(
