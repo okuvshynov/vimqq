@@ -20,7 +20,13 @@ In order to make local model experience better, following features were implemen
 1. automatic cache warmup on context selection;
 2. dynamic cache warmup during message input (while user types);
 3. token streaming into Vim buffer, so we can see output right away;
-4. chat forking, so we can reuse large initial context (e.g. entire project/subset of files) and start new conversation from that point. 
+4. chat forking, so we can reuse large initial context (e.g. entire project/subset of files) and start new conversation from that point.
+
+
+
+https://github.com/user-attachments/assets/f1b34385-c6e2-4202-a17d-2ef09e83becc
+
+
 
 ### Example
 
