@@ -5,7 +5,11 @@ endif
 let g:autoloaded_vimqq_cmdwatch = 1
 
 " if we sent warmup query, start timer 
-let g:vqq_autowarm_cmd_ms = get(g:, 'vqq_autowarm_cmd_ms', 1000)
+let g:vqq_autowarm_cmd_ms = get(g:, 'vqq_autowarm_cmd_ms', 500)
+" on MacOS model might be getting offloaded even if we use mlock. 
+" thus, we have an option to keep sending warmup queries even if message
+" hasn't changed
+let g:vqq_autowarm_same_msg = get(g:, 'vqq_autowarm_same_msg', v:true)
 
 let s:cmdwatch = 'off'
 " we use this for warmup
@@ -15,7 +19,8 @@ let s:message_updated = v:false
 let s:last_warmup_done = v:false
 
 function! s:_send_warmup()
-    if s:cmdwatch == 'on' && s:message_updated && s:last_warmup_done
+    let l:message_flag = s:message_updated || g:vqq_autowarm_same_msg
+    if s:cmdwatch == 'on' && l:message_flag && s:last_warmup_done
         let s:message_updated = v:false
         let s:last_warmup_done = v:false
         call vimqq#log#debug('sending next warmup')
