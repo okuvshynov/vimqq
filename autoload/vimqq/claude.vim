@@ -73,7 +73,9 @@ function! vimqq#claude#new(config = {}) abort
             " and immediately done
             call self.call_cb('stream_done_cb', a:chat_id, self)
         else
-            vimqq#log#error('Unable to process response: ' . l:response)
+            echo l:response
+            call vimqq#log#error('Unable to process response')
+            " TODO: still need to mark query as done
         endif
     endfunction
 
