@@ -71,7 +71,8 @@ function! vimqq#fmt#content(message, folding_context=v:false)
 
     for [key, pattern] in items(l:replacements)
         if has_key(a:message, key)
-            let l:res = substitute(l:res, pattern, a:message[key], 'g')
+            let l:escaped = escape(a:message[key], '/\' . (&magic ? '&~' : ''))
+            let l:res = substitute(l:res, pattern, l:escaped, 'g')
         endif
     endfor
 
