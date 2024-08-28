@@ -50,7 +50,7 @@ Features:
    it is possible to send and automate sending warmup queries to prefill
    the KV cache. 
  - dynamic warmup on typing - in case of long questions, it is a good idea
-   to prefill question itself
+   to prefill question itself.
  - mixing different models in the same chat sessions. It is possible to send 
    original message to one model and use a different model for the follow-up
    questions.

@@ -174,11 +174,15 @@ function! vimqq#main#send_warmup(context_mode, force_new_chat, tag="")
     \ }
     let l:message = vimqq#context#fill(l:message, a:context_mode)
 
-    let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
-
+    let l:chat_id = s:state.get_chat_id()
     let [l:bot, _msg] = s:bots.select(a:tag)
-    let l:messages = s:chatsdb.get_messages(l:chat_id) + [l:message]
+    if l:chat_id >= 0 && !a:force_new_chat
+        let l:messages = s:chatsdb.get_messages(l:chat_id) + [l:message]
+    else
+        let l:messages = [l:message]
+    endif
 
+    call vimqq#log#debug('Sending warmup with message of ' . len(l:messages))
     call l:bot.send_warmup(l:messages)
     call vimqq#cmdwatch#start(l:bot, l:messages)
 endfunction
