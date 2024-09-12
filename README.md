@@ -5,6 +5,7 @@ AI plugin for Vim with focus on local model evaluation, code understanding and r
 While there are many copilot-like plugins for different IDEs/editor (cody ai, tabby, etc.), I couldn't quite find what I needed. The requirements I had were:
 
 - work with reasonably modern Vim, e.g. one preinstalled on MacOS;
+- work with both Vim and NeoVim;
 - work with local model evaluation. fast enough to be practical;
 - work on Apple M1/M2 devices, which have limited compute power and would be slow to process long context;
 - work with remote paid API as well;
@@ -175,7 +176,9 @@ There are more options we can add:
 
 ### Other
 
-- [ ] work with llamafile. 
+- [ ] something about specifically reviewing code changes. constant review?
+- [ ] openai API
+- [ ] work with llamafile, so that we don't have to rely on separate install of llama.cpp
 - [ ] title generation invalidates part of KV cache; need to change this and/or regenerate from scratch.
 - [ ] rather than warmup on chat open, keep updating the local model as soon as new messages are sent
 - [ ] fork with context - select something, hit the key and that would be extra context.
