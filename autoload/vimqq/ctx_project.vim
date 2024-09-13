@@ -70,7 +70,7 @@ function! s:find_root()
   return l:current_dir
 endfunction
 
-function! vimqq#full_context#get(pattern=g:vqq_context_filetypes)
+function! vimqq#ctx_project#run(pattern=g:vqq_context_filetypes)
     let l:root  = s:find_root()
     let l:files = s:list_files(l:root, a:pattern) 
     return join(s:combine_files(l:files), "\n")
