@@ -6,7 +6,7 @@ endif
 
 let g:autoloaded_vimqq_context = 1
 
-function! vimqq#context#file()
+function! s:_get_file()
     return join(getline(1, '$'), "\n")
 endfunction
 
@@ -31,7 +31,7 @@ function! vimqq#context#fill(message, context_modes)
         let l:message.selection = l:selection
     endif
     if has_key(a:context_modes, "file")
-        let l:message.context = get(l:message, 'context', '') . vimqq#context#file()
+        let l:message.context = get(l:message, 'context', '') . s:_get_file()
     endif
     if has_key(a:context_modes, "ctags")
         let l:source = join([get(l:message, 'selection', ''), get(l:message, 'context', '')], '\n\n')
