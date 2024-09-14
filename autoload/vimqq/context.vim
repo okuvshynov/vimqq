@@ -10,6 +10,7 @@ function! s:_get_file()
     return join(getline(1, '$'), "\n")
 endfunction
 
+
 function! s:get_visual_selection()
     let [line_start, column_start] = getpos("'<")[1:2]
     let [line_end  , column_end  ] = getpos("'>")[1:2]

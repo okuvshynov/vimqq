@@ -4,6 +4,8 @@ endif
 
 let g:autoloaded_vimqq_cmdwatch = 1
 
+" TODO: we need to rename this to 'warmup something'
+
 " if we sent warmup query, start timer 
 let g:vqq_autowarm_cmd_ms = get(g:, 'vqq_autowarm_cmd_ms', 500)
 " on MacOS model might be getting offloaded even if we use mlock. 
