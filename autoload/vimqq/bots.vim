@@ -59,7 +59,7 @@ function! vimqq#bots#new() abort
 
     let l:bots._bots = s:_create(l:config_lists)
     if empty(l:bots._bots)
-        call vimqq#log#error('No bots defined').
+        call vimqq#log#error('No bots defined. See :h vimqq-install').
         finish
     endif
     let l:bots._default_bot = l:bots._bots[0]
