@@ -46,7 +46,7 @@ function! vimqq#state#new(db) abort
     endfunction 
 
     " returns
-    "   - v:true if query started running immidiately
+    "   - v:true if query started running immediately
     "   - v:false if query was enqueued
     function! l:state.enqueue_query(chat_id, bot, message) dict
         let l:queue = get(self._queues, a:chat_id, [])

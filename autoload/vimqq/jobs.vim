@@ -76,12 +76,10 @@ function! vimqq#jobs#start_nvim(command, config)
         let ExitCb = a:config["exit_cb"]
         let l:conf["on_exit"] = {channel, status, name -> ExitCb(channel, status)}
     endif
-    "let l:conf['stdout_buffered'] = v:true
 
     let job = jobstart(a:command, l:conf)
     if job <= 0
         return v:false
     endif
-    "call s:_keep_job(job)
     return v:true
 endfunction
