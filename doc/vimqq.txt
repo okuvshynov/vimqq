@@ -179,7 +179,7 @@ Supported options:
           in huge input context.
 
 ------------------------------------------------------------------------------
-4.1. Forking                                               *vimqq-commands-fork*
+4.2. Forking                                               *vimqq-commands-fork*
 
     - `:QF` is a slightly different command.
 
@@ -201,7 +201,7 @@ Note: this command might get merged to the Q/QQ commands. Similar to `n`
 meaning 'ask in new chat' we might add an option to 'ask in fork'.
 
 ------------------------------------------------------------------------------
-4.1. UI Control                                              *vimqq-commands-ui*
+4.3. UI Control                                              *vimqq-commands-ui*
 
     - `:QQList` will show the list of past chat threads. User can navigate the
       list and select chat session by pressing <CR>. This action will make chat
@@ -338,6 +338,30 @@ Configuration is done using global variables with prefix `g:vqq`.
     - `g:vqq_log_level`. Controls how much to log. Can be one of
       'DEBUG', 'INFO', 'ERROR', 'NONE'. All messages logged with 
       configured level or higher will be appended to the file.
+
+
+==============================================================================
+6. Example basic config                                   *vimqq-config-example*
+
+>
+let g:vqq_llama_servers = [
+      \  {'bot_name': 'local', 'addr': 'http://localhost:8080'}
+\]
+
+" Warmup + prefill for visual selection
+" [w]armup local
+xnoremap <leader>w  :<C-u>'<,'>QQ -ws @local<cr>:'<,'>QQ -s @local<Space>
+" [w]armup local in [n]ew chat
+xnoremap <leader>wn :<C-u>'<,'>QQ -wns @local<cr>:'<,'>QQ -ns @local<Space>
+
+" Warmup + prefill for query only in normal mode
+" [w]armup local
+nnoremap <leader>w  :<C-u>Q -w @local<cr>:Q @local<Space>
+" [w]armup local in [n]ew chat
+nnoremap <leader>wn :<C-u>Q -wn @local<cr>:Q -n @local<Space>
+
+" chat [l]ist
+nnoremap <leader>ll :<C-u>QQList<cr>
 
 
 ==============================================================================
