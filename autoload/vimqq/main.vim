@@ -253,7 +253,8 @@ function! vimqq#main#qq(args) abort
         \ 's' : 'selection',
         \ 'f' : 'file',
         \ 'p' : 'project',
-        \ 't' : 'ctags'
+        \ 't' : 'ctags',
+        \ 'b' : 'blame'
     \}
 
     call s:_execute(a:args, l:ctx_keys)

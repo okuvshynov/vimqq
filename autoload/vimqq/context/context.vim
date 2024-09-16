@@ -39,5 +39,8 @@ function! vimqq#context#context#fill(message, context_modes)
     if has_key(a:context_modes, "project")
         let l:message.context = get(l:message, 'context', '') . vimqq#context#project#run()
     endif
+    if has_key(a:context_modes, "blame")
+        let l:message.context = get(l:message, 'context', '') . vimqq#context#blame#run()
+    endif
     return l:message
 endfunction

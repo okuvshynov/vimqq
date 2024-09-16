@@ -19,8 +19,7 @@ function! s:run_git_blame(file_path, line_range)
 endfunction
 
 
-" This function should run git blame on the selected lines
-" and 
+" This function runs git blame on the selected lines
 function! vimqq#context#blame#run()
     let [line_start, column_start] = getpos("'<")[1:2]
     let [line_end  , column_end  ] = getpos("'>")[1:2]
@@ -28,12 +27,13 @@ function! vimqq#context#blame#run()
     let file_path = expand("%:p")
     let file_dir = fnamemodify(file_path, ':h')
     let commit_hashes = s:run_git_blame(file_path, line_range)
-    let res = []
+    let res = ["Here are some relevant commits from the history:\n"]
 
     for commit_hash in commit_hashes
-        let commit_lines = systemlist("cd " . file_dir . " && git show " . commit_hash)
-        let res = res + commit_lines
+        let cmd = "cd " . file_dir . " && git show " . commit_hash
+        let commit_lines = systemlist(cmd)
+        let res = res + commit_lines + [""]
     endfor
-    return res
+    " TODO: should we impose some hard limit here?
+    return join(res, "\n")
 endfunction
-
