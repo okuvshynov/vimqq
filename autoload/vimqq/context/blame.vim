@@ -4,6 +4,8 @@ endif
 
 let g:autoloaded_vimqq_ctx_blame = 1
 
+let s:git_show_ctx_sz = 1
+
 function! s:run_git_blame(file_path, line_range)
     " TODO: handle errors
     let file_dir = fnamemodify(a:file_path, ':h')
@@ -30,7 +32,7 @@ function! vimqq#context#blame#run()
     let res = ["Here are some relevant commits from the history:\n"]
 
     for commit_hash in commit_hashes
-        let cmd = "cd " . file_dir . " && git show " . commit_hash
+        let cmd = "cd " . file_dir . " && git show " . commit_hash . " -U" . s:git_show_ctx_sz
         let commit_lines = systemlist(cmd)
         let res = res + commit_lines + [""]
     endfor

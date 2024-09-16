@@ -11,7 +11,7 @@ let s:default_conf = {
   \ 'title_tokens'   : 16,
   \ 'max_tokens'     : 1024,
   \ 'bot_name'       : 'Llama',
-  \ 'system_prompt'  : 'You are a helpful assistant.'
+  \ 'system_prompt'  : 'You are a helpful assistant. Make sure to use all the provided context before producing an answer.'
 \ }
 
 function vimqq#bots#llama#new(config = {}) abort
