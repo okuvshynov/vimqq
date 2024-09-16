@@ -73,20 +73,19 @@ function vimqq#bots#llama#new(config = {}) abort
   endfunction
 
   function! l:llama._on_stream_out(chat_id, msg) dict
-      let newline_count = len(split(a:msg, '\n')) - 1
-      let data_count = len(split(a:msg, 'data: ')) - 1
-      call vimqq#log#debug("Newlines in message: " . newline_count)
-      call vimqq#log#debug("Occurrences of 'data: ' in message: " . data_count)
-      if a:msg !~# '^data: '
-          return
-      endif
-      let json_string = substitute(a:msg, '^data: ', '', '')
+      let l:messages = split(a:msg, '\n')
+      for message in l:messages
+          if message !~# '^data: '
+              continue
+          endif
+          let json_string = substitute(message, '^data: ', '', '')
 
-      let response = json_decode(json_string)
-      if has_key(response.choices[0].delta, 'content')
-          let next_token = response.choices[0].delta.content
-          call self.call_cb('token_cb', a:chat_id, next_token)
-      endif
+          let response = json_decode(json_string)
+          if has_key(response.choices[0].delta, 'content')
+              let next_token = response.choices[0].delta.content
+              call self.call_cb('token_cb', a:chat_id, next_token)
+          endif
+      endfor
   endfunction
 
   function! l:llama._on_stream_close(chat_id)
