@@ -10,7 +10,6 @@ function! s:_get_file()
     return join(getline(1, '$'), "\n")
 endfunction
 
-
 function! s:get_visual_selection()
     let [line_start, column_start] = getpos("'<")[1:2]
     let [line_end  , column_end  ] = getpos("'>")[1:2]
@@ -22,7 +21,6 @@ function! s:get_visual_selection()
     let lines[0]  = lines[0][column_start - 1:]
     return join(lines, "\n")
 endfunction
-
 
 function! vimqq#context#context#fill(message, context_modes)
     let l:message = deepcopy(a:message)
