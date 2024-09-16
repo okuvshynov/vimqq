@@ -73,6 +73,7 @@ function vimqq#bots#llama#new(config = {}) abort
   endfunction
 
   function! l:llama._on_stream_out(chat_id, msg) dict
+      call vimqq#log#debug(a:msg)
       if a:msg !~# '^data: '
           return
       endif
