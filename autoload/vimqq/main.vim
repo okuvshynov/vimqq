@@ -9,7 +9,7 @@ let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
 " -----------------------------------------------------------------------------
 let s:ui      = vimqq#ui#new()
 let s:chatsdb = vimqq#chatsdb#new()
-let s:bots    = vimqq#bots#new()
+let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
 
 let s:warmup_bots = []
@@ -24,7 +24,7 @@ endfor
 
 function! s:_send_warmup(chat_id)
     if !s:chatsdb.chat_exists(a:chat_id)
-        call vimqq#log#info("callback on non-existent chat.")
+        call vimqq#log#info("warmup on non-existent chat.")
         return
     endif
     for bot in s:warmup_bots

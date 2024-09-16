@@ -1,12 +1,12 @@
 " Prevents the script from being loaded multiple times
-if exists('g:autoloaded_vimqq_base_module')
+if exists('g:autoloaded_vimqq_bot_base_module')
     finish
 endif
 
-let g:autoloaded_vqq_base_module = 1
+let g:autoloaded_vqq_bot_base_module = 1
 
 " Creates a new base object with callback management functionality
-function! vimqq#base#new() abort
+function! vimqq#bots#base#new() abort
     let l:base = {}
     let l:base._callbacks = {}
 

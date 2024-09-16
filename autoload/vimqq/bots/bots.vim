@@ -49,12 +49,12 @@ function! s:_create(config_lists)
 endfunction
 
 " Create a new bot manager instance
-function! vimqq#bots#new() abort
+function! vimqq#bots#bots#new() abort
     let l:bots = {}
 
     let l:config_lists = [
-          \ [g:vqq_llama_servers, {conf -> vimqq#llama#new(conf)}],
-          \ [g:vqq_claude_models, {conf -> vimqq#claude#new(conf)}]
+          \ [g:vqq_llama_servers, {conf -> vimqq#bots#llama#new(conf)}],
+          \ [g:vqq_claude_models, {conf -> vimqq#bots#claude#new(conf)}]
     \]
 
     let l:bots._bots = s:_create(l:config_lists)
