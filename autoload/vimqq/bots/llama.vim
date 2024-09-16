@@ -17,7 +17,7 @@ let s:default_conf = {
 function vimqq#bots#llama#new(config = {}) abort
   let l:llama = {} 
   
-  call extend(l:llama, vimqq#bots#base#new())
+  call extend(l:llama, vimqq#base#new())
 
   let l:llama._conf = deepcopy(s:default_conf)
   call extend(l:llama._conf, a:config)
