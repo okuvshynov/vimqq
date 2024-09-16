@@ -82,7 +82,7 @@ function! s:_get_relevant_ctx(word)
     return [l:tag.filename, join(getbufline(l:buf, 1, '$'), "\n")]
 endfunction
 
-function! vimqq#ctx_ctags#run(selection)
+function! vimqq#context#ctags#run(selection)
     let l:words = split(a:selection, '\W\+')
     let l:res = []
     let l:included = {}

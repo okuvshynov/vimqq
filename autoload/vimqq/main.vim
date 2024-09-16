@@ -154,7 +154,7 @@ function! vimqq#main#send_message(context_mode, force_new_chat, question)
           \ "bot_name" : l:bot.name()
     \ }
 
-    let l:message = vimqq#context#fill(l:message, a:context_mode)
+    let l:message = vimqq#context#context#fill(l:message, a:context_mode)
 
     let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
     call s:state.user_started_waiting(l:chat_id)
@@ -172,7 +172,7 @@ function! vimqq#main#send_warmup(context_mode, force_new_chat, tag="")
           \ "role"     : "user",
           \ "message"  : "",
     \ }
-    let l:message = vimqq#context#fill(l:message, a:context_mode)
+    let l:message = vimqq#context#context#fill(l:message, a:context_mode)
 
     let l:chat_id = s:state.get_chat_id()
     let [l:bot, _msg] = s:bots.select(a:tag)

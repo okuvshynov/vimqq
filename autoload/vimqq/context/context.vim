@@ -24,7 +24,7 @@ function! s:get_visual_selection()
 endfunction
 
 
-function! vimqq#context#fill(message, context_modes)
+function! vimqq#context#context#fill(message, context_modes)
     let l:message = deepcopy(a:message)
 
     if has_key(a:context_modes, "selection")
@@ -36,10 +36,10 @@ function! vimqq#context#fill(message, context_modes)
     endif
     if has_key(a:context_modes, "ctags")
         let l:source = join([get(l:message, 'selection', ''), get(l:message, 'context', '')], '\n\n')
-        let l:message.context = get(l:message, 'context', '') . vimqq#ctx_ctags#run(l:source)
+        let l:message.context = get(l:message, 'context', '') . vimqq#context#ctags#run(l:source)
     endif
     if has_key(a:context_modes, "project")
-        let l:message.context = get(l:message, 'context', '') . vimqq#ctx_project#run()
+        let l:message.context = get(l:message, 'context', '') . vimqq#context#project#run()
     endif
     return l:message
 endfunction
