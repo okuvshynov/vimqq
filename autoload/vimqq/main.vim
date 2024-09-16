@@ -105,7 +105,7 @@ for bot in s:bots.bots()
           \ {status, bot -> s:ui.update_statusline(status, bot.name())}
     \ )
     " When warmup is done we check if we have updated message and send new warmup
-    call bot.set_cb('warmup_done_cb', { -> vimqq#cmdwatch#next()})
+    call bot.set_cb('warmup_done_cb', { -> vimqq#autowarm#next()})
 endfor
 
 " If chat is selected in UI, show it
@@ -142,7 +142,7 @@ endfunction
 
 " Sends new message to the server
 function! vimqq#main#send_message(context_mode, force_new_chat, question)
-    call vimqq#cmdwatch#stop()
+    call vimqq#autowarm#stop()
     " pick the bot. we modify message and remove bot tag
     let [l:bot, l:question] = s:bots.select(a:question)
 
@@ -184,7 +184,7 @@ function! vimqq#main#send_warmup(context_mode, force_new_chat, tag="")
 
     call vimqq#log#debug('Sending warmup with message of ' . len(l:messages))
     call l:bot.send_warmup(l:messages)
-    call vimqq#cmdwatch#start(l:bot, l:messages)
+    call vimqq#autowarm#start(l:bot, l:messages)
 endfunction
 
 " show list of chats to select from 
