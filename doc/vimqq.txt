@@ -1,11 +1,11 @@
-*vimqq.txt*  For Vim version 8.0  Last change: 2024 July 23
+*vimqq.txt*  For Vim 8.0+, Neovim ?? Last change: 2024-09-16
 
 VIMQQ ~
 
+AI plugin for Vim/NeoVim with focus on local evaluation, flexible context
+and aggressive cache warmup to hide latency.
+Version: 0.0.6
 Author: Oleksandr Kuvshynov
-
-AI plugin with a focus on local model evaluation, code reading, refinement and
-coaching rather than code completion/implementing something e2e.
 
 1. Introduction ........................................ |vimqq-intro|
 2. Installation ........................................ |vimqq-install|
@@ -21,14 +21,6 @@ coaching rather than code completion/implementing something e2e.
 ==============================================================================
 1. Introduction                                                    *vimqq-intro*
 
-LLMs appear to be very useful in different cases:
- - explaining what some existing code does; 
- - suggesting some existing tools/abstractions to use to improve the code;
- - being a first line of code review - finding glaring errors;
- - being a tutor or coach - here's some code I've written, what should I
-   learn to improve?
- - early prototyping;
-
 What vimqq is not doing:
  - generating code in place, typing it in editor directly, all communication
    is done in the chat buffer. It is reasonably easy to copy/paste the code.
@@ -42,7 +34,7 @@ Features:
    on Apple M2 Ultra, which is very close to human reading rate. 
    This way user will not waste any time waiting for reply;
  - flexible extra context - visual selection, ctags, current file, entire
-   project and combination of the above.
+   project, git blame history and combination of the above.
  - KV cache warmup for llama.cpp. In cases of high-memory but low-compute
    hardware configuration for LLM inference (Apple devices, CPU-only machines)
    processing original prompt might take a while in cases of large context 
@@ -50,12 +42,12 @@ Features:
    it is possible to send and automate sending warmup queries to prefill
    the KV cache. 
  - dynamic warmup on typing - in case of long questions, it is a good idea
-   to prefill question itself.
+   to prefill cache for the question itself.
  - mixing different models in the same chat sessions. It is possible to send 
    original message to one model and use a different model for the follow-up
    questions.
  - ability to fork the existing chat, start a new branch of the chat and 
-   reuse server-side cache for the context we keep.
+   reuse server-side cache for the shared context.
 
 
 ==============================================================================
@@ -72,6 +64,11 @@ The command above makes vimqq automatically loaded at vim start
 Update helptags in vim:
 >
     :helptags ~/.vim/pack/plugins/start/vimqq/doc
+
+Alternatively, if you use vim-plug:
+>
+    Plug 'okuvshynov/vimqq'
+
 
 vimqq will not work in 'compatible' mode. 'nocompatible' needs to be set.
 
@@ -161,7 +158,7 @@ First group of commands are used to send messages.
 
 The format for calling both commands is similar, except for the range part
 >
-    :Q [-nwsfpt] [@bot_name] message
+    :Q [-nwsfptb] [@bot_name] message
 
 Supported options:
   - `n` - Send message/warmup in [n]ew chat. If not provided, current chat will
@@ -177,13 +174,13 @@ Supported options:
           project is very naive, going up until we find '.git/' directory
           and get all source files (with hardcoded extensions). Can result
           in huge input context.
+  - `b` - use git blame on the visual selection, select the commits from
+	  history and include them in context.
 
 ------------------------------------------------------------------------------
 4.2. Forking                                               *vimqq-commands-fork*
 
-    - `:QF` is a slightly different command.
-
-It forks the current chat reusing the context from the first message.
+`QF` command forks the current chat reusing the context from the first message.
 It is useful in cases of long context, but when you want to start a new
 discussion thread. For example,
 >
@@ -366,5 +363,8 @@ nnoremap <leader>ll :<C-u>QQList<cr>
 
 ==============================================================================
 7. Changelog                                                   *vimqq-changelog*  
+* version 0.0.6 (2024-09-16)
+  - Support for version control context based on git blame
+  - Bug fixes
 
  vim:tw=78:ts=8:ft=help:noet:nospell

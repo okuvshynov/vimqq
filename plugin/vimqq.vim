@@ -1,4 +1,8 @@
 " Copyright 2024 Oleksandr Kuvshynov
+" 
+" AI plugin for Vim/NeoVim with focus on local evaluation, flexible context
+" and aggressive cache warmup to hide latency.
+" Version: 0.0.6
 
 " -----------------------------------------------------------------------------
 "  Universal command
@@ -14,6 +18,7 @@
 "  - f - use current [f]ile as context
 "  - p - use entire [p]roject as context -- be careful here
 "  - t - use c[t]ags from the selection as context
+"  - b - use git [b]lame and pull commits relevant to the selection
 command! -range -nargs=+ QQ call vimqq#main#qq(<q-args>)
 command!        -nargs=+ Q  call vimqq#main#q(<q-args>)
 

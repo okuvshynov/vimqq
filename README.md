@@ -1,8 +1,8 @@
 # Vim quick question (vim-qq)
 
-AI plugin for Vim with focus on local model evaluation, code understanding and refinement, rather than providing autocomplete.
+AI plugin for Vim/Neovim.
 
-While there are many copilot-like plugins for different IDEs/editor (cody ai, tabby, etc.), I couldn't quite find what I needed. The requirements I had were:
+While there are many copilot-like plugins for different IDEs/editor (cody ai, tabby, cursor, etc.), I couldn't quite find what I needed. The requirements I had were:
 
 - work with reasonably modern Vim, e.g. one preinstalled on MacOS;
 - work with both Vim and NeoVim;
@@ -11,7 +11,7 @@ While there are many copilot-like plugins for different IDEs/editor (cody ai, ta
 - work with remote paid API as well;
 - support switching models in the middle of discussion, e.g. from Claude Sonnet to local Llama 70 and back;
 - focus on explanation/brainstorming/refactoring rather than autocomplete/generation - be able to run models which can explain some code to you;
-- flexible way to include context;
+- flexible way to include context - for example, 
 - as few dependencies as possible;
 - I expect myself to read and understand everything, so going much faster than my reading comprehension rate would be pointless. 10 t/s is good enough.
 
