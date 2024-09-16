@@ -73,7 +73,10 @@ function vimqq#bots#llama#new(config = {}) abort
   endfunction
 
   function! l:llama._on_stream_out(chat_id, msg) dict
-      call vimqq#log#debug(a:msg)
+      let newline_count = len(split(a:msg, '\n')) - 1
+      let data_count = len(split(a:msg, 'data: ')) - 1
+      call vimqq#log#debug("Newlines in message: " . newline_count)
+      call vimqq#log#debug("Occurrences of 'data: ' in message: " . data_count)
       if a:msg !~# '^data: '
           return
       endif
