@@ -2,7 +2,7 @@ if exists('g:autoloaded_vimqq_main')
     finish
 endif
 
-let g:autoloaded_vqq_main = 1
+let g:autoloaded_vimqq_main = 1
 
 " -----------------------------------------------------------------------------
 let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
