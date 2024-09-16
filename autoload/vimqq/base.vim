@@ -6,7 +6,7 @@ endif
 let g:autoloaded_vqq_bot_base_module = 1
 
 " Creates a new base object with callback management functionality
-function! vimqq#bots#base#new() abort
+function! vimqq#base#new() abort
     let l:base = {}
     let l:base._callbacks = {}
 
