@@ -5,6 +5,7 @@ endif
 let g:autoloaded_vimqq_ctx_blame = 1
 
 let s:git_show_ctx_sz = 1
+let s:git_blame_context_max_lines = 1024
 
 function! s:run_git_blame(file_path, line_range)
     " TODO: handle errors
@@ -20,8 +21,6 @@ function! s:run_git_blame(file_path, line_range)
     return keys(commits)
 endfunction
 
-
-" This function runs git blame on the selected lines
 function! vimqq#context#blame#run()
     let [line_start, column_start] = getpos("'<")[1:2]
     let [line_end  , column_end  ] = getpos("'>")[1:2]
@@ -29,13 +28,16 @@ function! vimqq#context#blame#run()
     let file_path = expand("%:p")
     let file_dir = fnamemodify(file_path, ':h')
     let commit_hashes = s:run_git_blame(file_path, line_range)
+
     let res = ["Here are some relevant commits from the history:\n"]
 
     for commit_hash in commit_hashes
         let cmd = "cd " . file_dir . " && git show " . commit_hash . " -U" . s:git_show_ctx_sz
         let commit_lines = systemlist(cmd)
+        if len(commit_lines) + len(res) > s:git_blame_context_max_lines
+            break
+        endif
         let res = res + commit_lines + [""]
     endfor
-    " TODO: should we impose some hard limit here?
     return join(res, "\n")
 endfunction
