@@ -1,6 +1,7 @@
 " pulling some context from gh issues & prs.
 " How does it work together with git blame? 
 " TODO: make async. Does vim have future/promise abstraction?
+" TODO: error handling
 
 if exists('g:autoloaded_vimqq_ctx_github')
     finish
@@ -33,14 +34,12 @@ function! s:guess_github_repo(file_dir)
     let cmd .= "git config --get remote.origin.url"
 
     let output = system(cmd)
-    call vimqq#log#info('github remote: ' . output)
     let output = s:parse_git_remote(output)
-    call vimqq#log#info('github remote: ' . output)
     return output
 endfunction
 
 function! s:call_github_api(url)
-    call vimqq#log#info(a:url)
+    call vimqq#log#debug('query: ' . a:url)
     let token = $GITHUB_TOKEN
     let cmd  = "curl -L -s"
     let cmd .= " -H 'Accept: application/vnd.github+json'"
@@ -53,15 +52,13 @@ endfunction
 function! s:process_item(item)
     let res = ["Issue: " . a:item.title]
     let res = res + [a:item.body]
-    call vimqq#log#info(a:item.body)
-    call vimqq#log#info(a:item.title)
-    "let comments_url = a:item.comments_url
-    "let comments = s:call_github_api(comments_url)
-    "let res = res + ["Comments:"]
-    "for comment in comments
-        "let res = res + [comment.body]
-        "call vimqq#log#info(comment.body)
-    "endfor
+    let comments_url = a:item.comments_url
+    let comments = s:call_github_api(comments_url)
+    let res = res + ["Comments:"]
+    for comment in comments
+        let res = res + [comment.body]
+        call vimqq#log#info(comment.body)
+    endfor
     return res
 endfunction
 
