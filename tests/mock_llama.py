@@ -34,7 +34,7 @@ def stream_response():
                 }
                 
                 yield f"data: {json.dumps(response_data)}\n\n"
-                time.sleep(1)
+                time.sleep(0.5)
 
         return Response(generate(), content_type='text/event-stream')
     else:
