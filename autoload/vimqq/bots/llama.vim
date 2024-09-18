@@ -40,12 +40,18 @@ function vimqq#bots#llama#new(config = {}) abort
   endfunction
 
   function l:llama._on_status_out(msg) dict
-      let l:status = json_decode(a:msg)
-      if empty(l:status)
-          call self._update_status("unavailable")
-      else
-          call self._update_status(l:status.status)
-      endif
+      try
+          let l:status = json_decode(a:msg)
+          if empty(l:status)
+              call self._update_status("unavailable")
+          else
+              call self._update_status(l:status.status)
+          endif
+      catch /E491:/
+          " Handle JSON decoding error
+          call vimqq#log#info("Error decoding status: " . v:exception)
+          call self._update_status("error")
+      endtry
   endfunction
 
   function l:llama._get_status() dict
