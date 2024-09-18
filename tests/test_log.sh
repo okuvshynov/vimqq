@@ -41,7 +41,7 @@ EOF
 
 # start vim with modified runtime path and config
 # and run test script
-vim -N -u minimal_vimrc -S test_script.vim
+vim -N -u minimal_vimrc -S test_script.vim --not-a-term
 
 cat log.txt
 
