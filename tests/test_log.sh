@@ -43,6 +43,8 @@ EOF
 # and run test script
 vim -N -u minimal_vimrc -S test_script.vim
 
+cat log.txt
+
 # check that log.txt has a single line ending with "hello world"
 if [ -f log.txt ] && [ "$(wc -l < log.txt)" -eq 1 ] && [ "$(tail -c 12 log.txt)" = "hello world" ]; then
     echo "Test passed"
