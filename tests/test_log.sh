@@ -42,17 +42,13 @@ EOF
 
 # start vim with modified runtime path and config
 # and run test script
-vim -N -u minimal_vimrc -S test_script.vim --not-a-term > /dev/null 2> /dev/null
+vim -N -u minimal_vimrc -S test_script.vim --not-a-term
 
 # check that log.txt has a single line ending with "hello world"
 if [ -f log.txt ] && [ "$(wc -l < log.txt)" -eq 1 ] && [ "$(tail -c 12 log.txt)" = "hello world" ]; then
-    if [ -n "$DEBUG_VIMQQ_TEST" ]; then
-        echo "Test passed"
-    fi
+    echo "Test passed"
     exit 0
 else
-    if [ -n "$DEBUG_VIMQQ_TEST" ]; then
-        echo "Test failed"
-    fi
+    echo "Test failed"
     exit 1
 fi

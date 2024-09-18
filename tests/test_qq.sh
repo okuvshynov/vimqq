@@ -15,18 +15,13 @@ vimqq_path=$(realpath "$vimqq_path")
 TEST_DIR=$(mktemp -d)
 cd "$TEST_DIR" || exit 1
 
-if [ -n "$DEBUG_VIMQQ_TEST" ]; then
-    echo "Working in temp dir: $TEST_DIR" 
-fi
+echo "Working in temp dir: $TEST_DIR" 
 
 # set up cleanup for the working directory
 cleanup() {
     rm -rf "$TEST_DIR"
 }
-
-if [ -n "$DEBUG_VIMQQ_TEST" ]; then
-    trap cleanup EXIT
-fi
+#trap cleanup EXIT
 
 # copy vimqq to vim new runtimepath
 mkdir -p rtp/pack/plugins/start/
@@ -51,30 +46,20 @@ endfunction
 call timer_start(5000, 'WriteAndQuit')
 EOF
 
-if [ -n "$DEBUG_VIMQQ_TEST" ]; then
-    echo "Setting up server"
-fi
-
+echo "Setting up server"
 python $vimqq_path/tests/mock_llama.py --port 8889 > /dev/null 2> /dev/null &
 SERVER_PID=$!
 
 sleep 1
+echo "Running vimscript"
 
-if [ -n "$DEBUG_VIMQQ_TEST" ]; then
-    echo "Running vimscript"
-fi
-
-vim -N -u minimal_vimrc -S test_script.vim --not-a-term > /dev/null 2> /dev/null
+vim -N -u minimal_vimrc -S test_script.vim --not-a-term
 
 if [ -f history.txt ] && [ "$(wc -l < history.txt)" -eq 2 ] && [ "$(tail -c 6 history.txt)" = "01234" ]; then
-    if [ -n "$DEBUG_VIMQQ_TEST" ]; then
-        echo "Test passed"
-    fi
+    echo "Test passed"
     exit 0
 else
-    if [ -n "$DEBUG_VIMQQ_TEST" ]; then
-        echo "Test failed"
-    fi
+    echo "Test failed"
     exit 1
 fi
 
