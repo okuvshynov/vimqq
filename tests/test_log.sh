@@ -9,6 +9,9 @@ fi
 # Expand the relative path to an absolute path
 vimqq_path=$(realpath "$vimqq_path")
 
+ls -la $vimqq_path
+vim --version
+
 # Create a temporary directory for the test
 TEST_DIR=$(mktemp -d)
 cd "$TEST_DIR" || exit 1
