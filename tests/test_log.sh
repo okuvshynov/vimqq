@@ -9,9 +9,6 @@ fi
 # Expand the relative path to an absolute path
 vimqq_path=$(realpath "$vimqq_path")
 
-ls -la $vimqq_path
-vim --version
-
 # Create a temporary directory for the test
 TEST_DIR=$(mktemp -d)
 cd "$TEST_DIR" || exit 1
@@ -29,7 +26,8 @@ cp -r "$vimqq_path" rtp/pack/plugins/start/
 # minimal config to load only our plugin
 cat > minimal_vimrc <<EOF
 set nocompatible
-set rtp="$TEST_DIR/rtp"
+set packpath=$TEST_DIR/rtp
+:packloadall
 let g:vqq_log_file = "$TEST_DIR/log.txt"
 EOF
 
@@ -42,8 +40,6 @@ EOF
 # start vim with modified runtime path and config
 # and run test script
 vim -N -u minimal_vimrc -S test_script.vim --not-a-term
-
-cat log.txt
 
 # check that log.txt has a single line ending with "hello world"
 if [ -f log.txt ] && [ "$(wc -l < log.txt)" -eq 1 ] && [ "$(tail -c 12 log.txt)" = "hello world" ]; then
