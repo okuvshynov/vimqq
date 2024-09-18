@@ -1,11 +1,9 @@
-name: Integration Test
-
+name: Integration Tests
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -16,5 +14,16 @@ jobs:
     - name: Install Vim
       run: sudo apt-get update && sudo apt-get install -y vim
     
-    - name: Run integration test
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Install Flask
+      run: pip install flask
+    
+    - name: Run log integration test
       run: ./tests/test_log.sh ${{ github.workspace }}
+    
+    - name: Run QQ integration test
+      run: ./tests/test_qq.sh ${{ github.workspace }}
