@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # vimqq version/implementation to test
 vimqq_path=$1
@@ -15,13 +15,11 @@ vimqq_path=$(realpath "$vimqq_path")
 TEST_DIR=$(mktemp -d)
 cd "$TEST_DIR" || exit 1
 
-echo "Working in temp dir: $TEST_DIR" 
-
 # set up cleanup for the working directory
 cleanup() {
     rm -rf "$TEST_DIR"
 }
-#trap cleanup EXIT
+trap cleanup EXIT
 
 # copy vimqq to vim new runtimepath
 mkdir -p rtp/pack/plugins/start/
