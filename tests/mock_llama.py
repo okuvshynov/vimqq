@@ -19,12 +19,16 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 app = Flask(__name__)
 
+@app.route('/alive', methods=['GET'])
+def alive():
+    return Response('alive', content_type='text/plain')
+
 # for now mock server returns three pieces of content(for streamed requests):
 # "BEGIN"
 # COPY_OF_REQUEST
 # "END"
 @app.route('/v1/chat/completions', methods=['POST'])
-def stream_response():
+def chat():
     # Get the JSON data from the POST request
     input_data = request.json
     do_stream = input_data['stream']
@@ -38,13 +42,13 @@ def stream_response():
             }
             yield f"data: {json.dumps(response_data)}\n\n"
 
-            time.sleep(0.5)
+            time.sleep(0.1)
             response_data = {
                 "choices": [{"delta": {"content" : f'{question}\n'}}],
             }
             yield f"data: {json.dumps(response_data)}\n\n"
 
-            time.sleep(0.5)
+            time.sleep(0.1)
             response_data = {
                 "choices": [{"delta": {"content" : 'END\n'}}],
             }
@@ -52,9 +56,10 @@ def stream_response():
 
         return Response(generate(), content_type='text/event-stream')
     else:
-        # Return a single JSON response
+        # Return a single JSON response - we use non-streaming for title requests
+        # let's return something like len=len(question)
         response_data = {
-            "choices": [{"message": {"content": "one-two-three"}}],
+            "choices": [{"message": {"content": f"l={len(question)}"}}],
         }
         return Response(json.dumps(response_data), content_type='application/json')
 

@@ -3,5 +3,5 @@ function! WriteAndQuit(t)
     execute "qa!"
 endfunction
 :Q @mock hello
-call timer_start(5000, "WriteAndQuit")
+call timer_start(1000, "WriteAndQuit")
 

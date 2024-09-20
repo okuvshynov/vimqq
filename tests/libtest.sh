@@ -43,8 +43,9 @@ setup_mock_serv() {
     python "$vimqq_path/tests/mock_llama.py" --port $port --logs $test_dir> "$test_dir/mock.stdout" 2> "$test_dir/mock.stderr" &
     server_pid=$!
 
-    # TODO: wait till alive?
-    sleep 1
+    while ! curl --silent --fail http://localhost:$port/alive > /dev/null 2> /dev/null; do
+      sleep 0.05
+    done
     echo "$server_pid"
 }
 
