@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# Find unused port to be used for mock http server communication
 pick_http_port() {
     for port in $(seq 1024 65535); do
         (echo >/dev/tcp/127.0.0.1/$port) >/dev/null 2>&1 || { echo $port; return 0; }

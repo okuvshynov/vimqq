@@ -15,12 +15,12 @@ echo "Using port $port"
 test_dir=$(setup_vimqq_env "$vimqq_path" "$port")
 cd $test_dir
 echo "Using temp directory: $test_dir"
-trap 'cleanup "$test_dir"' EXIT
-
-test_script="$(cat "$script_dir/q.vim")"
-expected="$script_dir/q.expected"
+# trap 'cleanup "$test_dir"' EXIT
 
 serv_pid=$(setup_mock_serv "$test_dir" "$port")
+
+test_script="$(cat "$script_dir/qq.vim")"
+expected="$script_dir/qq.expected"
 
 run_vim_test "$test_dir" "$test_script"
 

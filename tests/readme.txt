@@ -2,5 +2,5 @@ These tests are launching vim with minimal vimrc config and simulate queries to 
 
 Requirements for tests:
 1. python with flask
-2. vim
+2. vim 8+
 

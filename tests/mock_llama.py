@@ -19,23 +19,36 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 app = Flask(__name__)
 
+# for now mock server returns three pieces of content(for streamed requests):
+# "BEGIN"
+# COPY_OF_REQUEST
+# "END"
 @app.route('/v1/chat/completions', methods=['POST'])
 def stream_response():
     # Get the JSON data from the POST request
     input_data = request.json
     do_stream = input_data['stream']
-    print(input_data)
-    print(do_stream)
+    question = input_data['messages'][-1]['content']
+    logging.info(f'QUERY: {question}')
 
     if do_stream:
         def generate():
-            for i in range(5):
-                response_data = {
-                    "choices": [{"delta": {"content" : f'{i}'}}],
-                }
-                
-                yield f"data: {json.dumps(response_data)}\n\n"
-                time.sleep(0.5)
+            response_data = {
+                "choices": [{"delta": {"content" : 'BEGIN\n'}}],
+            }
+            yield f"data: {json.dumps(response_data)}\n\n"
+
+            time.sleep(0.5)
+            response_data = {
+                "choices": [{"delta": {"content" : f'{question}\n'}}],
+            }
+            yield f"data: {json.dumps(response_data)}\n\n"
+
+            time.sleep(0.5)
+            response_data = {
+                "choices": [{"delta": {"content" : 'END\n'}}],
+            }
+            yield f"data: {json.dumps(response_data)}\n\n"
 
         return Response(generate(), content_type='text/event-stream')
     else:
