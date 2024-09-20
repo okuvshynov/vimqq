@@ -161,8 +161,8 @@ function vimqq#ui#new() abort
             call self.toggle()
         endfunction
 
-        " this one is interesting and I'm probably doing it wrong
-        " if as a result of deletion you need to render chat history again,
+        " This one is interesting and I'm probably doing it wrong.
+        " If as a result of deletion you need to render chat history again,
         " we'll be redefining this closure while running within its context,
         " so that stack would look like DeleteChat -> some_cb -> mode_ops ->
         " display_chat_history. We cannot redefine it while it is running, so

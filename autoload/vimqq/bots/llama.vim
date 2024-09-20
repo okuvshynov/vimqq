@@ -99,7 +99,7 @@ function vimqq#bots#llama#new(config = {}) abort
   endfunction
 
   function! l:llama._on_err(chat_id, msg)
-      " TODO: logging
+      call vimqq#log#error(msg)
   endfunction
 
   function! l:llama._on_title_out(chat_id, msg)

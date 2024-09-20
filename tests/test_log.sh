@@ -1,51 +1,26 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# vimqq version/implementation to test
+tests_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+source "$tests_dir"/libtest.sh
+
 vimqq_path=$1
 if [ -z "$vimqq_path" ]; then
-  echo "Usage: $0 <vimqq path>"
-  exit 1
+    echo "Usage: $0 <vimqq path>"
+    exit 1
 fi
-# Expand the relative path to an absolute path
-vimqq_path=$(realpath "$vimqq_path")
 
-# TODO: check vim version >= 8.??
+test_dir=$(setup_vimqq_env "$vimqq_path")
+trap 'cleanup "$test_dir"' EXIT
 
-# Create a temporary directory for the test
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR" || exit 1
+test_script=':call vimqq#log#info("hello world")
+:qa!'
 
-# set up cleanup for the working directory
-cleanup() {
-    rm -rf "$TEST_DIR"
-}
-trap cleanup EXIT
-
-# copy vimqq to vim new runtimepath
-mkdir -p rtp/pack/plugins/start/
-cp -r "$vimqq_path" rtp/pack/plugins/start/
-
-# minimal config to load only our plugin
-cat > minimal_vimrc <<EOF
-set nocompatible
-set packpath=$TEST_DIR/rtp
-:packloadall
-let g:vqq_log_file = "$TEST_DIR/log.txt"
-let g:vqq_chats_file = "$TEST_DIR/db.json"
-EOF
-
-# Test script: log hello world
-cat > test_script.vim <<EOF
-:call vimqq#log#info("hello world")
-:qa!
-EOF
-
-# start vim with modified runtime path and config
-# and run test script
-vim -N -u minimal_vimrc -S test_script.vim --not-a-term
+run_vim_test "$test_dir" "$test_script"
 
 # check that log.txt has a single line ending with "hello world"
-if [ -f log.txt ] && [ "$(wc -l < log.txt)" -eq 1 ] && [ "$(tail -c 12 log.txt)" = "hello world" ]; then
+log_file="$test_dir/log.txt"
+if [ -f "$log_file" ] && [ "$(wc -l < "$log_file")" -eq 1 ] && [ "$(tail -c 12 "$log_file")" = "hello world" ]; then
     echo "Test passed"
     exit 0
 else

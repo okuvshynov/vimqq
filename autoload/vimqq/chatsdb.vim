@@ -7,7 +7,7 @@ endif
 let g:autoloaded_vimqq_chatdb_module = 1
 
 " file to store all message history
-let g:vqq_chats_file = get(g:, 'vqq_chats_file', vimqq#platform#path('vqq_chats.json'))
+let g:vqq_chats_file = get(g:, 'vqq_chats_file', vimqq#path#data('vqq_chats.json'))
 
 function! vimqq#chatsdb#new() abort
     let l:db = {}
