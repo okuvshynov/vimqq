@@ -19,7 +19,7 @@ for script in "$CURRENT_DIR"/test_*.sh; do
     EXIT_CODE=$?
     SCRIPT_NAME=$(basename "$script")
 
-    RESULT="\033[0;31m[ fail ]\033[0m"
+    RESULT="\033[0;31m[fail]\033[0m"
     if [ $EXIT_CODE -eq 0 ]; then
       RESULT="\033[0;32m[ ok ]\033[0m"
     fi

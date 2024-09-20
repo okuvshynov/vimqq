@@ -1,6 +1,7 @@
 import argparse
 from flask import Flask, request, Response
 import json
+import logging
 import signal
 import sys
 import time
@@ -48,5 +49,16 @@ def stream_response():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run mock llama server')
     parser.add_argument('--port', type=int, help='Port to run the server on', required=True)
+    parser.add_argument('--logs', help='directory for log files')
     args = parser.parse_args()
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        handlers=[
+            logging.FileHandler(f'{args.logs}/mock_serv.log'),
+            logging.StreamHandler()
+        ]
+    )
+    logging.info(f'starting on port {args.port}')
     app.run(debug=True, port=args.port)

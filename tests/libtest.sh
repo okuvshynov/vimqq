@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 
+pick_http_port() {
+    for port in $(seq 1024 65535); do
+        (echo >/dev/tcp/127.0.0.1/$port) >/dev/null 2>&1 || { echo $port; return 0; }
+    done
+    echo "No unused ports found" >&2
+    return 1
+}
+
 setup_vimqq_env() {
     local vimqq_path=$1
+    local port=$2
     local test_dir
-
-    if [ -z "$vimqq_path" ]; then
-        echo "Usage: setup_test_environment <vimqq path>"
-        return 1
-    fi
 
     # Expand the relative path to an absolute path
     vimqq_path=$(realpath "$vimqq_path")
@@ -15,19 +19,40 @@ setup_vimqq_env() {
     # Create a temporary directory for the test
     test_dir=$(mktemp -d)
     cd "$test_dir"
-    mkdir -p rtp/pack/plugins/start/
-    cp -r "$vimqq_path" rtp/pack/plugins/start/
+    mkdir -p rtp/pack/plugins/start/vimqq/
+    cp -r "$vimqq_path"/. rtp/pack/plugins/start/vimqq/
 
     cat > vimrc <<EOF
 set nocompatible
 let g:vqq_log_file = "$test_dir/log.txt"
 let g:vqq_chats_file = "$test_dir/db.json"
-let g:vqq_llama_servers = [{'bot_name': 'mock', 'addr': 'http://localhost:8889'}]
+let g:vqq_llama_servers = [{'bot_name': 'mock', 'addr': 'http://localhost:$port'}]
 set packpath=$test_dir/rtp
 :packloadall
 EOF
 
     echo "$test_dir"
+}
+
+setup_mock_serv() {
+    local test_dir=$1
+    local port=$2
+    local vimqq_path="$test_dir/rtp/pack/plugins/start/vimqq"
+
+    python "$vimqq_path/tests/mock_llama.py" --port $port --logs $test_dir> "$test_dir/mock.stdout" 2> "$test_dir/mock.stderr" &
+    server_pid=$!
+
+    # TODO: wait till alive?
+    sleep 1
+    echo "$server_pid"
+}
+
+stop_mock_serv() {
+    local server_pid=$1
+    if ps -p $server_pid > /dev/null
+    then
+        kill $server_pid
+    fi
 }
 
 cleanup() {
