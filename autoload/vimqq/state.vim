@@ -108,7 +108,8 @@ function! vimqq#state#new(db) abort
                 call vimqq#log#info(printf('TTFT %.3f s', latency))
                 unlet self._latencies[a:chat_id]
             else
-                call vimqq#log#error('token for chat with no start point.')
+                " TODO: this tracking is wrong in case of enqueue
+                call vimqq#log#info('token for chat with no start point.')
             endif
         endif
     endfunction
