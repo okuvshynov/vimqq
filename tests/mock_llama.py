@@ -1,10 +1,11 @@
 import argparse
-from flask import Flask, request, Response
 import json
 import logging
 import signal
 import sys
 import time
+
+from flask import Flask, request, Response
 
 should_exit = False
 

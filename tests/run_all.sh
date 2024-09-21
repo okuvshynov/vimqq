@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # vimqq version/implementation to test
 vimqq_path=$1
 if [ -z "$vimqq_path" ]; then
-  echo "Usage: $0 <vimqq path>"
-  exit 1
+    # assume we are running test script from the same version of the code
+    vimqq_path="$script_dir"/..
 fi
 
 # Expand the relative path to an absolute path
 vimqq_path=$(realpath "$vimqq_path")
-
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 n_failed=0
 # iterate over all *.vim input scripts
