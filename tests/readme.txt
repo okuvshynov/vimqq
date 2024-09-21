@@ -4,3 +4,16 @@ Requirements for tests:
 1. python with flask
 2. vim 8+
 
+What tests should we write:
+1. multi-bot
+2. testing errors/timeouts
+3. esting warmup on demand
+4. testing auto warmup 
+5. testing other context types
+6. testing navigation in chat list
+7. testing forking
+
+Improvements for tests themselves:
+1. Run faster
+2. detect if vim is present and avoid installing if yes
+3. coverage?
