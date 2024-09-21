@@ -71,5 +71,5 @@ run_vim_test() {
     echo "$test_script" > "$test_dir/test_script.vim"
 
     # Run Vim with the test configuration and script
-    vim -N -u "$test_dir/vimrc" -S "$test_dir/test_script.vim" --not-a-term
+    vim -N -u "$test_dir/vimrc" -S "$test_dir/test_script.vim"
 }

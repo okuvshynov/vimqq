@@ -19,7 +19,7 @@ for script in "$script_dir"/*.vim; do
     testname="${testname%.vim}"
     tmp_file="$(mktemp)"
 
-    "$script_dir"/vimqq_test.sh "$vimqq_path" "$testname"
+    "$script_dir"/vimqq_test.sh "$vimqq_path" "$testname" > "$tmp_file" 2>&1
 
     exit_code=$?
 
