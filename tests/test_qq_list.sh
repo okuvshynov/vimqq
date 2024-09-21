@@ -15,7 +15,7 @@ echo "Using port $port"
 test_dir=$(setup_vimqq_env "$vimqq_path" "$port")
 cd $test_dir
 echo "Using temp directory: $test_dir"
-# trap 'cleanup "$test_dir"' EXIT
+trap 'cleanup "$test_dir"' EXIT
 
 serv_pid=$(setup_mock_serv "$test_dir" "$port")
 
