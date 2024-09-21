@@ -17,3 +17,4 @@ Improvements for tests themselves:
 1. Run faster
 2. detect if vim is present and avoid installing if yes
 3. coverage?
+4. test in vim himself. wait for N seconds for content to be equal to expectations.
