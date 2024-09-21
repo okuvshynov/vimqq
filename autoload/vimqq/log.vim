@@ -8,6 +8,7 @@ let g:autoloaded_vimqq_log = 1
 
 let g:vqq_log_file = get(g:, 'vqq_log_file', vimqq#path#log('vimqq.log'))
 let g:vqq_log_level = get(g:, 'vqq_log_level', 'INFO')
+let g:vqq_log_format = get(g:, 'vqq_log_format', '%Y-%m-%d %H:%M:%S ')
 
 let s:log_levels = {
     \ 'DEBUG': 0,
@@ -18,7 +19,7 @@ let s:log_levels = {
 
 function s:_log_impl(level, message)
     if s:log_levels[a:level] >= s:log_levels[g:vqq_log_level]
-        let l:message = a:level[0] . strftime("%Y-%m-%d %H:%M:%S ") . a:message
+        let l:message = a:level[0] . strftime(g:vqq_log_format) . a:message
         call writefile([l:message], g:vqq_log_file, "a")
     endif
 endfunction

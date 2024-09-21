@@ -1,5 +1,5 @@
 function! WriteAndQuit(t)
-    execute "write history.txt"
+    execute "write q.out"
     execute "qa!"
 endfunction
 :Q @mock hello

@@ -1,5 +1,5 @@
 function! WriteAndQuit(t)
-    execute "write history.txt"
+    execute "write qq.out"
     execute "qa!"
 endfunction
 

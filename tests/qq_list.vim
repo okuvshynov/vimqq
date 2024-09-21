@@ -1,7 +1,6 @@
 function! WriteAndQuit(t)
-    execute "write history.txt"
     :normal q
-    execute "write list.txt"
+    execute "write qq_list.out"
     execute "qa!"
 endfunction
 

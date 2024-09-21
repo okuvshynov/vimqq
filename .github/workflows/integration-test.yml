@@ -30,3 +30,6 @@ jobs:
 
     - name: Run QQ integration test
       run: ./tests/test_qq.sh ${{ github.workspace }}
+
+    - name: Run QQ integration test
+      run: ./tests/test_qq_list.sh ${{ github.workspace }}
