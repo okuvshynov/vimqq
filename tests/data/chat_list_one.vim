@@ -1,6 +1,6 @@
 function! WriteAndQuit(t)
     :normal q
-    execute "write qq_list.out"
+    execute "write chat_list_one.out"
     execute "qa!"
 endfunction
 

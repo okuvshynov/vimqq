@@ -1,11 +1,10 @@
 function! WriteAndQuit(t)
-    :normal q
-    execute "write q_new.out"
+    execute "write query_twice.out"
     execute "qa!"
 endfunction
 
 function! AskNew(t)
-    :Q -n @mock world!
+    :Q @mock world!
     call timer_start(1000, "WriteAndQuit")
 endfunction
 

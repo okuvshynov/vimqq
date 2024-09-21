@@ -1,5 +1,5 @@
 function! WriteAndQuit(t)
-    execute "write q.out"
+    execute "write query.out"
     execute "qa!"
 endfunction
 :Q @mock hello

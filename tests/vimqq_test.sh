@@ -23,8 +23,8 @@ trap 'cleanup "$test_dir"' EXIT
 
 serv_pid=$(setup_mock_serv "$test_dir" "$port")
 
-test_script="$(cat "$script_dir/$testname.vim")"
-expected="$script_dir/$testname.expected"
+test_script="$(cat "$script_dir/data/$testname.vim")"
+expected="$script_dir/data/$testname.out"
 
 run_vim_test "$test_dir" "$test_script"
 

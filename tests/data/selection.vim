@@ -1,5 +1,5 @@
 function! WriteAndQuit(t)
-    execute "write qq.out"
+    execute "write selection.out"
     execute "qa!"
 endfunction
 

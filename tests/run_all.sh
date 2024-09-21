@@ -14,7 +14,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 n_failed=0
 # iterate over all *.vim input scripts
-for script in "$script_dir"/*.vim; do
+for script in "$script_dir"/data/*.vim; do
     testname="$(basename "$script")"
     testname="${testname%.vim}"
     tmp_file="$(mktemp)"
