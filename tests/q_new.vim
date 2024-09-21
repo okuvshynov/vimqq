@@ -1,6 +1,7 @@
 function! WriteAndQuit(t)
     :normal q
     execute "write q_new.out"
+    execute "qa!"
 endfunction
 
 function! AskNew(t)
