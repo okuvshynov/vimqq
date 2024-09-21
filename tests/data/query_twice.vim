@@ -5,9 +5,9 @@ endfunction
 
 function! AskNew(t)
     :Q @mock world!
-    call timer_start(1000, "WriteAndQuit")
+    call timer_start(500, "WriteAndQuit")
 endfunction
 
 :Q @mock hello
-call timer_start(1000, "AskNew")
+call timer_start(500, "AskNew")
 
