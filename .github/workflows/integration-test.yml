@@ -22,20 +22,6 @@ jobs:
     - name: Install Flask
       run: pip install flask
     
-    - name: Run log integration test
-      run: ./tests/test_log.sh ${{ github.workspace }}
+    - name: Run all integration tests
+      run: ./tests/run_all.sh ${{ github.workspace }}
     
-    - name: Run QQ integration test
-      run: ./tests/test_q.sh ${{ github.workspace }}
-
-    - name: Run QQ integration test
-      run: ./tests/test_qq.sh ${{ github.workspace }}
-
-    - name: Run QQ integration test
-      run: ./tests/test_qq_list.sh ${{ github.workspace }}
-
-    - name: Run QQ integration test
-      run: ./tests/test_q_new.sh ${{ github.workspace }}
-
-    - name: Run QQ integration test
-      run: ./tests/test_q_second.sh ${{ github.workspace }}
