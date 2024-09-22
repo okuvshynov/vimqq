@@ -105,9 +105,6 @@ function! vimqq#chatsdb#new() abort
     function! l:db.get_ordered_chats() dict
         let l:chat_list = []
         for [key, chat] in items(self._chats)
-            " TODO: as messages might be created within same second
-            " we might get incorrect ordering. Let's order all chats
-            " and messages with autoincremented id
             let l:chat_list += [{'title': chat.title, 'id': chat.id, 'time': self._max_seq_id(chat)}]
         endfor
         return sort(l:chat_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
