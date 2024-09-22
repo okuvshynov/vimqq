@@ -70,7 +70,7 @@ function! vimqq#jobs#start_nvim(command, config)
     let l:conf["on_stdout"] = {c,d,n -> s:_is_empty_list(d) ? OnClose(c,d,n) : OnOut(c,d,n)}
     if has_key(a:config, "err_cb")
         let StderrCb = a:config["err_cb"]
-        let l:conf["on_stderr"] = {channel, data, name -> StderrCb(channel, data)}
+        let l:conf["on_stderr"] = {c, d, n -> s:_is_empty_list(d) ? {c,d,n -> {}} : StderrCb(c, d)}
     endif
     if has_key(a:config, "exit_cb")
         let ExitCb = a:config["exit_cb"]

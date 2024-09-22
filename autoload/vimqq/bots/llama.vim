@@ -47,8 +47,8 @@ function vimqq#bots#llama#new(config = {}) abort
           else
               call self._update_status(l:status.status)
           endif
-      catch /E491:/
-          " Handle JSON decoding error
+      " TODO: looks like errors are different in vim/nvim. Need to handle
+      catch
           call vimqq#log#info("Error decoding status: " . v:exception)
           call self._update_status("error")
       endtry
