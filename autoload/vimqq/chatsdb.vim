@@ -13,8 +13,30 @@ function! vimqq#chatsdb#new() abort
     let l:db = {}
     let l:db._file = g:vqq_chats_file
     let l:db._chats = {}
+    let l:db._seq_id = 0
+
+    function! l:db._max_seq_id(chat) dict
+        let res = 0
+
+        if has_key(a:chat, 'seq_id')
+            let res = max([res, a:chat.seq_id])
+        endif
+        if has_key(a:chat.partial_message, 'seq_id')
+            let res = max([res, a:chat.partial_message.seq_id])
+        endif
+        for message in a:chat.messages
+            if has_key(l:message, 'seq_id')
+                let res = max([res, a:chat.seq_id])
+            endif
+        endfor
+        return res
+    endfunction
+
     if filereadable(l:db._file)
         let l:db._chats = json_decode(join(readfile(l:db._file), ''))
+        for [key, chat] in items(l:db._chats)
+            let l:db._seq_id = max([l:db._seq_id, l:db._max_seq_id(chat)])
+        endfor
     endif
 
     function! l:db._save() dict
@@ -22,8 +44,14 @@ function! vimqq#chatsdb#new() abort
         silent! call writefile([l:chats_text], self._file)
     endfunction
 
+    function! l:db.seq_id() dict
+        let self._seq_id = self._seq_id + 1
+        return self._seq_id
+    endfunction
+
     function! l:db.append_partial(chat_id, part) dict
         let self._chats[a:chat_id].partial_message.content .= a:part
+        let self._chats[a:chat_id].partial_message.seq_id = self.seq_id()
         call self._save()
     endfunction
 
@@ -48,6 +76,7 @@ function! vimqq#chatsdb#new() abort
     function! l:db.set_title(chat_id, title) dict
         let self._chats[a:chat_id].title          = a:title
         let self._chats[a:chat_id].title_computed = v:true
+        let self._chats[a:chat_id].seq_id         = self.seq_id()
         call self._save()
     endfunction
 
@@ -65,21 +94,12 @@ function! vimqq#chatsdb#new() abort
             let l:message['timestamp'] = localtime()
         endif
 
+        let l:message.seq_id = self.seq_id()
+
         call add(self._chats[a:chat_id].messages, l:message)
         call self._save()
 
         return l:message
-    endfunction
-
-    function! l:db._last_updated(chat) dict
-        let l:time = a:chat.timestamp
-        for l:message in reverse(copy(a:chat.messages))
-            if has_key(l:message, 'timestamp')
-                let l:time = l:message.timestamp
-                break
-            endif
-        endfor
-        return l:time
     endfunction
 
     function! l:db.get_ordered_chats() dict
@@ -88,7 +108,7 @@ function! vimqq#chatsdb#new() abort
             " TODO: as messages might be created within same second
             " we might get incorrect ordering. Let's order all chats
             " and messages with autoincremented id
-            let l:chat_list += [{'title': chat.title, 'id': chat.id, 'time': self._last_updated(chat)}]
+            let l:chat_list += [{'title': chat.title, 'id': chat.id, 'time': self._max_seq_id(chat)}]
         endfor
         return sort(l:chat_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
     endfunction
@@ -122,13 +142,14 @@ function! vimqq#chatsdb#new() abort
         call self._save()
     endfunction
 
-    function! l:db.new_chat()
+    function! l:db.new_chat() dict
         let l:chat = {}
         let l:chat.id = empty(self._chats) ? 1 : max(keys(self._chats)) + 1
         let l:chat.messages = []
         let l:chat.title = "new chat"
         let l:chat.title_computed = v:false
         let l:chat.timestamp = localtime()
+        let l:chat.seq_id = self.seq_id()
 
         let self._chats[l:chat.id] = l:chat
         call self.clear_partial(l:chat.id)
