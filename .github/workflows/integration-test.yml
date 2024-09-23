@@ -14,6 +14,9 @@ jobs:
     - name: Install Vim
       run: sudo apt-get update && sudo apt-get install -y vim
     
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
+    
     - name: Set up Python
       uses: actions/setup-python@v2
       with:

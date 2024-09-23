@@ -4,9 +4,12 @@ import logging
 import signal
 import sys
 
+from collections import defaultdict
 from flask import Flask, request, Response
 
 should_exit = False
+
+stats = defaultdict(int)
 
 def signal_handler(sig, frame):
     global should_exit
@@ -23,12 +26,19 @@ app = Flask(__name__)
 def alive():
     return Response('alive', content_type='text/plain')
 
+@app.route('/stats', methods=['GET'])
+def get_stats():
+    global stats
+    return Response(json.dumps(stats), content_type='application/json')
+
 # for now mock server returns three pieces of content(for streamed requests):
 # "BEGIN"
 # COPY_OF_REQUEST
 # "END"
 @app.route('/v1/chat/completions', methods=['POST'])
 def chat():
+    global stats
+    stats['n_chat_queries'] += 1
     # Get the JSON data from the POST request
     input_data = request.json
     do_stream = input_data['stream']
@@ -36,24 +46,29 @@ def chat():
     logging.info(f'QUERY: {question}')
 
     if do_stream:
+        stats['n_stream_queries'] += 1
         def generate():
             response_data = {
                 "choices": [{"delta": {"content" : 'BEGIN\n'}}],
             }
             yield f"data: {json.dumps(response_data)}\n\n"
+            stats['n_deltas'] += 1
 
             response_data = {
                 "choices": [{"delta": {"content" : f'{question}\n'}}],
             }
             yield f"data: {json.dumps(response_data)}\n\n"
+            stats['n_deltas'] += 1
 
             response_data = {
                 "choices": [{"delta": {"content" : 'END\n'}}],
             }
             yield f"data: {json.dumps(response_data)}\n\n"
+            stats['n_deltas'] += 1
 
         return Response(generate(), content_type='text/event-stream')
     else:
+        stats['n_non_stream_queries'] += 1
         # Return a single JSON response - we use non-streaming for title requests
         # let's return something like len=len(question)
         response_data = {
