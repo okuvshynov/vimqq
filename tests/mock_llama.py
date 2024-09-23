@@ -3,7 +3,6 @@ import json
 import logging
 import signal
 import sys
-import time
 
 from flask import Flask, request, Response
 
@@ -43,13 +42,11 @@ def chat():
             }
             yield f"data: {json.dumps(response_data)}\n\n"
 
-            time.sleep(0.1)
             response_data = {
                 "choices": [{"delta": {"content" : f'{question}\n'}}],
             }
             yield f"data: {json.dumps(response_data)}\n\n"
 
-            time.sleep(0.1)
             response_data = {
                 "choices": [{"delta": {"content" : 'END\n'}}],
             }

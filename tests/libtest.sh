@@ -26,6 +26,7 @@ setup_vimqq_env() {
     cat > vimrc <<EOF
 set nocompatible
 let g:vqq_log_file = "$test_dir/log.txt"
+let g:vqq_log_level = 'DEBUG'
 let g:vqq_chats_file = "$test_dir/db.json"
 let g:vqq_llama_servers = [{'bot_name': 'mock', 'addr': 'http://localhost:$port'}]
 let g:vqq_time_format = "%H:%M"

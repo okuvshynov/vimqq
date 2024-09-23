@@ -7,4 +7,4 @@ endfunction
 :normal ggV5j
 :execute "normal! \<Esc>"
 :'<,'>QQ -s @mock hello
-call timer_start(500, "WriteAndQuit")
+call timer_start(100, "WriteAndQuit")

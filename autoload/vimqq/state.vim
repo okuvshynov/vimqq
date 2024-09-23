@@ -10,6 +10,7 @@ function! vimqq#state#new(db) abort
     let l:state._db     = a:db
     let l:state._queues = {}
     let l:state._latencies = {}
+    let l:state._deltas = 0
     
     " this is the active chat id. New queries would go to this chat by default
     let l:state._curr_chat_id = -1
@@ -112,6 +113,16 @@ function! vimqq#state#new(db) abort
                 call vimqq#log#info('token for chat with no start point.')
             endif
         endif
+    endfunction
+
+    " tracking how many pieces of messages we received
+    " overall. Move to 'stats'?
+    function! l:state.new_delta() dict
+        let self._deltas += 1
+    endfunction
+
+    function! l:state.deltas() dict
+        return self._deltas
     endfunction
 
     return l:state

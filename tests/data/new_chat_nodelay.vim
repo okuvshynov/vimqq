@@ -6,5 +6,5 @@ endfunction
 
 :Q @mock hello
 :Q -n @mock world!
-call timer_start(500, "WriteAndQuit")
+call timer_start(200, "WriteAndQuit")
 

@@ -47,6 +47,7 @@ endfunction
 " append the received token to message in database, and optionally to UI,
 " if the chat is currently open
 function! s:_on_token_done(chat_id, token)
+    call s:state.new_delta()
     if empty(s:chatsdb.get_partial(a:chat_id).content)
         " to track TTFT latency
         call s:state.first_token(a:chat_id)
@@ -59,6 +60,7 @@ endfunction
 
 " when we received complete message, we generate title, mark query as complete
 function! s:_on_reply_complete(chat_id, bot)
+    call vimqq#log#debug('n_deltas = ' . s:state.deltas())
     call s:chatsdb.partial_done(a:chat_id)
     if !s:chatsdb.has_title(a:chat_id)
         call a:bot.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
