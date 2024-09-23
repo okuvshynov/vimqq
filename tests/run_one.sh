@@ -38,8 +38,11 @@ test_script="$(cat "$script_dir/data/$testname.vim")"
 expected="$script_dir/data/$testname.out"
 
 set -x
-run_vim_test "$working_dir" "$test_script"
+vim_code=$(run_vim_test "$working_dir" "$test_script")
+echo "vim returned $vim_code"
 set +x
+
+echo "Stopping server"
 
 stop_mock_serv "$serv_pid"
 

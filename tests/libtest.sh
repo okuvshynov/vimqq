@@ -77,5 +77,7 @@ run_vim_test() {
     echo "$test_script" > "$test_dir/test_script.vim"
 
     # Run Vim with the test configuration and script
-    "$vim_binary" -N -u "$test_dir/vimrc" -S "$test_dir/test_script.vim"
+    "$vim_binary" -N -u "$test_dir/vimrc" -S "$test_dir/test_script.vim" --not-a-term
+    local vim_code=$?
+    echo $vim_code
 }
