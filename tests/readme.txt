@@ -4,6 +4,10 @@ Requirements for tests:
 1. python with flask
 2. vim 8+
 
+Configuration/env vars:
+1. VIMQQ_VERBOSE - print out each test output
+2. VIMQQ_KEEP_DIR - do not delete temp working directory
+
 What tests should we write:
 1. multi-bot
 2. testing errors/timeouts

@@ -19,7 +19,7 @@ for script in "$script_dir"/data/*.vim; do
     testname="${testname%.vim}"
     tmp_file="$(mktemp)"
 
-    if [ -z "$VIMQQ_GITHUB" ]; then
+    if [ -z "$VIMQQ_VERBOSE" ]; then
         "$script_dir"/run_one.sh "$testname" "$vimqq_path" > "$tmp_file" 2>&1
     else
         "$script_dir"/run_one.sh "$testname" "$vimqq_path"

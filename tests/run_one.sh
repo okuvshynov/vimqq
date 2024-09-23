@@ -23,12 +23,14 @@ fi
 vimqq_path=$(realpath "$vimqq_path")
 
 port=$(pick_http_port)
-echo "Using port $port"
+echo "Using port $port for mock llama server"
 
 working_dir=$(setup_vimqq_env "$vimqq_path" "$port")
 cd $working_dir
 echo "Using temp directory: $working_dir"
-trap 'cleanup "$working_dir"' EXIT
+if [ -z "$VIMQQ_KEEP_DIR" ]; then
+    trap 'cleanup "$working_dir"' EXIT
+fi
 
 serv_pid=$(setup_mock_serv "$working_dir" "$port")
 
