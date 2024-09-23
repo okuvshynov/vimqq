@@ -115,15 +115,5 @@ function! vimqq#state#new(db) abort
         endif
     endfunction
 
-    " tracking how many pieces of messages we received
-    " overall. Move to 'stats'?
-    function! l:state.new_delta() dict
-        let self._deltas += 1
-    endfunction
-
-    function! l:state.deltas() dict
-        return self._deltas
-    endfunction
-
     return l:state
 endfunction

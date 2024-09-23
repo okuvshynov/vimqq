@@ -34,11 +34,13 @@ fi
 
 serv_pid=$(setup_mock_serv "$working_dir" "$port")
 
-test_script="$(cat "$script_dir/data/$testname.vim")"
+test_script="$script_dir/data/$testname.vim"
 expected="$script_dir/data/$testname.out"
 
 set -x
-vim_code=$(run_vim_test "$working_dir" "$test_script")
+run_vim_test "$working_dir" "$test_script"
+vim_code=$?
+
 echo "vim returned $vim_code"
 set +x
 
@@ -46,12 +48,7 @@ echo "Stopping server"
 
 stop_mock_serv "$serv_pid"
 
-outfile="$working_dir/$testname.out"
-
-# TODO: better handling of time
-sed 's/[0-9][0-9]:[0-9][0-9]/00:00/' "$outfile" > "$outfile.observed"
-
-if diff -q "$expected" "$outfile.observed"; then
+if [ $vim_code -eq 0 ]; then
     echo "Test passed"
     exit 0
 else

@@ -29,7 +29,7 @@ let g:vqq_log_file = "$test_dir/log.txt"
 let g:vqq_log_level = 'DEBUG'
 let g:vqq_chats_file = "$test_dir/db.json"
 let g:vqq_llama_servers = [{'bot_name': 'mock', 'addr': 'http://localhost:$port'}]
-let g:vqq_time_format = "%H:%M"
+let g:vqq_time_format = "00:00"
 set packpath=$test_dir/rtp
 :packloadall
 EOF
@@ -73,11 +73,8 @@ run_vim_test() {
         local vim_binary="$VIMQQ_VIM_BINARY"
     fi
 
-    # Create test script
-    echo "$test_script" > "$test_dir/test_script.vim"
-
     # Run Vim with the test configuration and script
-    "$vim_binary" -N -u "$test_dir/vimrc" -S "$test_dir/test_script.vim" --not-a-term
+    "$vim_binary" -N -u "$test_dir/vimrc" -S "$test_script" --not-a-term
     local vim_code=$?
-    echo $vim_code
+    return $vim_code
 }
