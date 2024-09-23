@@ -13,7 +13,7 @@ Configuration/env vars:
 What tests should we write:
 1. multi-bot
 2. testing errors/timeouts
-3. esting warmup on demand
+3. testing warmup on demand
 4. testing auto warmup 
 5. testing other context types
 6. testing navigation in chat list
