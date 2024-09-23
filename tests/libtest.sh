@@ -66,11 +66,15 @@ cleanup() {
 run_vim_test() {
     local test_dir=$1
     local test_script=$2
+    if [ -z "$VIMQQ_VIM_BINARY" ]; then
+        local vim_binary="vim"
+    else
+        local vim_binary="$VIMQQ_VIM_BINARY"
+    fi
 
     # Create test script
     echo "$test_script" > "$test_dir/test_script.vim"
 
     # Run Vim with the test configuration and script
-    # TODO: also configure to test with nvim
-    vim -N -u "$test_dir/vimrc" -S "$test_dir/test_script.vim"
+    "$vim_binary" -N -u "$test_dir/vimrc" -S "$test_dir/test_script.vim"
 }

@@ -37,7 +37,9 @@ serv_pid=$(setup_mock_serv "$working_dir" "$port")
 test_script="$(cat "$script_dir/data/$testname.vim")"
 expected="$script_dir/data/$testname.out"
 
+set -x
 run_vim_test "$working_dir" "$test_script"
+set +x
 
 stop_mock_serv "$serv_pid"
 

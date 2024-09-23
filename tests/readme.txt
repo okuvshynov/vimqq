@@ -7,6 +7,7 @@ Requirements for tests:
 Configuration/env vars:
 1. VIMQQ_VERBOSE - print out each test output
 2. VIMQQ_KEEP_DIR - do not delete temp working directory
+3. VIMQQ_VIM_BINARY - path/name for vim to use. default is 'vim'. Can be useful to test specific version or nvim.
 
 What tests should we write:
 1. multi-bot
