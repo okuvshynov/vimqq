@@ -12,25 +12,34 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source "$script_dir"/libtest.sh
 
-vimqq_path=$1
-testname=$2
+testname=$1
+vimqq_path=$2
+if [ -z "$vimqq_path" ]; then
+    # assume we are running test script from the same version of the code
+    vimqq_path="$script_dir"/..
+fi
+
+# Expand the relative path to an absolute path
+vimqq_path=$(realpath "$vimqq_path")
+
 port=$(pick_http_port)
 echo "Using port $port"
-test_dir=$(setup_vimqq_env "$vimqq_path" "$port")
-cd $test_dir
-echo "Using temp directory: $test_dir"
-trap 'cleanup "$test_dir"' EXIT
 
-serv_pid=$(setup_mock_serv "$test_dir" "$port")
+working_dir=$(setup_vimqq_env "$vimqq_path" "$port")
+cd $working_dir
+echo "Using temp directory: $working_dir"
+trap 'cleanup "$working_dir"' EXIT
+
+serv_pid=$(setup_mock_serv "$working_dir" "$port")
 
 test_script="$(cat "$script_dir/data/$testname.vim")"
 expected="$script_dir/data/$testname.out"
 
-run_vim_test "$test_dir" "$test_script"
+run_vim_test "$working_dir" "$test_script"
 
 stop_mock_serv "$serv_pid"
 
-outfile="$test_dir/$testname.out"
+outfile="$working_dir/$testname.out"
 
 # TODO: better handling of time
 sed 's/[0-9][0-9]:[0-9][0-9]/00:00/' "$outfile" > "$outfile.observed"

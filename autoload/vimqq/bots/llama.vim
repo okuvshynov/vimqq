@@ -47,7 +47,8 @@ function vimqq#bots#llama#new(config = {}) abort
           else
               call self._update_status(l:status.status)
           endif
-      " TODO: looks like errors are different in vim/nvim. Need to handle
+      " TODO: looks like json errors are different in vim/nvim.
+      " Need to handle specific errors.
       catch
           call vimqq#log#info("Error decoding status: " . v:exception)
           call self._update_status("error")

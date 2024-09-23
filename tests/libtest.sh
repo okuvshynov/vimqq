@@ -71,5 +71,6 @@ run_vim_test() {
     echo "$test_script" > "$test_dir/test_script.vim"
 
     # Run Vim with the test configuration and script
+    # TODO: also configure to test with nvim
     vim -N -u "$test_dir/vimrc" -S "$test_dir/test_script.vim"
 }

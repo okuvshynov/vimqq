@@ -66,7 +66,7 @@ function! s:_on_reply_complete(chat_id, bot)
 
     " this might call the next query in queue
     if s:state.reply_complete(a:chat_id)
-        " TODO: do we need this?
+        " TODO: do we need this? Need to test more to see if it makes sense.
         call vimqq#main#show_chat(a:chat_id)
     endif
     call s:ui.update_queue_size(s:state.queue_size())
