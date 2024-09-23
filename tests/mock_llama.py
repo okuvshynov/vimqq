@@ -42,8 +42,20 @@ def chat():
     # Get the JSON data from the POST request
     input_data = request.json
     do_stream = input_data['stream']
+    is_warmup = False
+    if 'n_predict' in input_data:
+        n_predict = input_data['n_predict']
+        if n_predict == 0:
+            is_warmup = True
+
     question = input_data['messages'][-1]['content']
     logging.info(f'QUERY: {question}')
+    logging.info(f'is_warmup: {is_warmup}')
+
+    if is_warmup:
+        stats['n_warmups'] += 1
+        response_data = { }
+        return Response(json.dumps(response_data), content_type='application/json')
 
     if do_stream:
         stats['n_stream_queries'] += 1
