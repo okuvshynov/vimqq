@@ -29,6 +29,11 @@ The motivation was mostly to
  - experiment and improve on context usage, as this seems to be very underutilized area for coding assistant. Most I've seen in the past were ignoring the history stored in version control and looking at the code as a static snapshot, thus losing a lot of useful information
  - aggressively hide latency and precompute while typing for local setups, optimizing for performance rather than throughput
 
+## Requirements
+* Vim 8+ or NeoVim 
+* curl
+* git if using source control context
+* most likely won't work on Windows as is, need to find where to test it;
 
 ## Quick start using Groq API
 
