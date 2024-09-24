@@ -15,7 +15,7 @@ What tests should we write:
 2. testing errors/timeouts
 3. testing warmup on demand
 4. testing auto warmup 
-5. testing other context types
+5. testing other context types - file, project, blame
 6. testing navigation in chat list
 7. testing forking
 
