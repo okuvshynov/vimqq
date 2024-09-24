@@ -1,160 +1,130 @@
 # Vim quick question (vim-qq)
 
-AI plugin for Vim/Neovim.
+AI plugin for Vim/NeoVim with focus on local evaluation, flexible context
+and aggressive cache warmup to hide latency.
 
-While there are many copilot-like plugins for different IDEs/editor (cody ai, tabby, cursor, etc.), I couldn't quite find what I needed. The requirements I had were:
+Features:
+ - flexible extra context - visual selection, ctags, current file, entire
+   project, git blame history and combination of the above;
+ - Support for both remote models through paid APIs (Groq, Claude) 
+   and local models via llama.cpp server;
+ - automated KV cache warmup for local model evaluation;
+ - dynamic warmup on typing - in case of long questions, it is a good idea
+   to prefill cache for the question itself.
+ - mixing different models in the same chat sessions. It is possible to send 
+   original message to one model and use a different model for the follow-up
+   questions.
+ - ability to fork the existing chat, start a new branch of the chat and 
+   reuse server-side cache for the shared context.
+ - Support both Vim and NeoVim;
 
-- work with reasonably modern Vim, e.g. one preinstalled on MacOS;
-- work with both Vim and NeoVim;
-- work with local model evaluation. fast enough to be practical;
-- work on Apple M1/M2 devices, which have limited compute power and would be slow to process long context;
-- work with remote paid API as well;
-- support switching models in the middle of discussion, e.g. from Claude Sonnet to local Llama 70 and back;
-- focus on explanation/brainstorming/refactoring rather than autocomplete/generation - be able to run models which can explain some code to you;
-- flexible way to include context;
-- as few dependencies as possible;
-- I expect myself to read and understand everything, so going much faster than my reading comprehension rate would be pointless. 10 t/s is good enough.
-
-Ideal scenario (we are not quite there yet) that it would work similar to [gutentags](https://github.com/ludovicchabant/vim-gutentags) - you install it once and forget about it.
-
-In order to make local model experience better, vimqq supports
-1. automatic cache warmup on context selection;
-2. dynamic cache warmup during message input (while user types);
-3. token streaming into Vim buffer, so we can see output right away;
-4. chat forking, so we can reuse large initial context (e.g. entire project/subset of files) and start new conversation from that point.
-
-
+What vimqq is not doing:
+ - providing any form of autocomplete.  
+ - generating code in place, typing it in editor directly, all communication
+   is done in the chat buffer.
 
 https://github.com/user-attachments/assets/f1b34385-c6e2-4202-a17d-2ef09e83becc
 
+## Quick start using Groq API
 
+This might be the easiest option to try it out at the moment for free. 
 
-### Example
-
-#### Entire small project in context
-
-Main use-case I was interested in is continuous work on small/medium project. I have multiple projects where entire code + documentation is fitting into the 128k context of modern models. I'd like to be able to keep chatting about it (including starting new chats) and asking for very specific improvements without having to process the entire project again and again.
-
-Let's look at the example of [cubestat](https://github.com/okuvshynov/cubestat) - command-line monitoring tool.
-
-First, we can send warmup query to get the context for the project processed:
+Copy over the plugin itself:
 ```
-:Q -wp @llama
+    git clone https://github.com/okuvshynov/vimqq.git ~/.vim/pack/plugins/start/vimqq
 ```
 
-`-wp` here means [w]armup entire [p]roject. Project boundary here is 'all source files in nearest parent directory of the currently open file with `.git/` in it'. 
-
-Depending on local model used, hardware available and the size of the project this might take some time. On M2 Ultra and llama3.1 70B quantized to 8bit it takes a few minutes for cubestat. We process ~100 tokens/second and need to process 20000 tokens total.
-
-We can put this command to `autocmd` to kick off when our project is opened or put it in vimrc.
-
-Now we can give our assistant some task:
+Update helptags in vim:
 ```
-:Q -p @llama Let's work on refactoring metrics. We need to change base_metric to become a 'metric_group' and introduce new 'metric' class, which would represent a single data row. In new design, for example, gpu_metric would become a subclass of metric_group and each row within gpu_metric ('GPU {x} util %' or 'GPU {x} vram util') will become an instance of 'metric'.
+    :helptags ~/.vim/pack/plugins/start/vimqq/doc
 ```
 
-If warmup has finished, we should start seeing the streamed output very soon, in a few seconds:
+Register and get API key at https://console.groq.com/keys
+Save that key to `$GROQ_API_KEY` environment variable. 
+Add the configuration to your vimrc:
 
 ```
-10:30 You: @llama Here's a code snippet:
-
-+--2086 lines: ...---------------------------------------------------------
-
- Let's work on refactoring metrics. We need to change base_metric to become
- a 'metric_group' and introduce new 'metric' class, which would represent a
- single data row. In new design, for example, gpu_metric would become a sub
-class of metric_group and each row within gpu_metric ('GPU {x} util %' or '
-GPU {x} vram util') will become an instance of 'metric'.
-10:30 llama: Here's a refactored version of the
-...
+    let g:vqq_groq_models = [
+	  \  {'bot_name': 'groq', 'model': 'llama-3.1-70b-versatile'}
+    \]
 ```
 
-Note that provided context is hidden in Vim fold, but it is still part of the message. If we would skip the warmup, we'll have to wait for the same 3 minutes to process the context.
-
-After we got the code, we can ask follow-up questions:
+Now we can ask a question:
 ```
-:Q @llama How would you make the refactoring gradual, so that we can move each metric group to new abstraction one by one (say, GPU, then CPU, etc.) rather than having to migrate all at once.
+    :Q @groq What are basics of unix philosophy?
 ```
 
-Now imagine that we are done with metrics for now and need to take a look at other area, while keeping the entire project context. We can ask another question in the chat fork:
+Let's look at another use-case, which demonstrates the importance
+of correct context, not just embedding lookup. Consider this line of code
 ```
-:QF how would you refactor label2 and label10 functions and extract shared functionality?
+    bool check_tensors     = false; // validate tensor data
 ```
-The fork currently keeps the context of the very first message but modifies the message itself and sends it in the new chat session. By doing that we can start chat from scratch, but keep context cache.
+from llama.cpp, assuming we have a local clone of that repository.
 
-We can press 'q' in the chat window and navigate to chat list. We'll see two separate chats:
+https://github.com/ggerganov/llama.cpp/blob/441b72b9/common/common.h#L260
 
-```
-Jul 31 10:44 >Refactoring label2 and label10 Functions
-Jul 31 10:37  Refactoring Metrics in Cubestat
-```
-
-After massive changes we can probably warmup again to refresh it, but it's not done automatically.
-
-Let's do another fork:
-```
-:QF How would you make network_metric class to have shared scale? Now rx and tx have separate scales which might be confusing.
-```
-
-In this example llama gave good suggestion, but was slightly off, so I wanted to ask a follow-up question with some extra context selected.
-To do that, I can navigate to that file, select lines I care about and send a message using [s]election as context. 
-```
-:'<,'>QQ -s @llama values in this case is a visible subset of the data points, not entire history of read values. We need to take this into account and probably modify how we query the metrics from the main rendering loop
-```
-
-Here our message will be appended to current chat. Note that if you do just that, you might notice a delay (the larger the selection, the longer the delay). This happens because we need to process the selection as well, not the question only. To amortize the cost and make it more user friendly, we can define a key mapping:
+Let's select this line in visual mode and run the following command:
 
 ```
-xnoremap <leader>w  :<C-u>'<,'>QQ -ws @llama<cr>:'<,'>QQ -s @llama
+    :'<,'>QQ -nbs What checks are going to run when check_tensors is set to true?
 ```
 
-Now when we press `<leader>w` current [s]election will be sent to the server for warmup as well. It will be still part of current chat, so large original context will be kept. The command line will be prefilled with the prompt `:'<,'>QQ -s @llama ` and we'll be typing the question in parallel with selection processing.
+The following should happen:
+  - [n]ew chat will be started - we won't continue the Unix philosophy
+    discussion;
+  - vimqq will get the visual [s]election;
+  - vimqq will run `git [b]lame` within the selected range and find commits
+    changing it: https://github.com/ggerganov/llama.cpp/commit/017e6999
+  - vimqq will format the message with system prompt, selected line, commit
+    content and question itself;
+  - after that we should see the pretty reasonable and informative reply, much
+    better than in cases of embedding-based context lookup.
 
-#### ctags context
+## Setting up local model
 
-It is not always practical to add entire project to the context. While we can build embeddings and try to lookup relevant context that way, a much simpler option would be to use ctags and follow them from the selection. Here's a brief video illustration where we select relevant code and press the hotkey (see below). vimqq follows available ctags and gets some of the context from the destination and starts processing.
 
-To demonstrate importance of context warmup we show two windows running the same query.
-
-The left window the following shortcut was used:
+To use local models, get and build llama.cpp server
 
 ```
-" [w]armup llama with [s]election + c[t]ags
-xnoremap <leader>wst :<C-u>'<,'>QQ -wst @llama<cr>:'<,'>QQ -st @llama
+    git clone https://github.com/ggerganov/llama.cpp
+    cd llama.cpp
+    make -j 16
 ```
 
-First, we send warmup query, then we prefill command line and wait for user input
+Download the model and start llama server:
 
-The right window was using the following:
 ```
-" [q]uery llama with [s]election + c[t]ags
-xnoremap <leader>qst :<C-u>'<,'>QQ -st @llama
+    ./llama.cpp/llama-server
+      --model path/to/model.gguf
+      --chat-template llama3
+      --host 0.0.0.0
+      --port 8080
 ```
 
-Just fill in the command line and wait for user input
+Add a bot endpoint configuration to vimrc file, for example
+```
+    let g:vqq_llama_servers = [
+          \  {'bot_name': 'local', 'addr': 'http://localhost:8080'},
+    \]
+```
 
-https://github.com/user-attachments/assets/d0fd63c0-3ddf-41e4-a9d0-b1fa63ebd80d
+For local models, especially if running large models on slower machines - large RAM CPU-only, MacStudio, cache warmup becomes very important to hide latency.
 
-In both situations we queried fresh server instance with no cache. As you can see, in warmup case we start seeing output right away, while for no-warmup case we have to wait for 5-10 seconds which is annoying and can result in losing focus.
+It is convenient to define key bindings to combine warmup + main query:
 
-### Cost of remote API.
+```
+    " [w]armup local with [s]election
+    xnoremap <leader>w  :<C-u>'<,'>QQ -ws @local<cr>:'<,'>QQ -s @local<Space>
+    " [w]armup local with [s]election and git [b]lame
+    xnoremap <leader>wb  :<C-u>'<,'>QQ -wsb @local<cr>:'<,'>QQ -sb @local<Space>
+```
 
-Claude API is stateless. Internally they might (and should) make some caching/best effort stickiness, but from the outside each API call is getting charged as if it is evaluated from scratch. This means, for a long conversation you get O(N^2) cost. For example, if you started with a large context for your project (say, 20k tokens) and had a discussion for 20 rounds, you'll get charged for 400k tokens input. It is still pretty cheap for current sonnet 3.5 model, ~$1.2, but:
-- we ignored all the output and next inputs in the discussion, which adds to the cost as well.
-- it can still add up over time;
-- project might be larger, and you still might want to include all of it
-- it might have a psychological effect of 'is it worth to ask this question'? It's better to not have to think about it at all
-- we can reasonably expect opus 3.5 to be significantly better and 5x more expensive compared to sonnet 3.5. Even if it would be so much better for higher-level discussion and planning, that we'd prefer to use it over local alternative, it would become very important to be able to swicth to cheaper/local model in the middle of discussion and avoid O(n^2) cost for expensive model
-  
-## requirements
+Using the same example as in Groq case, we can select the line, press `<leader>wb`. System prompt + selection + relevant git commit will be sent to the local server to warmup the cache. 
 
-* Vim 8.2+
-* curl
-* llama.cpp if planning to use local models
-* Anthropic API subscription if planning to use claude family of models
-* ctags if using extended context
+Command line will get prefilled with the `:'<,'>QQ -sb @local ` so user can start typing question immediately. As user types, we might keep sending updates to the server so that it processes the part of question. This allows to hide the prompt processing latency and start getting streamed reply sooner.
 
-## Full docs & installation
+
+## Full docs
 
 [VIM help file](doc/vimqq.txt)
 
