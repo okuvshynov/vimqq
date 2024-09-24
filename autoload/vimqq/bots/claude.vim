@@ -60,7 +60,7 @@ function! vimqq#bots#claude#new(config = {}) abort
     endfunction
 
     function! l:claude._on_err(chat_id, msg) dict
-        " TODO logging (or status callback?)
+        call vimqq#log#error('claude error: ' . a:msg)
     endfunction
 
     function l:claude._on_close(chat_id) dict
