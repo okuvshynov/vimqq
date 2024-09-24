@@ -25,6 +25,11 @@ What vimqq is not doing:
 
 https://github.com/user-attachments/assets/f1b34385-c6e2-4202-a17d-2ef09e83becc
 
+The motivation was mostly to 
+ - experiment and improve on context usage, as this seems to be very underutilized area for coding assistant. Most I've seen in the past were ignoring the history stored in version control and looking at the code as a static snapshot, thus losing a lot of useful information
+ - aggressively hide latency and precompute while typing for local setups, optimizing for performance rather than throughput
+
+
 ## Quick start using Groq API
 
 This might be the easiest option to try it out at the moment for free. 
@@ -122,6 +127,11 @@ It is convenient to define key bindings to combine warmup + main query:
 Using the same example as in Groq case, we can select the line, press `<leader>wb`. System prompt + selection + relevant git commit will be sent to the local server to warmup the cache. 
 
 Command line will get prefilled with the `:'<,'>QQ -sb @local ` so user can start typing question immediately. As user types, we might keep sending updates to the server so that it processes the part of question. This allows to hide the prompt processing latency and start getting streamed reply sooner.
+
+
+
+https://github.com/user-attachments/assets/4edc6c1c-f334-4ebd-b130-742f5552215c
+
 
 
 ## Full docs
