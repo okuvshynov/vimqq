@@ -54,6 +54,11 @@ Add the configuration to your vimrc:
     \]
 ```
 
+vimqq will not work in compatible mode, so add this as well:
+```
+    set nocompatible
+```
+
 Now we can ask a question:
 ```
     :Q @groq What are basics of unix philosophy?
