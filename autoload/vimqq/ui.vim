@@ -238,10 +238,10 @@ function! s:setup_syntax()
 
     syntax match restOfLine ".*$" contained
 
-    highlight timestr    cterm=bold gui=bold
-    highlight botPrompt  cterm=bold gui=bold ctermfg=DarkBlue guifg=DarkBlue
-    highlight userPrompt cterm=bold gui=bold ctermfg=DarkRed guifg=DarkRed
-    highlight taggedBot  ctermfg=DarkBlue guifg=DarkBlue
+    highlight link userPrompt Identifier
+    highlight link botPrompt Identifier
+    highlight link timestr Constant
+    highlight link taggedBot Comment
 endfunction
 
 augroup VQQSyntax
