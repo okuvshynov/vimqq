@@ -71,7 +71,6 @@ function! vimqq#state#new(db) abort
     endfunction
 
     function! l:state.reply_complete(chat_id) dict
-        " remove from queue
         let l:sent  = v:false
         let l:queue = get(self._queues, a:chat_id, [])
 
@@ -113,7 +112,8 @@ function! vimqq#state#new(db) abort
                 call vimqq#log#info(printf('TTFT %.3f s', latency))
                 unlet self._latencies[a:chat_id]
             else
-                " TODO: this tracking is wrong in case of enqueue
+                " TODO: this tracking is wrong in case of non-empty queue
+                " as we would unlet the start point for both messages
                 call vimqq#log#info('token for chat with no start point.')
             endif
         endif
@@ -122,7 +122,6 @@ function! vimqq#state#new(db) abort
     function! l:state.last_bot_name() dict
        return self._last_bot_name 
     endfunction
-
 
     return l:state
 endfunction

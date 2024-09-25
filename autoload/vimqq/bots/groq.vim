@@ -78,7 +78,7 @@ function! vimqq#bots#groq#new(config = {}) abort
         else
             call vimqq#log#error('Unable to process response')
             call vimqq#log#error(json_encode(l:response))
-            " TODO: still need to mark query as done
+            " TODO: still need to mark query as done. 
         endif
     endfunction
 
