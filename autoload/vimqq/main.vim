@@ -299,3 +299,8 @@ function! vimqq#main#fork_chat(args) abort
     endif
     call s:ui.update_queue_size(s:state.queue_size())
 endfunction
+
+function! vimqq#main#record_eval(evaluation)
+    let key = "eval." . s:state.last_bot_name() . "." . a:evaluation
+    call vimqq#metrics#inc(key)
+endfunction

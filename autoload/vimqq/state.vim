@@ -11,6 +11,7 @@ function! vimqq#state#new(db) abort
     let l:state._queues = {}
     let l:state._latencies = {}
     let l:state._deltas = 0
+    let l:state._last_bot_name = ""
     
     " this is the active chat id. New queries would go to this chat by default
     let l:state._curr_chat_id = -1
@@ -78,7 +79,10 @@ function! vimqq#state#new(db) abort
             vimqq#log#error('got a reply from non-enqueued query')
             return v:false
         endif
-        call remove(l:queue, 0)
+
+        " Keep track of last bot
+        let [l:last_message, l:last_bot] = remove(l:queue, 0)
+        let self._last_bot_name = l:last_bot.name()
 
         " kick off the next request if there was one
         if !empty(l:queue)
@@ -114,6 +118,11 @@ function! vimqq#state#new(db) abort
             endif
         endif
     endfunction
+
+    function! l:state.last_bot_name() dict
+       return self._last_bot_name 
+    endfunction
+
 
     return l:state
 endfunction
