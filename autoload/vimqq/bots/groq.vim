@@ -35,6 +35,8 @@ function! vimqq#bots#groq#new(config = {}) abort
     function! l:groq_bot._update_usage(usage) dict
         let self._usage['in']  += a:usage['prompt_tokens']
         let self._usage['out'] += a:usage['completion_tokens']
+        call vimqq#metrics#inc('groq.' . self._conf.model . '.tokens_in', a:usage['prompt_tokens'])
+        call vimqq#metrics#inc('groq.' . self._conf.model . '.tokens_out', a:usage['completion_tokens'])
 
         let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
 

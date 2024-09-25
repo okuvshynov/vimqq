@@ -29,6 +29,7 @@ function! s:_send_warmup(chat_id)
     endif
     for bot in s:warmup_bots
         let messages = s:chatsdb.get_messages(a:chat_id)
+        call vimqq#metrics#inc(bot.name() . ".chat_warmups" )
         call bot.send_warmup(messages)
     endfor
 endfunction
