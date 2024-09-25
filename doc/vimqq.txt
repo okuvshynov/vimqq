@@ -9,9 +9,10 @@ Author: Oleksandr Kuvshynov
 
 1. Introduction ........................................ |vimqq-intro|
 2. Installation ........................................ |vimqq-install|
-  2.1. Installation: Groq .............................. |vimqq-groq|
-  2.2. Installation: Local ............................. |vimqq-local|
-  2.3. Installation: Claude ............................ |vimqq-claude|
+  2.1. Groq ............................................ |vimqq-groq|
+  2.2. Local ........................................... |vimqq-local|
+  2.3. Claude .......................................... |vimqq-claude|
+  2.4. Mistral ......................................... |vimqq-mistral|
 3. Usage ............................................... |vimqq-usage|
 4. Commands ............................................ |vimqq-commands|
   4.1. Message sending ................................. |vimqq-commands-msg|
@@ -126,6 +127,23 @@ Bot definition looks similar:
 >
     let g:vqq_claude_models = [
           \  {'bot_name': 'sonnet', 'model': 'claude-3-5-sonnet-20240620'}
+    \]
+
+
+==============================================================================
+2.4 Installation: Mistral                                        *vimqq-mistral*
+
+
+To use mistral models using the API, register and get API key. By default
+vimqq will look for API key in environment variable `$MISTRAL_API_KEY`.
+It is possible to override the default with 
+>
+    let g:vqq_mistral_api_key = ...
+
+Bot definition looks similar:
+>
+    let g:vqq_mistral_models = [
+          \  {'bot_name': 'mistral', 'model': 'mistral-large-latest'}
     \]
 
 ==============================================================================

@@ -75,6 +75,7 @@ run_vim_test() {
 
     # Run Vim with the test configuration and script
     "$vim_binary" -N -u "$test_dir/vimrc" -S "$test_script" --not-a-term
+    # TODO: nvim doesn't have not-a-term
     local vim_code=$?
     return $vim_code
 }

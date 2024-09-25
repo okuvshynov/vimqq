@@ -1,70 +1,76 @@
 " Copyright 2024 Oleksandr Kuvshynov
 " -----------------------------------------------------------------------------
-if exists('g:autoloaded_vimqq_groq_module')
+if exists('g:autoloaded_vimqq_mistral_module')
     finish
 endif
 
-let g:autoloaded_vimqq_groq_module = 1
+let g:autoloaded_vimqq_mistral_module = 1
 
-" API key for groq
-let g:vqq_groq_api_key = get(g:, 'vqq_groq_api_key', $GROQ_API_KEY)
+" API key for mistral
+let g:vqq_mistral_api_key = get(g:, 'vqq_mistral_api_key', $MISTRAL_API_KEY)
 
 let s:default_conf = {
   \ 'title_tokens'   : 16,
   \ 'max_tokens'     : 1024,
-  \ 'bot_name'       : 'groq',
+  \ 'bot_name'       : 'mistral',
   \ 'system_prompt'  : 'You are a helpful assistant.'
 \ }
 
-function! vimqq#bots#groq#new(config = {}) abort
-    let l:groq_bot = {}
-    call extend(l:groq_bot, vimqq#base#new())
+function! vimqq#bots#mistral#new(config = {}) abort
+    let l:mistral_bot = {}
+    call extend(l:mistral_bot, vimqq#base#new())
 
-    let l:groq_bot._conf = deepcopy(s:default_conf)
-    call extend(l:groq_bot._conf, a:config)
+    let l:mistral_bot._conf = deepcopy(s:default_conf)
+    call extend(l:mistral_bot._conf, a:config)
 
-    let l:groq_bot._api_key = g:vqq_groq_api_key
+    let l:mistral_bot._api_key = g:vqq_mistral_api_key
 
-    let l:groq_bot._reply_by_id = {}
-    let l:groq_bot._title_reply_by_id = {}
+    let l:mistral_bot._reply_by_id = {}
+    let l:mistral_bot._title_reply_by_id = {}
 
-    let l:groq_bot._usage = {'in': 0, 'out': 0}
+    let l:mistral_bot._usage = {'in': 0, 'out': 0}
 
     " {{{ private:
 
-    function! l:groq_bot._update_usage(usage) dict
+    function! l:mistral_bot._update_usage(usage) dict
         let self._usage['in']  += a:usage['prompt_tokens']
         let self._usage['out'] += a:usage['completion_tokens']
 
         let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
 
-        call vimqq#log#info("groq " . self.name() . " total usage: " . msg)
+        call vimqq#log#info("mistral " . self.name() . " total usage: " . msg)
 
         call self.call_cb('status_cb', msg, self)
     endfunction
 
-    function! l:groq_bot._on_title_out(chat_id, msg) dict
+    function! l:mistral_bot._on_title_out(chat_id, msg) dict
         call add(self._title_reply_by_id[a:chat_id], a:msg)
     endfunction
 
-    function l:groq_bot._on_title_close(chat_id) dict
+    function l:mistral_bot._on_title_close(chat_id) dict
         let l:response = json_decode(join(self._title_reply_by_id[a:chat_id], '\n'))
-        let l:title  = l:response.choices[0].message.content
-        call self._update_usage(l:response.usage)
-        call self.call_cb('title_done_cb', a:chat_id, title)
+        if has_key(l:response, 'choices') && !empty(l:response.choices) && has_key(l:response.choices[0], 'message')
+            let l:title  = l:response.choices[0].message.content
+            call self._update_usage(l:response.usage)
+            call self.call_cb('title_done_cb', a:chat_id, title)
+        else
+            call vimqq#log#error('Unable to process response')
+            call vimqq#log#error(json_encode(l:response))
+            " TODO: still need to mark query as done
+        endif
     endfunction
 
-    function! l:groq_bot._on_out(chat_id, msg) dict
+    function! l:mistral_bot._on_out(chat_id, msg) dict
         call add(self._reply_by_id[a:chat_id], a:msg)
     endfunction
 
-    function! l:groq_bot._on_err(chat_id, msg) dict
-        call vimqq#log#error('groq_bot error: ' . a:msg)
+    function! l:mistral_bot._on_err(chat_id, msg) dict
+        call vimqq#log#error('mistral_bot error: ' . a:msg)
     endfunction
 
-    function l:groq_bot._on_close(chat_id) dict
+    function l:mistral_bot._on_close(chat_id) dict
         let l:response = join(self._reply_by_id[a:chat_id], '\n')
-        call vimqq#log#debug('Groq reply: ' . l:response)
+        call vimqq#log#debug('Mistral API reply: ' . l:response)
         let l:response = json_decode(l:response)
         if has_key(l:response, 'choices') && !empty(l:response.choices) && has_key(l:response.choices[0], 'message')
             let l:message  = l:response.choices[0].message.content
@@ -80,19 +86,20 @@ function! vimqq#bots#groq#new(config = {}) abort
         endif
     endfunction
 
-    function! l:groq_bot._send_query(req, job_conf) dict
+    function! l:mistral_bot._send_query(req, job_conf) dict
         let l:json_req  = json_encode(a:req)
         let l:json_req  = substitute(l:json_req, "'", "'\\\\''", "g")
 
-        let l:curl_cmd  = "curl -s -X POST 'https://api.groq.com/openai/v1/chat/completions'"
+        let l:curl_cmd  = "curl -s -X POST 'https://api.mistral.ai/v1/chat/completions'"
         let l:curl_cmd .= " -H 'Content-Type: application/json'"
+        let l:curl_cmd .= " -H 'Accept: application/json'"
         let l:curl_cmd .= " -H 'Authorization: Bearer " . self._api_key . "'"
         let l:curl_cmd .= " -d '" . l:json_req . "'"
 
         return vimqq#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
     endfunction
 
-    function! l:groq_bot._format_messages(messages) dict
+    function! l:mistral_bot._format_messages(messages) dict
         " Add system message
         let l:res = [{'role': 'system', 'content' : self._conf.system_prompt}]
 
@@ -107,15 +114,15 @@ function! vimqq#bots#groq#new(config = {}) abort
 
     " }}}
 
-    function! l:groq_bot.name() dict
+    function! l:mistral_bot.name() dict
         return self._conf.bot_name
     endfunction
 
-    function! l:groq_bot.send_warmup(messages) dict
+    function! l:mistral_bot.send_warmup(messages) dict
       " do nothing for now
     endfunction
 
-    function! l:groq_bot.send_chat(chat_id, messages) dict
+    function! l:mistral_bot.send_chat(chat_id, messages) dict
         let req = {}
         let req.model      = self._conf.model
         let req.messages   = self._format_messages(a:messages)
@@ -132,7 +139,7 @@ function! vimqq#bots#groq#new(config = {}) abort
     endfunction
 
     " ask for a title we'll use. Uses first message in a chat
-    function! l:groq_bot.send_gen_title(chat_id, message) dict
+    function! l:mistral_bot.send_gen_title(chat_id, message) dict
         let req = {}
         let l:message_text = vimqq#fmt#content(a:message)
         " TODO: make configurable and remove duplicate code with llama.vim
@@ -154,6 +161,6 @@ function! vimqq#bots#groq#new(config = {}) abort
         return self._send_query(req, l:job_conf)
     endfunction
 
-    return l:groq_bot
+    return l:mistral_bot
 
 endfunction
