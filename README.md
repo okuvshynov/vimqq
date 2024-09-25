@@ -28,6 +28,7 @@ https://github.com/user-attachments/assets/f1b34385-c6e2-4202-a17d-2ef09e83becc
 The motivation was mostly to 
  - experiment and improve on context usage, as this seems to be very underutilized area for coding assistant. Most I've seen in the past were ignoring the history stored in version control and looking at the code as a static snapshot, thus losing a lot of useful information
  - aggressively hide latency and precompute while typing for local setups, optimizing for performance rather than throughput
+ - try to do some blind test when blackbox model is queried; 
 
 ## Requirements
 * Vim 8+ or NeoVim 
