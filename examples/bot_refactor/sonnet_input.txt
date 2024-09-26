@@ -25,6 +25,10 @@ for bot in s:bots.bots()
     endif
 endfor
 
+" -----------------------------------------------------------------------------
+" Setting up wiring between modules
+" ... rest of main.vim
+
 Rather than having a separate configuration list, add a property do_autowarm to each of the bots' configuration and a function to return this status (read-only). Use that function to construct s:warmup_bots list. Provide your output as individual diff files I can apply with patch command not relying on version control system.
 
 Here are all the bots implementations:
