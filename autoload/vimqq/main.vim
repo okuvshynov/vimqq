@@ -12,6 +12,7 @@ let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
 
+" TODO: make this a property of a bot, not a separate list
 let s:warmup_bots = []
 for bot in s:bots.bots()
     if index(g:vqq_warmup_on_chat_open, bot.name()) != -1

@@ -4,11 +4,15 @@ endif
 
 let g:autoloaded_vimqq_autowarm = 1
 
+" The assumption is we have 1 warmup query at a time. Might need to 
+" revisit.
+
 " if we sent warmup query, start timer 
 let g:vqq_autowarm_cmd_ms = get(g:, 'vqq_autowarm_cmd_ms', 500)
 " on MacOS model might be getting offloaded even if we use mlock. 
 " thus, we have an option to keep sending warmup queries even if message
 " hasn't changed
+" TODO: should this be per bot? 
 let g:vqq_autowarm_same_msg = get(g:, 'vqq_autowarm_same_msg', v:true)
 
 let s:autowarm = 'off'
