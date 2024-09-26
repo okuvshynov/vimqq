@@ -1,0 +1,8 @@
+* other providers - openai, google
+* Streaming for remote APIs (e.g. mistral)
+* Caching for providers which support 
+* Context generalization - github, treesitter, etc.
+* Tool use - let model decide on the context to ask for.
+* CoT-like reasoning + blind testing (so, both shown/hidden modes)
+* test on windows
+* All TODO: from the codebase
