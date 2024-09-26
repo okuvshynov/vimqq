@@ -31,7 +31,7 @@ endfor
 
 Rather than having a separate configuration list, add a property do_autowarm to each of the bots' configuration and a function to return this status (read-only). Use that function to construct s:warmup_bots list. Provide your output as individual diff files I can apply with patch command not relying on version control system.
 
-After you have completed your patches, do another iteration and try applying them. Make sure they apply cleanly and will produce the desired result. Repeat this process at least twice, but as many times as you need.
+After you have completed your patches, do another iteration and try applying them. Make sure you marked both added and removed lines correctly. Make sure all patches apply cleanly and will produce the desired result. Repeat this process at least twice, but as many times as you need.
 
 Here are all the bots implementations:
 
@@ -560,4 +560,3 @@ function! vimqq#bots#mistral#new(config = {}) abort
     return l:mistral_bot
 
 endfunction
-
