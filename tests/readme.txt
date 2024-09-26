@@ -1,4 +1,14 @@
-These tests are launching vim with minimal vimrc config and simulate queries to vimqq.
+These tests are launching vim with minimal vimrc config and simulate queries to vimqq using mock server.
+
+To run tests:
+
+```
+# default 'vim'
+./tests/run_all.sh
+
+# use nvim or other specific binary/version
+VIMQQ_VIM_BINARY=nvim ./tests/run_all.sh
+```
 
 Requirements for tests:
 1. python with flask

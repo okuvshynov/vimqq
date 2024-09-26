@@ -73,8 +73,11 @@ run_vim_test() {
     fi
 
     # Run Vim with the test configuration and script
-    "$vim_binary" -N -u "$test_dir/vimrc" -S "$test_script" --not-a-term
-    # TODO: nvim doesn't have not-a-term
+    if [[ $vim_binary =~ nvim$ ]]; then
+      "$vim_binary" -N -u "$test_dir/vimrc" -S "$test_script"
+    else
+      "$vim_binary" -N -u "$test_dir/vimrc" -S "$test_script" --not-a-term
+    fi
     local vim_code=$?
     return $vim_code
 }
