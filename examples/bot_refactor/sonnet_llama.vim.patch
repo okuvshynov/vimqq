@@ -1,0 +1,23 @@
+--- a/bots/llama.vim
++++ b/bots/llama.vim
+@@ -11,7 +11,8 @@ let s:default_conf = {
+   \ 'title_tokens'   : 16,
+   \ 'max_tokens'     : 1024,
+   \ 'bot_name'       : 'Llama',
+-  \ 'system_prompt'  : 'You are a helpful assistant. Make sure to use all the provided context before producing an answer.'
++  \ 'system_prompt'  : 'You are a helpful assistant. Make sure to use all the provided context before producing an answer.',
++  \ 'do_autowarm'    : v:false
+ \ }
+ 
+ function vimqq#bots#llama#new(config = {}) abort
+@@ -138,6 +139,10 @@ function vimqq#bots#llama#new(config = {}) abort
+       return self._conf.bot_name
+   endfunction
+ 
++  function! l:llama.do_autowarm() dict
++      return self._conf.do_autowarm
++  endfunction
++
+   " }}}
+   
+   call l:llama._get_status()

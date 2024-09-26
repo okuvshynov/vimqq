@@ -1,8 +1,8 @@
+let g:vqq_llama_servers[0]['do_autowarm'] = v:true
+
 let s:path = expand('<sfile>:p:h')
 let s:lib = s:path . "/../libtest.vim"
 execute "source " . s:lib
-
-let g:vqq_warmup_on_chat_open = ['mock']
 
 function! WriteAndQuit(t)
     let content = getline(1, '$')

@@ -31,7 +31,6 @@ let g:vqq_chats_file = "$test_dir/db.json"
 let g:vqq_llama_servers = [{'bot_name': 'mock', 'addr': 'http://localhost:$port'}]
 let g:vqq_time_format = "00:00"
 set packpath=$test_dir/rtp
-:packloadall
 EOF
 
     echo "$test_dir"

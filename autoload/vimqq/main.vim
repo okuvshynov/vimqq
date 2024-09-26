@@ -5,17 +5,15 @@ endif
 let g:autoloaded_vimqq_main = 1
 
 " -----------------------------------------------------------------------------
-let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
-" -----------------------------------------------------------------------------
 let s:ui      = vimqq#ui#new()
 let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
 
-" TODO: make this a property of a bot, not a separate list
+" Construct warmup_bots list based on do_autowarm() method
 let s:warmup_bots = []
 for bot in s:bots.bots()
-    if index(g:vqq_warmup_on_chat_open, bot.name()) != -1
+    if bot.do_autowarm()
         call add(s:warmup_bots, bot)
     endif
 endfor
