@@ -3,7 +3,13 @@ Please help me refactor my vim plugin.
 Currently, there's a separate configuration for a list of bots to send warmup queries to. This is a relevant snippet where the list is defined and used:
 
 /// main.vim
+if exists('g:autoloaded_vimqq_main')
+    finish
+endif
 
+let g:autoloaded_vimqq_main = 1
+
+" -----------------------------------------------------------------------------
 let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
 " -----------------------------------------------------------------------------
 let s:ui      = vimqq#ui#new()
@@ -19,7 +25,7 @@ for bot in s:bots.bots()
     endif
 endfor
 
-Rather than having a separate configuration list, add a property do_autowarm to each of the bots' configuration and a function to return this status (read-only). Use that function to construct s:warmup_bots list.
+Rather than having a separate configuration list, add a property do_autowarm to each of the bots' configuration and a function to return this status (read-only). Use that function to construct s:warmup_bots list. Provide your output as individual diff files I can apply with patch command not relying on version control system.
 
 Here are all the bots implementations:
 
@@ -189,7 +195,6 @@ endfunction
 
 ///////////////////////////////////////
 /// bots/llama.vim
-
 
 " Copyright 2024 Oleksandr Kuvshynov
 " -----------------------------------------------------------------------------
@@ -380,8 +385,6 @@ endfunction
 
 ///////////////////////////////////////
 /// mistral.vim
-
-
 
 " Copyright 2024 Oleksandr Kuvshynov
 " -----------------------------------------------------------------------------
