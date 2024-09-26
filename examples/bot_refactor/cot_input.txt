@@ -1,0 +1,563 @@
+Please help me refactor my vim plugin.
+
+Currently, there's a separate configuration for a list of bots to send warmup queries to. This is a relevant snippet where the list is defined and used:
+
+/// main.vim
+if exists('g:autoloaded_vimqq_main')
+    finish
+endif
+
+let g:autoloaded_vimqq_main = 1
+
+" -----------------------------------------------------------------------------
+let g:vqq_warmup_on_chat_open = get(g:, 'vqq_warmup_on_chat_open', [])
+" -----------------------------------------------------------------------------
+let s:ui      = vimqq#ui#new()
+let s:chatsdb = vimqq#chatsdb#new()
+let s:bots    = vimqq#bots#bots#new()
+let s:state   = vimqq#state#new(s:chatsdb)
+
+" TODO: make this a property of a bot, not a separate list
+let s:warmup_bots = []
+for bot in s:bots.bots()
+    if index(g:vqq_warmup_on_chat_open, bot.name()) != -1
+        call add(s:warmup_bots, bot)
+    endif
+endfor
+
+" -----------------------------------------------------------------------------
+" Setting up wiring between modules
+" ... rest of main.vim
+
+Rather than having a separate configuration list, add a property do_autowarm to each of the bots' configuration and a function to return this status (read-only). Use that function to construct s:warmup_bots list. Provide your output as individual diff files I can apply with patch command not relying on version control system.
+
+After you have completed your patches, do another iteration and try applying them. Make sure they apply cleanly and will produce the desired result. Repeat this process at least twice, but as many times as you need.
+
+Here are all the bots implementations:
+
+///////////////////////////////////////
+/// bots/claude.vim
+
+" Copyright 2024 Oleksandr Kuvshynov
+" -----------------------------------------------------------------------------
+if exists('g:autoloaded_vimqq_claude_module')
+    finish
+endif
+
+let g:autoloaded_vimqq_claude_module = 1
+
+" API key for anthropic
+let g:vqq_claude_api_key = get(g:, 'vqq_claude_api_key', $ANTHROPIC_API_KEY)
+
+let s:default_conf = {
+  \ 'title_tokens'   : 16,
+  \ 'max_tokens'     : 1024,
+  \ 'bot_name'       : 'Claude',
+  \ 'system_prompt'  : 'You are a helpful assistant.'
+\ }
+
+" TODO: handling errors 
+function! vimqq#bots#claude#new(config = {}) abort
+    let l:claude = {}
+    call extend(l:claude, vimqq#base#new())
+
+    let l:claude._conf = deepcopy(s:default_conf)
+    call extend(l:claude._conf, a:config)
+
+    let l:claude._api_key = g:vqq_claude_api_key
+
+    let l:claude._reply_by_id = {}
+    let l:claude._title_reply_by_id = {}
+
+    let l:claude._usage = {'in': 0, 'out': 0}
+
+    " {{{ private:
+
+    function! l:claude._update_usage(usage) dict
+        let self._usage['in']  += a:usage['input_tokens']
+        let self._usage['out'] += a:usage['output_tokens']
+
+        let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
+
+        call vimqq#log#info("claude " . self.name() . " total usage: " . msg)
+
+        call self.call_cb('status_cb', msg, self)
+    endfunction
+
+    function! l:claude._on_title_out(chat_id, msg) dict
+        call add(self._title_reply_by_id[a:chat_id], a:msg)
+    endfunction
+
+    function l:claude._on_title_close(chat_id) dict
+        let l:response = json_decode(join(self._title_reply_by_id[a:chat_id], '\n'))
+        let l:title  = l:response.content[0].text
+        call self._update_usage(l:response.usage)
+        call self.call_cb('title_done_cb', a:chat_id, title)
+    endfunction
+
+    function! l:claude._on_out(chat_id, msg) dict
+        call add(self._reply_by_id[a:chat_id], a:msg)
+    endfunction
+
+    function! l:claude._on_err(chat_id, msg) dict
+        call vimqq#log#error('claude error: ' . a:msg)
+    endfunction
+
+    function l:claude._on_close(chat_id) dict
+        let l:response = json_decode(join(self._reply_by_id[a:chat_id], '\n'))
+        if has_key(l:response, 'content') && !empty(l:response.content) && has_key(l:response.content[0], 'text')
+            let l:message  = l:response.content[0].text
+            call self._update_usage(l:response.usage)
+            " we pretend it's one huge update
+            call self.call_cb('token_cb', a:chat_id, l:message)
+            " and immediately done
+            call self.call_cb('stream_done_cb', a:chat_id, self)
+        else
+            call vimqq#log#error('Unable to process response')
+            call vimqq#log#error(json_encode(l:response))
+            " TODO: still need to mark query as done
+        endif
+    endfunction
+
+    function! l:claude._send_query(req, job_conf) dict
+        let l:json_req  = json_encode(a:req)
+        let l:json_req  = substitute(l:json_req, "'", "'\\\\''", "g")
+
+        let l:curl_cmd  = "curl -s -X POST 'https://api.anthropic.com/v1/messages'"
+        let l:curl_cmd .= " -H 'Content-Type: application/json'"
+        let l:curl_cmd .= " -H 'x-api-key: " . self._api_key . "'"
+        let l:curl_cmd .= " -H 'anthropic-version: 2023-06-01'"
+        let l:curl_cmd .= " -d '" . l:json_req . "'"
+
+        return vimqq#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
+    endfunction
+
+    function! l:claude._format_messages(messages) dict
+        let l:res = []
+        for msg in vimqq#fmt#many(a:messages)
+            " Skipping empty messages
+            if !empty(msg.content)
+                call add (l:res, {'role': msg.role, 'content': msg.content})
+            endif
+        endfor
+        return l:res
+    endfunction
+
+    " }}}
+
+    " {{{ public:
+
+    function! l:claude.name() dict
+        return self._conf.bot_name
+    endfunction
+
+    function! l:claude.send_warmup(messages) dict
+      " do nothing, as Claude API is stateless
+    endfunction
+
+    function! l:claude.send_chat(chat_id, messages) dict
+        let req = {}
+        let req.model      = self._conf.model
+        let req.system     = self._conf.system_prompt
+        let req.messages   = self._format_messages(a:messages)
+        let req.max_tokens = self._conf.max_tokens
+        let self._reply_by_id[a:chat_id] = []
+
+        let l:job_conf = {
+              \ 'out_cb'  : {channel, msg -> self._on_out(a:chat_id, msg)}, 
+              \ 'err_cb'  : {channel, msg -> self._on_err(a:chat_id, msg)},
+              \ 'close_cb': {channel      -> self._on_close(a:chat_id)}
+        \ }
+
+        return self._send_query(req, l:job_conf)
+    endfunction
+
+    " ask for a title we'll use. Uses first message in a chat
+    function! l:claude.send_gen_title(chat_id, message) dict
+        let req = {}
+        let l:message_text = vimqq#fmt#content(a:message)
+        " TODO: make configurable and remove duplicate code with llama.vim
+        let prompt = "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
+        let req.messages   = [{"role": "user", "content": prompt . l:message_text}]
+        let req.max_tokens = self._conf.title_tokens
+        let req.model      = self._conf.model
+        let req.system     = self._conf.system_prompt
+
+        let self._title_reply_by_id[a:chat_id] = []
+
+        let l:job_conf = {
+              \ 'out_cb'  : {channel, msg -> self._on_title_out(a:chat_id, msg)},
+              \ 'close_cb': {channel      -> self._on_title_close(a:chat_id)}
+        \ }
+
+        return self._send_query(req, l:job_conf)
+    endfunction
+
+    " }}}
+
+    return l:claude
+endfunction
+
+
+///////////////////////////////////////
+/// bots/llama.vim
+
+" Copyright 2024 Oleksandr Kuvshynov
+" -----------------------------------------------------------------------------
+if exists('g:autoloaded_vimqq_llama_module')
+    finish
+endif
+
+let g:autoloaded_vimqq_llama_module = 1
+
+let s:default_conf = {
+  \ 'healthcheck_ms' : 10000,
+  \ 'title_tokens'   : 16,
+  \ 'max_tokens'     : 1024,
+  \ 'bot_name'       : 'Llama',
+  \ 'system_prompt'  : 'You are a helpful assistant. Make sure to use all the provided context before producing an answer.'
+\ }
+
+function vimqq#bots#llama#new(config = {}) abort
+  let l:llama = {} 
+  
+  call extend(l:llama, vimqq#base#new())
+
+  let l:llama._conf = deepcopy(s:default_conf)
+  call extend(l:llama._conf, a:config)
+
+  let l:server = substitute(l:llama._conf.addr, '/*$', '', '')
+  let l:llama._chat_endpoint   = l:server . '/v1/chat/completions'
+  let l:llama._status_endpoint = l:server . '/health'
+
+  " {{{ private:
+  
+  function l:llama._update_status(status)
+      call self.call_cb('status_cb', a:status, self)
+  endfunction
+
+  function l:llama._on_status_exit(exit_status) dict
+      if a:exit_status != 0
+          call self._update_status("unavailable")
+      endif
+      call timer_start(self._conf.healthcheck_ms, { -> self._get_status() })
+  endfunction
+
+  function l:llama._on_status_out(msg) dict
+      try
+          let l:status = json_decode(a:msg)
+          if empty(l:status)
+              call self._update_status("unavailable")
+          else
+              call self._update_status(l:status.status)
+          endif
+      " TODO: looks like json errors are different in vim/nvim.
+      " Need to handle specific errors.
+      catch
+          call vimqq#log#info("Error decoding status: " . v:exception)
+          call self._update_status("error")
+      endtry
+  endfunction
+
+  function l:llama._get_status() dict
+      if self._conf.healthcheck_ms < 0
+          return
+      endif
+      let l:curl_cmd = ["curl", "--max-time", "5", self._status_endpoint]
+      let l:job_conf = {
+            \ 'out_cb' : {channel, msg   -> self._on_status_out(msg)},
+            \ 'exit_cb': {job_id, status -> self._on_status_exit(status)}
+      \}
+
+      call vimqq#jobs#start(l:curl_cmd, l:job_conf)
+  endfunction
+
+  function l:llama._send_chat_query(req, job_conf) dict
+      let l:json_req  = json_encode(a:req)
+      let l:json_req  = substitute(l:json_req, "'", "'\\\\''", "g")
+
+      let l:curl_cmd  = "curl --no-buffer -s -X POST '" . self._chat_endpoint . "'"
+      let l:curl_cmd .= " -H 'Content-Type: application/json'"
+      let l:curl_cmd .= " -d '" . l:json_req . "'"
+
+      return vimqq#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
+  endfunction
+
+  function! l:llama._on_stream_out(chat_id, msg) dict
+      let l:messages = split(a:msg, '\n')
+      for message in l:messages
+          if message !~# '^data: '
+              continue
+          endif
+          let json_string = substitute(message, '^data: ', '', '')
+
+          let response = json_decode(json_string)
+          if has_key(response.choices[0].delta, 'content')
+              let next_token = response.choices[0].delta.content
+              call self.call_cb('token_cb', a:chat_id, next_token)
+          endif
+      endfor
+  endfunction
+
+  function! l:llama._on_stream_close(chat_id)
+      call self.call_cb('stream_done_cb', a:chat_id, self)
+  endfunction
+
+  function! l:llama._on_err(chat_id, msg)
+      call vimqq#log#error(join(a:msg, '\n'))
+  endfunction
+
+  function! l:llama._on_title_out(chat_id, msg)
+      let json_string = substitute(a:msg, '^data: ', '', '')
+
+      let response = json_decode(json_string)
+      if has_key(response.choices[0].message, 'content')
+          let title = response.choices[0].message.content
+          call self.call_cb('title_done_cb', a:chat_id, title)
+      endif
+  endfunction
+
+  function! l:llama._prepare_system_prompt() dict
+      return {"role": "system", "content": self._conf.system_prompt}
+  endfunction
+
+  function! l:llama._prepare_request(messages) dict
+      let req = {}
+      let req.messages     = [self._prepare_system_prompt()] + vimqq#fmt#many(a:messages)
+      let req.n_predict    = 0
+      let req.stream       = v:true
+      let req.cache_prompt = v:true
+      return req
+  endfunction
+
+  " }}}
+
+  " {{{ public:
+
+  " warmup query to pre-fill the cache on the server.
+  " We ask for 0 tokens and ignore the response.
+  function! l:llama.send_warmup(messages) dict
+      let req = self._prepare_request(a:messages)
+      let req.n_predict = 0
+
+      let l:job_conf = {
+            \ 'close_cb': {channel -> self.call_cb('warmup_done_cb')}
+      \ }
+      return self._send_chat_query(req, l:job_conf)
+  endfunction
+
+  function! l:llama.send_chat(chat_id, messages) dict
+      let req = self._prepare_request(a:messages)
+      let req.n_predict = self._conf.max_tokens
+
+      let l:job_conf = {
+            \ 'out_cb'  : {channel, msg -> self._on_stream_out(a:chat_id, msg)}, 
+            \ 'err_cb'  : {channel, msg -> self._on_err(a:chat_id, msg)},
+            \ 'close_cb': {channel      -> self._on_stream_close(a:chat_id)}
+      \ }
+
+      return self._send_chat_query(req, l:job_conf)
+  endfunction
+
+  " ask for a title we'll use. Uses first message in a chat
+  " TODO: this pollutes the kv cache for next messages.
+  function! l:llama.send_gen_title(chat_id, message) dict
+      let req = {}
+      let l:message_text = vimqq#fmt#content(a:message)
+      let l:prompt = "Do not answer question above. Instead, write title with a few words summarizing the text. Reply only with title itself. Use no quotes around it.\n\n"
+      let req.messages  = [self._prepare_system_prompt()] + [{"role": "user", "content": l:message_text . l:prompt}]
+      let req.n_predict    = self._conf.title_tokens
+      let req.stream       = v:false
+      let req.cache_prompt = v:true
+
+      let l:job_conf = {
+            \ 'out_cb': {channel, msg -> self._on_title_out(a:chat_id, msg)}
+      \ }
+
+      return self._send_chat_query(req, l:job_conf)
+  endfunction
+
+  function! l:llama.name() dict
+      return self._conf.bot_name
+  endfunction
+
+  " }}}
+  
+  call l:llama._get_status()
+  return l:llama
+
+endfunction
+
+
+///////////////////////////////////////
+/// mistral.vim
+
+" Copyright 2024 Oleksandr Kuvshynov
+" -----------------------------------------------------------------------------
+if exists('g:autoloaded_vimqq_mistral_module')
+    finish
+endif
+
+let g:autoloaded_vimqq_mistral_module = 1
+
+" API key for mistral
+let g:vqq_mistral_api_key = get(g:, 'vqq_mistral_api_key', $MISTRAL_API_KEY)
+
+let s:default_conf = {
+  \ 'title_tokens'   : 16,
+  \ 'max_tokens'     : 1024,
+  \ 'bot_name'       : 'mistral',
+  \ 'system_prompt'  : 'You are a helpful assistant.'
+\ }
+
+function! vimqq#bots#mistral#new(config = {}) abort
+    let l:mistral_bot = {}
+    call extend(l:mistral_bot, vimqq#base#new())
+
+    let l:mistral_bot._conf = deepcopy(s:default_conf)
+    call extend(l:mistral_bot._conf, a:config)
+
+    let l:mistral_bot._api_key = g:vqq_mistral_api_key
+
+    let l:mistral_bot._reply_by_id = {}
+    let l:mistral_bot._title_reply_by_id = {}
+
+    let l:mistral_bot._usage = {'in': 0, 'out': 0}
+
+    " {{{ private:
+
+    function! l:mistral_bot._update_usage(usage) dict
+        let self._usage['in']  += a:usage['prompt_tokens']
+        let self._usage['out'] += a:usage['completion_tokens']
+        call vimqq#metrics#inc('mistral.' . self._conf.model . '.tokens_in', a:usage['prompt_tokens'])
+        call vimqq#metrics#inc('mistral.' . self._conf.model . '.tokens_out', a:usage['completion_tokens'])
+
+        let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
+
+        call vimqq#log#info("mistral " . self.name() . " total usage: " . msg)
+
+        call self.call_cb('status_cb', msg, self)
+    endfunction
+
+    function! l:mistral_bot._on_title_out(chat_id, msg) dict
+        call add(self._title_reply_by_id[a:chat_id], a:msg)
+    endfunction
+
+    function l:mistral_bot._on_title_close(chat_id) dict
+        let l:response = json_decode(join(self._title_reply_by_id[a:chat_id], '\n'))
+        if has_key(l:response, 'choices') && !empty(l:response.choices) && has_key(l:response.choices[0], 'message')
+            let l:title  = l:response.choices[0].message.content
+            call self._update_usage(l:response.usage)
+            call self.call_cb('title_done_cb', a:chat_id, title)
+        else
+            call vimqq#log#error('Unable to process response')
+            call vimqq#log#error(json_encode(l:response))
+            " TODO: still need to mark query as done
+        endif
+    endfunction
+
+    function! l:mistral_bot._on_out(chat_id, msg) dict
+        call add(self._reply_by_id[a:chat_id], a:msg)
+    endfunction
+
+    function! l:mistral_bot._on_err(chat_id, msg) dict
+        call vimqq#log#error('mistral_bot error: ' . a:msg)
+    endfunction
+
+    function l:mistral_bot._on_close(chat_id) dict
+        let l:response = join(self._reply_by_id[a:chat_id], '\n')
+        call vimqq#log#debug('Mistral API reply: ' . l:response)
+        let l:response = json_decode(l:response)
+        if has_key(l:response, 'choices') && !empty(l:response.choices) && has_key(l:response.choices[0], 'message')
+            let l:message  = l:response.choices[0].message.content
+            call self._update_usage(l:response.usage)
+            " we pretend it's one huge update
+            call self.call_cb('token_cb', a:chat_id, l:message)
+            " and immediately done
+            call self.call_cb('stream_done_cb', a:chat_id, self)
+        else
+            call vimqq#log#error('Unable to process response')
+            call vimqq#log#error(json_encode(l:response))
+            " TODO: still need to mark query as done
+        endif
+    endfunction
+
+    function! l:mistral_bot._send_query(req, job_conf) dict
+        let l:json_req  = json_encode(a:req)
+        let l:json_req  = substitute(l:json_req, "'", "'\\\\''", "g")
+
+        let l:curl_cmd  = "curl -s -X POST 'https://api.mistral.ai/v1/chat/completions'"
+        let l:curl_cmd .= " -H 'Content-Type: application/json'"
+        let l:curl_cmd .= " -H 'Accept: application/json'"
+        let l:curl_cmd .= " -H 'Authorization: Bearer " . self._api_key . "'"
+        let l:curl_cmd .= " -d '" . l:json_req . "'"
+
+        return vimqq#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
+    endfunction
+
+    function! l:mistral_bot._format_messages(messages) dict
+        " Add system message
+        let l:res = [{'role': 'system', 'content' : self._conf.system_prompt}]
+
+        for msg in vimqq#fmt#many(a:messages)
+            " Skipping empty messages
+            if !empty(msg.content)
+                call add (l:res, {'role': msg.role, 'content': msg.content})
+            endif
+        endfor
+        return l:res
+    endfunction
+
+    " }}}
+
+    function! l:mistral_bot.name() dict
+        return self._conf.bot_name
+    endfunction
+
+    function! l:mistral_bot.send_warmup(messages) dict
+      " do nothing for now
+    endfunction
+
+    function! l:mistral_bot.send_chat(chat_id, messages) dict
+        let req = {}
+        let req.model      = self._conf.model
+        let req.messages   = self._format_messages(a:messages)
+        let req.max_tokens = self._conf.max_tokens
+        let self._reply_by_id[a:chat_id] = []
+
+        let l:job_conf = {
+              \ 'out_cb'  : {channel, msg -> self._on_out(a:chat_id, msg)}, 
+              \ 'err_cb'  : {channel, msg -> self._on_err(a:chat_id, msg)},
+              \ 'close_cb': {channel      -> self._on_close(a:chat_id)}
+        \ }
+
+        return self._send_query(req, l:job_conf)
+    endfunction
+
+    " ask for a title we'll use. Uses first message in a chat
+    function! l:mistral_bot.send_gen_title(chat_id, message) dict
+        let req = {}
+        let l:message_text = vimqq#fmt#content(a:message)
+        " TODO: make configurable and remove duplicate code with llama.vim
+        let prompt = "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
+        let req.messages = [
+            \ {'role': 'system', 'content' : self._conf.system_prompt},
+            \ {"role": "user", "content": prompt . l:message_text}
+        \]
+        let req.max_tokens = self._conf.title_tokens
+        let req.model      = self._conf.model
+
+        let self._title_reply_by_id[a:chat_id] = []
+
+        let l:job_conf = {
+              \ 'out_cb'  : {channel, msg -> self._on_title_out(a:chat_id, msg)},
+              \ 'close_cb': {channel      -> self._on_title_close(a:chat_id)}
+        \ }
+
+        return self._send_query(req, l:job_conf)
+    endfunction
+
+    return l:mistral_bot
+
+endfunction
+
