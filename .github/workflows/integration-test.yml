@@ -13,6 +13,9 @@ jobs:
     
     - name: Install Vim
       run: sudo apt-get update && sudo apt-get install -y vim
+
+    - name: Install NeoVim
+      run: sudo apt-get update && sudo apt-get install -y neovim
     
     - name: Install jq
       run: sudo apt-get update && sudo apt-get install -y jq
@@ -28,3 +31,5 @@ jobs:
     - name: Run all integration tests
       run: VIMQQ_VERBOSE=1 ./tests/run_all.sh ${{ github.workspace }}
     
+    - name: Run all integration tests with neovim
+      run: VIMQQ_VERBOSE=1 VIMQQ_VIM_BINARY=nvim  ./tests/run_all.sh ${{ github.workspace }}
