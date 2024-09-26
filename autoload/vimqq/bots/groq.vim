@@ -114,7 +114,7 @@ function! vimqq#bots#groq#new(config = {}) abort
         return self._conf.bot_name
     endfunction
 
-    function! l:groq.do_autowarm() dict
+    function! l:groq_bot.do_autowarm() dict
         return self._conf.do_autowarm
     endfunction
 
