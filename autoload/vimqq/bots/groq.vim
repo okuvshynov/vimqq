@@ -13,7 +13,8 @@ let s:default_conf = {
   \ 'title_tokens'   : 16,
   \ 'max_tokens'     : 1024,
   \ 'bot_name'       : 'groq',
-  \ 'system_prompt'  : 'You are a helpful assistant.'
+  \ 'system_prompt'  : 'You are a helpful assistant.',
+  \ 'do_autowarm'    : v:false
 \ }
 
 function! vimqq#bots#groq#new(config = {}) abort
@@ -111,6 +112,10 @@ function! vimqq#bots#groq#new(config = {}) abort
 
     function! l:groq_bot.name() dict
         return self._conf.bot_name
+    endfunction
+
+    function! l:claude.do_autowarm() dict
+        return self._conf.do_autowarm
     endfunction
 
     function! l:groq_bot.send_warmup(messages) dict
