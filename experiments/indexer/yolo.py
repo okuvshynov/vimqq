@@ -23,6 +23,7 @@ Provide your output as individual diff files I can apply with patch command with
 Provide your output in the following format:
 
 <content>
+<version>1</version>
 <description>your plain text description of changes and motivation</description>
 <files>
 <file>
@@ -36,6 +37,12 @@ Provide your output in the following format:
 </file>
 </files>
 </content>
+
+After you have completed this task, there's a required validation step. Your job is to try to apply these patches and verify they would apply cleanly. Make sure line numbers in the patch are correct. 
+
+If any modification is needed, provide another copy of <content>...</content> output with version incremented by one.
+
+Repeat this process until you are confident the patches would apply cleanly and work as expected.
 
 Here's high level summary of the project structure, please use the provided tools to get needed information.
 
@@ -116,10 +123,16 @@ def run_query(git_root, query, api_key):
 def get_files(git_root, rel_paths):
     res = []
     for p in rel_paths:
-        with open(os.path.join(git_root, p), 'r') as f:
+        file_path = os.path.join(git_root, p)
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as f:
+                res.append('\n')
+                res.append(p)
+                res.append(f.read())
+        else:
             res.append('\n')
             res.append(p)
-            res.append(f.read())
+            res.append('!! This file was not found. Probably you are still working on it.')
 
     return "\n".join(res)
 
@@ -133,15 +146,19 @@ def find_git_root(start_path='.'):
     sys.exit(1)
 
 def parse_patch_xml(content):
-    content_match = re.search(r'<content>(.*?)</content>', content, re.DOTALL)
+    # Find all <content> blocks
+    content_matches = list(re.finditer(r'<content>(.*?)</content>', content, re.DOTALL))
     
-    if not content_match:
-        raise ValueError("Could not find complete <content> tag in the file")
+    if not content_matches:
+        raise ValueError("Could not find any <content> tag in the file")
+
+    # Get the last <content> block
+    last_content_match = content_matches[-1]
 
     # Extract the parts
-    pre_content = content[:content_match.start()].strip()
-    xml_content = content_match.group(1)
-    post_content = content[content_match.end():].strip()
+    pre_content = content[:last_content_match.start()].strip()
+    xml_content = last_content_match.group(1)
+    post_content = content[last_content_match.end():].strip()
 
     # Parse file information using regex
     file_pattern = r'<file>\s*<path>\s*(.*?)\s*</path>\s*<patch>\s*(.*?)\s*</patch>\s*</file>'
@@ -182,7 +199,9 @@ def main():
     for f in patches:
         path = f['path']
         patch = f['patch']
-        apply_patch(git_root, path, patch)
+        print(path)
+        print(patch)
+        #apply_patch(git_root, path, patch)
 
 if __name__ == '__main__':
     main()
