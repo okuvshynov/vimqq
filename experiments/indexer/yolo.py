@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 import subprocess
 import os
 import tempfile
+import re
 
 from pathlib import Path
 from xml.dom import minidom
