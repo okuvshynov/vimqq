@@ -14,6 +14,24 @@ let s:chain_prompt = 'You are an expert AI assistant that explains your reasonin
 \"next_action": "continue"
 \}'
 
+let s:repo_index_prompt = '
+            \ You will be given entire content for a code repository. It will be formatted as a list of entries like this:
+            \
+            \<file>
+            \<path>path/filename</path>
+            \<content>
+            \Content here....
+            \</content>
+            \</file>
+            \
+            \Your goal is to produce a detailed description of that repository. The description should be detailed enough for a junior engineer to understand where to look when working on a task. 
+            \
+            \List both high-level conceptual details and specific symbols/definitions and where they are defined/used. Make sure you do not omit any important details. After reading your description and task summary engineer should know where to look at and which files to check. Ensure that for each file you recorded entities/symbols defined and used.'
+
 function! vimqq#prompts#chained(n_steps)
     return printf(s:chain_prompt, a:n_steps)
+endfunction
+
+function! vimqq#prompts#index()
+    return s:repo_index_prompt
 endfunction

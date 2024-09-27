@@ -1,10 +1,12 @@
+```
 * e2e case study for some multi-file change
-* other providers - openai, google
-* Streaming for remote APIs (e.g. mistral)
-* Caching for providers which support 
-* Context generalization - github, treesitter, etc.
-* Tool use - let model decide on the context to ask for.
-* CoT-like reasoning + blind testing (so, both shown/hidden modes)
-* asking question multiple models at a time
-* test on windows
-* All TODO: from the codebase
+- other providers - openai, google
+- Streaming for remote APIs (e.g. mistral)
+- Caching for providers which support it
+- Context generalization - github, treesitter, etc. Definitely need file tags.
+- Tool use - let model decide on the context to ask for.
+- CoT-like reasoning + blind testing (so, both shown/hidden modes)
+- asking question multiple models at a time
+- test on windows
+- All TODO: from the codebase
+```
