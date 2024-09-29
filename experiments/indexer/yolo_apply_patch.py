@@ -25,7 +25,7 @@ def apply_patch(root, path, patch_content, api_key):
         logging.info("Patch applied successfully")
         return
     except subprocess.CalledProcessError as e:
-        logging.info("Error applying patch:")
+        logging.error("Error applying patch.")
 
     logging.info("Trying fuzzy patch")
     with open(path, 'r') as f:
@@ -117,15 +117,13 @@ def main():
         else:
             logging.info("Error: No input provided. Use a pipe or provide a filename.", file=sys.stderr)
             sys.exit(1)
-    for fstr in content.split('\n'):
+    for fstr in content.strip('\n').split('\n'):
         try:
             f = json.loads(fstr)
-            print(f)
             path = f['path']
             patch = f['patch']
             logging.info(f'processing patch for {path}')
-            apply_patch(git_root, path, patch, api_key)
-            break
+            #apply_patch(git_root, path, patch, api_key)
         except:
             logging.error(f'unable to parse {fstr}')
 
