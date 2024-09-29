@@ -1,10 +1,14 @@
-#!/usr/bin/env python3
+# First step in the pipeline
+
+# input (from stdin): query
+# output: description of all changes in xml format
 
 # this script assumes we have index to pass saved in .ll_index in the repo root
 
 import argparse
 import fnmatch
 import json
+import logging
 import os
 import re
 import subprocess
@@ -18,6 +22,7 @@ from xml.dom import minidom
 import http.client
 import urllib.parse
 
+# TODO: after initial testing, change first sentence to user instructions
 query_prompt="""
 Let's extract the title generation query construction from each bot implementation and use the same code for each bot.
 Provide your output as individual diff files I can apply with patch command without relying on version control system.
@@ -97,8 +102,8 @@ def run_query(git_root, query, api_key):
         data = res.read()
         data = json.loads(data.decode("utf-8"))
 
-        print('received reply from sonnet')
-        #print(json.dumps(data['content']))
+        logging.info('received reply from sonnet')
+        #logging.info(json.dumps(data['content']))
         
         messages.append({"role": "assistant", "content": data['content']})
 
@@ -106,12 +111,12 @@ def run_query(git_root, query, api_key):
             message = {"role": "user", "content": []}
             for content_piece in data['content']:
                 if content_piece['type'] == 'tool_use':
-                    print(f'requested tool: {content_piece["input"]}')
+                    logging.info(f'requested tool: {content_piece["input"]}')
                     tool_use_id = content_piece['id']
                     tool_use_name = content_piece['name']
                     tool_use_args = content_piece['input']
                     if tool_use_name != 'get_file':
-                        print(f'unknown tool: {tool_use_name}')
+                        logging.info(f'unknown tool: {tool_use_name}')
                         continue
                     tool_result = get_files(git_root, tool_use_args['filepaths'])
                     message["content"].append({"type": "tool_result", "tool_use_id" : tool_use_id, "content": tool_result})
@@ -120,6 +125,15 @@ def run_query(git_root, query, api_key):
             # got final reply
             return data['content']
     return None
+
+def find_git_root(start_path='.'):
+    current_path = Path(start_path).resolve()
+    while current_path != current_path.parent:
+        if (current_path / '.git').is_dir():
+            return current_path
+        current_path = current_path.parent
+    logging.fatal("Not a git repository", file=sys.stderr)
+    sys.exit(1)
 
 def get_files(git_root, rel_paths):
     res = []
@@ -137,112 +151,15 @@ def get_files(git_root, rel_paths):
 
     return "\n".join(res)
 
-def find_git_root(start_path='.'):
-    current_path = Path(start_path).resolve()
-    while current_path != current_path.parent:
-        if (current_path / '.git').is_dir():
-            return current_path
-        current_path = current_path.parent
-    print("Not a git repository", file=sys.stderr)
-    sys.exit(1)
-
-def parse_patch_xml(content):
-    # Find all <content> blocks
-    content_matches = list(re.finditer(r'<content>(.*?)</content>', content, re.DOTALL))
-    
-    if not content_matches:
-        raise ValueError("Could not find any <content> tag in the file")
-
-    # Get the last <content> block
-    last_content_match = content_matches[-1]
-
-    # Extract the parts
-    pre_content = content[:last_content_match.start()].strip()
-    xml_content = last_content_match.group(1)
-    post_content = content[last_content_match.end():].strip()
-
-    # Parse file information using regex
-    file_pattern = r'<file>\s*<path>\s*(.*?)\s*</path>\s*<patch>\s*(.*?)\s*</patch>\s*</file>'
-    files = [
-        {'path': match.group(1), 'patch': match.group(2)}
-        for match in re.finditer(file_pattern, xml_content, re.DOTALL)
-    ]
-
-    # Return a dictionary with all parts
-    return files
-
-# TODO: we need to do fuzzy patch if normal patch fails
-def apply_patch(root, path, patch_content, api_key):
-    # Change to the root directory
-    os.chdir(root)
-    
-    try:
-        # Run the patch command
-        result = subprocess.run(['patch', path], input=patch_content, text=True, capture_output=True, check=True)
-        print("Patch applied successfully")
-        print("Stdout:", result.stdout)
-        return
-    except subprocess.CalledProcessError as e:
-        print("Error applying patch:")
-        print("Stdout:", e.stdout)
-        print("Stderr:", e.stderr)
-
-    print("Trying fuzzy patch")
-    with open(path, 'r') as f:
-        file_content = f.read()
-
-    patched = fuzzy_patch(file_content, patch_content, api_key)
-    with open(path, 'w') as f:
-        f.write(patched)
-
-
-
-sys_prompt="You are helpful and attentive to details assistant"
-
-patch_prompt="""
-You are given file content in tags <file></file> and patch file in tags <patch></patch>. Patch file might have line numbers off, your job is to perform fuzzy merging of that patch. Take into account line numbers, context around the change, +/- signs. Put the merged content in <file_new></file_new> tags.
-
-After completing the job, look back at merged file you created and verify that your merged version is correct. If you see any issues, fix them and show the new merged content in <file_fixed></file_fixed> tags.
-
-"""
-
-def fuzzy_patch(file_content, patch_content, api_key):
-    message = f'{patch_prompt}<file>{file_content}</file>\n<patch>{patch_content}</patch>'
-    req = {
-        "max_tokens": 4096,
-        "model": "claude-3-haiku-20240307",
-        "messages": [
-            {"role": "user", "content": message}
-        ]
-    }
-    payload = json.dumps(req)
-    headers = {
-        'x-api-key': api_key,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
-    }
-    conn = http.client.HTTPSConnection("api.anthropic.com")
-
-    conn.request("POST", "/v1/messages", payload, headers)
-    res = conn.getresponse()
-    data = res.read()
-    data = json.loads(data.decode("utf-8"))
-    content = data['content'][0]['text']
-
-    file_new_matches = list(re.finditer(r'<file_new>(.*?)</file_new>', content, re.DOTALL))
-    
-    if not file_new_matches:
-        raise ValueError("Could not find any <file_new> tag in the file")
-
-    file_new = file_new_matches[-1].group(1)
-
-    file_fixed_matches = list(re.finditer(r'<file_fixed>(.*?)</file_fixed>', content, re.DOTALL))
-    
-    if not file_fixed_matches:
-        return file_new
-    return file_fixed_matches[-1].group(1)
-
 def main():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        handlers=[
+            logging.StreamHandler()
+        ]
+    )
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise ValueError("ANTHROPIC_API_KEY environment variable is not set")
@@ -250,19 +167,13 @@ def main():
     with open(os.path.join(git_root, '.ll_index'), 'r') as f:
         ll_index = f.read()
 
-    print(f'read index of size {len(ll_index)}')
+    logging.info(f'read index of size {len(ll_index)}')
 
     query_message = query_prompt + ll_index
 
-    print(f'Running query')
+    logging.info(f'Running query')
     content = run_query(git_root, query_message, api_key)
-    patches = parse_patch_xml(content[0]['text'])
-    print(f'Received {len(patches)} patches')
-    for f in patches:
-        path = f['path']
-        patch = f['patch']
-        print(f'processing patch for {path}')
-        apply_patch(git_root, path, patch, api_key)
+    print(content[0]['text'])
 
 if __name__ == '__main__':
     main()

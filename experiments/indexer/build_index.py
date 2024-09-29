@@ -23,6 +23,21 @@ You will be given content for multiple files from code repository. It will be fo
 Content here....
 </content>
 </input_file>
+<input_file>
+<index>2</index>
+<path>path/filename</path>
+<content>
+Content here....
+</content>
+</input_file>
+...
+<input_file>
+<index>N</index>
+<path>path/filename</path>
+<content>
+Content here....
+</content>
+</input_file>
 
 index is just a number from 1 to N where N is the number of input files.
 
@@ -33,6 +48,28 @@ For every file in the input, write output in the following format:
 
 <file>
 <index>1</index>
+<path>path/filename</path>
+<summary>
+Summary here...
+</summary>
+</file>
+<file>
+<index>2</index>
+<path>path/filename</path>
+<summary>
+Summary here...
+</summary>
+</file>
+...
+<file>
+<index>2</index>
+<path>path/filename</path>
+<summary>
+Summary here...
+</summary>
+</file>
+<file>
+<index>2</index>
 <path>path/filename</path>
 <summary>
 Summary here...
