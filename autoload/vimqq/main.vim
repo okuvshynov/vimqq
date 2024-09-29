@@ -279,12 +279,12 @@ function! vimqq#main#fork_chat(args) abort
     let args = split(a:args, ' ')
     let l:src_chat_id = s:state.get_chat_id()
     if l:src_chat_id == -1
-        vimqq#log#error('no chat to fork')
+        call vimqq#log#error('no chat to fork')
         return
     endif
 
     if s:chatsdb.is_empty(l:src_chat_id)
-        vimqq#log#error('unable to fork empty chat')
+        call vimqq#log#error('unable to fork empty chat')
         return
     endif
 

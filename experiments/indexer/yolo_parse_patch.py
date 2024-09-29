@@ -1,18 +1,6 @@
-import argparse
-import fnmatch
 import json
-import os
 import re
-import subprocess
 import sys
-import tempfile
-import xml.etree.ElementTree as ET
-
-from pathlib import Path
-from xml.dom import minidom
-
-import http.client
-import urllib.parse
 
 def parse_patch_xml(content):
     # Find all <content> blocks
@@ -25,10 +13,8 @@ def parse_patch_xml(content):
     last_content_match = content_matches[-1]
 
     # Extract the parts
-    pre_content = content[:last_content_match.start()].strip()
     xml_content = last_content_match.group(1)
-    post_content = content[last_content_match.end():].strip()
-
+    
     # Parse file information using regex
     file_pattern = r'<file>\s*<path>\s*(.*?)\s*</path>\s*<patch>\s*(.*?)\s*</patch>\s*</file>'
     files = [

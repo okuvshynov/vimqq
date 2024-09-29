@@ -5,22 +5,13 @@
 
 # this script assumes we have index to pass saved in .ll_index in the repo root
 
-import argparse
-import fnmatch
 import json
+import http.client
 import logging
 import os
-import re
-import subprocess
 import sys
-import tempfile
-import xml.etree.ElementTree as ET
 
 from pathlib import Path
-from xml.dom import minidom
-
-import http.client
-import urllib.parse
 
 # TODO: after initial testing, change first sentence to user instructions
 query_prompt="""
@@ -102,7 +93,7 @@ def run_query(git_root, query, api_key):
         data = res.read()
         data = json.loads(data.decode("utf-8"))
 
-        logging.info('received reply from sonnet')
+        logging.info('received {i+1} reply from sonnet')
         #logging.info(json.dumps(data['content']))
         
         messages.append({"role": "assistant", "content": data['content']})

@@ -1,19 +1,14 @@
-import argparse
-import fnmatch
 import json
 import logging
 import os
 import re
 import subprocess
 import sys
-import tempfile
 import xml.etree.ElementTree as ET
 
 from pathlib import Path
-from xml.dom import minidom
 
 import http.client
-import urllib.parse
 
 def apply_patch(root, path, patch_content, api_key):
     # Change to the root directory
