@@ -83,6 +83,14 @@ def fuzzy_patch(file_content, patch_content, api_key):
         return file_new
     return file_fixed_matches[-1].group(1)
 
+def find_git_root(start_path='.'):
+    current_path = Path(start_path).resolve()
+    while current_path != current_path.parent:
+        if (current_path / '.git').is_dir():
+            return current_path
+        current_path = current_path.parent
+    logging.info("Not a git repository", file=sys.stderr)
+    sys.exit(1)
 
 def main():
     logging.basicConfig(
@@ -112,12 +120,16 @@ def main():
         else:
             logging.info("Error: No input provided. Use a pipe or provide a filename.", file=sys.stderr)
             sys.exit(1)
-    for f in content.split('\n'):
-        f = json.loads(f)
-        path = f['path']
-        patch = f['patch']
-        logging.info(f'processing patch for {path}')
-        apply_patch(git_root, path, patch, api_key)
+    for fstr in content.split('\n'):
+        try:
+            f = json.loads(fstr)
+            print(f)
+            path = f['path']
+            patch = f['patch']
+            logging.info(f'processing patch for {path}')
+            apply_patch(git_root, path, patch, api_key)
+        except:
+            logging.error(f'unable to parse {fstr}')
 
 if __name__ == '__main__':
     main()
