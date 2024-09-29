@@ -23,12 +23,9 @@ def apply_patch(root, path, patch_content, api_key):
         # Run the patch command
         result = subprocess.run(['patch', path], input=patch_content, text=True, capture_output=True, check=True)
         logging.info("Patch applied successfully")
-        logging.info("Stdout:", result.stdout)
         return
     except subprocess.CalledProcessError as e:
         logging.info("Error applying patch:")
-        logging.info("Stdout:", e.stdout)
-        logging.info("Stderr:", e.stderr)
 
     logging.info("Trying fuzzy patch")
     with open(path, 'r') as f:
@@ -128,6 +125,7 @@ def main():
             patch = f['patch']
             logging.info(f'processing patch for {path}')
             apply_patch(git_root, path, patch, api_key)
+            break
         except:
             logging.error(f'unable to parse {fstr}')
 
