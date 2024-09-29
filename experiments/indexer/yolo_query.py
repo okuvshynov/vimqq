@@ -13,9 +13,7 @@ import sys
 
 from pathlib import Path
 
-# TODO: after initial testing, change first sentence to user instructions
 query_prompt="""
-Let's extract the title generation query construction from each bot implementation and use the same code for each bot.
 Provide your output as individual diff files I can apply with patch command without relying on version control system.
 Provide your output in the following format:
 
@@ -160,7 +158,8 @@ def main():
 
     logging.info(f'read index of size {len(ll_index)}')
 
-    query_message = query_prompt + ll_index
+    query = " ".join(sys.argv[1:])
+    query_message = f'{query}\n{query_prompt}\n{ll_index}'
 
     logging.info(f'Running query')
     content = run_query(git_root, query_message, api_key)
