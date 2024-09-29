@@ -18,7 +18,7 @@ import http.client
 import urllib.parse
 
 query_prompt="""
-I'd like to remove code duplication and extract send_gen_title methods from each bot.
+Let's extract the title generation query construction from each bot implementation and use the same code for each bot.
 Provide your output as individual diff files I can apply with patch command without relying on version control system.
 Provide your output in the following format:
 
@@ -98,7 +98,8 @@ def run_query(git_root, query, api_key):
         data = res.read()
         data = json.loads(data.decode("utf-8"))
 
-        print(json.dumps(data['content']))
+        print('received reply from sonnet')
+        #print(json.dumps(data['content']))
         
         messages.append({"role": "assistant", "content": data['content']})
 
@@ -106,6 +107,7 @@ def run_query(git_root, query, api_key):
             message = {"role": "user", "content": []}
             for content_piece in data['content']:
                 if content_piece['type'] == 'tool_use':
+                    print(f'requested tool: {content_piece["input"]}')
                     tool_use_id = content_piece['id']
                     tool_use_name = content_piece['name']
                     tool_use_args = content_piece['input']
@@ -170,6 +172,7 @@ def parse_patch_xml(content):
     # Return a dictionary with all parts
     return files
 
+# TODO: we need to do fuzzy patch if normal patch fails
 def apply_patch(root, path, patch_content):
     # Change to the root directory
     os.chdir(root)
@@ -179,10 +182,65 @@ def apply_patch(root, path, patch_content):
         result = subprocess.run(['patch', path], input=patch_content, text=True, capture_output=True, check=True)
         print("Patch applied successfully")
         print("Stdout:", result.stdout)
+        return
     except subprocess.CalledProcessError as e:
         print("Error applying patch:")
         print("Stdout:", e.stdout)
         print("Stderr:", e.stderr)
+
+    print("Trying fuzzy patch")
+    with open(path, 'r') as f:
+        file_content = f.read()
+
+    patched = fuzzy_patch(file_content, patch_content)
+    with open(path, 'w') as f:
+        f.write(patched)
+
+
+
+sys_prompt="You are helpful and attentive to details assistant"
+
+patch_prompt="""
+You are given file content in tags <file></file> and patch file in tags <patch></patch>. Patch file might have line numbers off, your job is to perform fuzzy merging of that patch. Take into account line numbers, context around the change, +/- signs. Put the merged content in <file_new></file_new> tags.
+
+After completing the job, look back at merged file you created and verify that your merged version is correct. If you see any issues, fix them and show the new merged content in <file_fixed></file_fixed> tags.
+
+"""
+
+def fuzzy_patch(file_content, patch_content):
+    message = f'{patch_prompt}<file>{file_content}</file>\n<patch>{patch_content}</patch>'
+    req = {
+        "n_predict": 8192,
+        "stream": False,
+        "cache_prompt": True,
+        "messages": [
+            {"role": "system", "content": sys_prompt},
+            {"role": "user", "content": message}
+        ]
+    }
+    conn = http.client.HTTPConnection("localhost", 8080)
+    payload = json.dumps(req)
+    headers = {
+        'content-type': 'application/json'
+    }
+    conn.request("POST", "/v1/chat/completions", payload, headers)
+    res = conn.getresponse()
+    data = res.read()
+    data = json.loads(data.decode("utf-8"))
+    content = data['choices'][0]['message']['content']
+
+    file_new_matches = list(re.finditer(r'<file_new>(.*?)</file_new>', content, re.DOTALL))
+    
+    if not file_new_matches:
+        raise ValueError("Could not find any <file_new> tag in the file")
+
+    file_new = file_new_matches[-1].group(1)
+
+    file_fixed_matches = list(re.finditer(r'<file_fixed>(.*?)</file_fixed>', content, re.DOTALL))
+    
+    if not file_fixed_matches:
+        return file_new
+    return file_fixed_matches[-1].group(1)
 
 def main():
     api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -192,16 +250,19 @@ def main():
     with open(os.path.join(git_root, '.ll_index'), 'r') as f:
         ll_index = f.read()
 
+    print(f'read index of size {len(ll_index)}')
+
     query_message = query_prompt + ll_index
 
+    print(f'Running query')
     content = run_query(git_root, query_message, api_key)
     patches = parse_patch_xml(content[0]['text'])
+    print(f'Received {len(patches)} patches')
     for f in patches:
         path = f['path']
         patch = f['patch']
-        print(path)
-        print(patch)
-        #apply_patch(git_root, path, patch)
+        print(f'processing patch for {path}')
+        apply_patch(git_root, path, patch)
 
 if __name__ == '__main__':
     main()
