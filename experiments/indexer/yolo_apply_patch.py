@@ -16,7 +16,7 @@ def apply_patch(root, path, patch_content, api_key):
     
     try:
         # Run the patch command
-        result = subprocess.run(['patch', '-v', 'none', path], input=patch_content, text=True, capture_output=True, check=True)
+        result = subprocess.run(['patch', path], input=patch_content, text=True, capture_output=True, check=True)
         logging.info("Patch applied successfully")
         return
     except subprocess.CalledProcessError as e:
