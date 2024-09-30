@@ -43,7 +43,7 @@ def fuzzy_patch(file_content, patch_content, api_key):
     message = f'{patch_prompt}<file>{file_content}</file>\n<patch>{patch_content}</patch>'
     req = {
         "max_tokens": 4096,
-        "model": "claude-3-haiku-20240307",
+        "model": "claude-3-5-sonnet-20240620",
         "messages": [
             {"role": "user", "content": message}
         ]
