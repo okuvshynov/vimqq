@@ -39,8 +39,10 @@ After completing the job, look back at merged file you created and verify that y
 
 """
 
-def fuzzy_patch(file_content, patch_content, api_key):
-    message = f'{patch_prompt}<file>{file_content}</file>\n<patch>{patch_content}</patch>'
+def query_claude(message):
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise ValueError("ANTHROPIC_API_KEY environment variable is not set")
     req = {
         "max_tokens": 4096,
         "model": "claude-3-5-sonnet-20240620",
@@ -60,7 +62,39 @@ def fuzzy_patch(file_content, patch_content, api_key):
     res = conn.getresponse()
     data = res.read()
     data = json.loads(data.decode("utf-8"))
-    content = data['content'][0]['text']
+    return data['content'][0]['text']
+
+def query_groq(message):
+    req = {
+        "max_tokens": 4096,
+        "model": "llama-3.1-70b-versatile",
+        "messages": [
+            {"role": "system", "content": sys_prompt},
+            {"role": "user", "content": message}
+        ]
+    }
+    payload = json.dumps(req)
+
+    # Get the path to the current Python script
+    script_dir = os.path.dirname(__file__)
+
+    # Construct the path to the query_groq.sh script
+    script_path = os.path.join(script_dir, 'query_groq.sh')
+
+    process = subprocess.Popen([script_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, error = process.communicate(payload.encode())
+
+    if error:
+        logging.error(f"Error: {error.decode()}")
+        return None
+
+    data = json.loads(output.decode())
+    return data['choices'][0]['message']['content']
+
+def fuzzy_patch(file_content, patch_content, api_key):
+    message = f'{patch_prompt}<file>{file_content}</file>\n<patch>{patch_content}</patch>'
+
+    content = query_groq(message)
 
     file_new_matches = list(re.finditer(r'<file_new>(.*?)</file_new>', content, re.DOTALL))
     
@@ -115,12 +149,13 @@ def main():
     for fstr in content.strip('\n').split('\n'):
         try:
             f = json.loads(fstr)
-            path = f['path']
-            patch = f['patch']
-            logging.info(f'processing patch for {path}')
-            apply_patch(git_root, path, patch, api_key)
         except:
             logging.error(f'unable to parse {fstr}')
+            continue
+        path = f['path']
+        patch = f['patch']
+        logging.info(f'processing patch for {path}')
+        apply_patch(git_root, path, patch, api_key)
 
 if __name__ == '__main__':
     main()

@@ -1,0 +1,1 @@
+{"max_tokens": 4096, "model": "llama-3.1-70b-versatile", "messages": [{"role": "system", "content": "You are helpful and attentive to details assistant"}, {"role": "user", "content": "How are you?"}]}
