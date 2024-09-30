@@ -42,7 +42,7 @@ Content here....
 index is just a number from 1 to N where N is the number of input files.
 
 Your job is to provide a description of each provided file.
-Description for each file should be detailed, contain both high level description and every important detail.
+Description for each file should be detailed, contain both high level description and every important detail. Include relationships between files if you have identified them.
 
 For every file in the input, write output in the following format:
 
@@ -158,6 +158,18 @@ def main():
     file_entries = list_files(git_root, patterns)
 
     index_message = index_prompt + ''.join(file_entries)
+
+    req = {
+        "max_tokens": 4096,
+        "model": "llama-3.1-70b-versatile",
+        "messages": [
+            {"role": "user", "content": index_message}
+        ]
+    }
+    payload = json.dumps(req)
+
+    print(payload)
+    exit(0)
 
     reply = run_index_query(index_message, api_key)
     with open(os.path.join(git_root, '.ll_index'), 'w') as f:
