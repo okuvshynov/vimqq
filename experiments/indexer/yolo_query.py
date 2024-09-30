@@ -40,7 +40,7 @@ If any modification is needed, provide another copy of <content>...</content> ou
 
 Repeat this process until you are confident the patches would apply cleanly and work as expected.
 
-Here's high level summary of the project structure, please use the provided tools to get needed information.
+Here's high level summary of the project structure. To access the files content you MUST use provided tools.
 
 """
 
@@ -72,11 +72,14 @@ def run_query(git_root, query, api_key):
 
     # max 5 iterations for now
     for i in range(5):
+        # on first iteration we force tool use
+        tool_choice = {"type": "auto"} if i > 0 else {"type": "any"}
         payload = json.dumps({
             "model": "claude-3-5-sonnet-20240620",
             "max_tokens": 8192,
             "tools": tools,
             "messages": messages,
+            "tool_choice": tool_choice
         })
         
         headers = {
@@ -91,8 +94,8 @@ def run_query(git_root, query, api_key):
         data = res.read()
         data = json.loads(data.decode("utf-8"))
 
-        logging.info('received {i+1} reply from sonnet')
-        #logging.info(json.dumps(data['content']))
+        logging.info(f'received {i+1} reply from sonnet')
+        logging.info(json.dumps(data['content']))
         
         messages.append({"role": "assistant", "content": data['content']})
 
