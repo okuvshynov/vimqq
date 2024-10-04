@@ -112,7 +112,7 @@ def process_file(filepath, relative_path, index):
     index_element = ET.SubElement(file_element, "index")
     index_element.text = str(index)
     
-    name_element = ET.SubElement(file_element, "name")
+    name_element = ET.SubElement(file_element, "path")
     name_element.text = str(relative_path)
     
     content_element = ET.SubElement(file_element, "content")
