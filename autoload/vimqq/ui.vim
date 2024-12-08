@@ -17,8 +17,8 @@ let g:vqq_time_format = get(g:, 'vqq_time_format', "%b %d %H:%M ")
 " format to use for each message. Not configurable, we have hardcoded syntax
 let s:time_format = "%H:%M"
 
-let s:showing = 'list'
-let s:buffer_name = 'vimqq_chat'
+let s:buffer_name_list = 'vimqq_chatlist'
+let s:buffer_name_chat = 'vimqq_chat'
 
 " -----------------------------------------------------------------------------
 function vimqq#ui#new() abort
@@ -30,13 +30,37 @@ function vimqq#ui#new() abort
     let l:ui._queue_size = 0
 
     " {{{ private:
-    function! l:ui._open_window() dict
+    function! l:ui._open_list_window() dict
         " Check if the buffer already exists
-        let l:bufnum = bufnr(s:buffer_name)
+        let l:bufnum = bufnr(s:buffer_name_list)
         if l:bufnum == -1
             " Create a new buffer in a vertical split
-            silent! execute 'topleft vertical ' . g:vqq_width . ' new'
-            silent! execute 'edit ' . s:buffer_name
+            silent! execute 'topleft vertical ' . (g:vqq_width / 3) . ' new'
+            silent! execute 'edit ' . s:buffer_name_list
+            setlocal buftype=nofile
+            setlocal bufhidden=hide
+            setlocal noswapfile
+            setlocal nomodifiable
+            setlocal wfw 
+        else
+            let winnum = bufwinnr(l:bufnum)
+            if winnum == -1
+                silent! execute 'topleft vertical ' . (g:vqq_width / 3) . ' split'
+                silent! execute 'buffer ' l:bufnum
+            else
+                silent! execute winnum . 'wincmd w'
+            endif
+        endif
+        return l:bufnum
+    endfunction
+
+    function! l:ui._open_chat_window() dict
+        " Check if the buffer already exists
+        let l:bufnum = bufnr(s:buffer_name_chat)
+        if l:bufnum == -1
+            " Create a new buffer in a vertical split
+            silent! execute 'vertical ' . (g:vqq_width * 2 / 3) . ' new'
+            silent! execute 'edit ' . s:buffer_name_chat
             setlocal buftype=nofile
             setlocal bufhidden=hide
             setlocal noswapfile
@@ -58,7 +82,7 @@ function vimqq#ui#new() abort
         else
             let winnum = bufwinnr(l:bufnum)
             if winnum == -1
-                silent! execute 'topleft vertical ' . g:vqq_width . ' split'
+                silent! execute 'vertical ' . (g:vqq_width * 2 / 3) . ' split'
                 silent! execute 'buffer ' l:bufnum
             else
                 silent! execute winnum . 'wincmd w'
@@ -69,7 +93,7 @@ function vimqq#ui#new() abort
 
     function! l:ui._append_message(open_chat, message) dict
         if a:open_chat
-            call self._open_window()
+            call self._open_chat_window()
         endif
 
         setlocal modifiable
@@ -114,8 +138,8 @@ function vimqq#ui#new() abort
     endfunction
 
     function! l:ui.append_partial(token) dict
-        if s:showing == 'chat'
-            let l:bufnum    = bufnr(s:buffer_name)
+        let l:bufnum    = bufnr(s:buffer_name_chat)
+        if l:bufnum != -1
             let l:curr_line = getbufline(bufnum, '$')[0]
             let l:lines     = split(l:curr_line . a:token . "\n", '\n')
             silent! call setbufvar(l:bufnum, '&modifiable', 1)
@@ -125,7 +149,6 @@ function vimqq#ui#new() abort
     endfunction
 
     function! l:ui.display_chat_history(history, current_chat) dict
-        let s:showing = 'list'
         let l:titles = []
         let l:chat_id_map = {}
 
@@ -140,7 +163,7 @@ function vimqq#ui#new() abort
             let l:chat_id_map[len(titles)] = item.id
         endfor
 
-        call self._open_window()
+        call self._open_list_window()
 
         setlocal modifiable
         silent! call deletebufline('%', 1, '$')
@@ -161,15 +184,6 @@ function vimqq#ui#new() abort
             call self.toggle()
         endfunction
 
-        " This one is interesting and I'm probably doing it wrong.
-        " If as a result of deletion you need to render chat history again,
-        " we'll be redefining this closure while running within its context,
-        " so that stack would look like DeleteChat -> some_cb -> mode_ops ->
-        " display_chat_history. We cannot redefine it while it is running, so
-        " let's use timer to break the chain.
-        "
-        " TODO: should we do the same for all callbacks and move this to base
-        " module?
         function! DeleteChat() closure
             call timer_start(0, { -> self.call_cb('chat_delete_cb', l:chat_id_map[line('.')])})
         endfunction
@@ -180,8 +194,7 @@ function vimqq#ui#new() abort
     endfunction
 
     function l:ui.display_chat(messages, partial) dict
-        let s:showing = 'chat'
-        call self._open_window()
+        call self._open_chat_window()
 
         mapclear <buffer>
         setlocal modifiable
@@ -207,17 +220,33 @@ function vimqq#ui#new() abort
     endfunction
 
     function! l:ui.toggle() dict
-        let bufnum = bufnr(s:buffer_name)
-        if bufnum == -1
-            call self._open_window()
-        else
-            let l:winid = bufwinid(s:buffer_name)
-            if l:winid != -1
-                call win_gotoid(l:winid)
+        let l:list_bufnum = bufnr(s:buffer_name_list)
+        let l:chat_bufnum = bufnr(s:buffer_name_chat)
+        
+        " If neither buffer exists, create them
+        if l:list_bufnum == -1 && l:chat_bufnum == -1
+            call self._open_list_window()
+            call self._open_chat_window()
+            return
+        endif
+        
+        let l:list_winid = bufwinid(s:buffer_name_list)
+        let l:chat_winid = bufwinid(s:buffer_name_chat)
+        
+        " If either window is visible, hide both
+        if l:list_winid != -1 || l:chat_winid != -1
+            if l:list_winid != -1
+                call win_gotoid(l:list_winid)
                 silent! execute 'hide'
-            else
-                call self._open_window()
             endif
+            if l:chat_winid != -1
+                call win_gotoid(l:chat_winid)
+                silent! execute 'hide'
+            endif
+        else
+            " Show both windows
+            call self._open_list_window()
+            call self._open_chat_window()
         endif
     endfunction
 
@@ -246,5 +275,5 @@ endfunction
 
 augroup VQQSyntax
   autocmd!
-  execute 'autocmd BufRead,BufNewFile *' . s:buffer_name . ' call s:setup_syntax()'
+  execute 'autocmd BufRead,BufNewFile *' . s:buffer_name_chat . ' call s:setup_syntax()'
 augroup END
