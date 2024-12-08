@@ -20,6 +20,11 @@ let s:time_format = "%H:%M"
 let s:buffer_name_list = 'vimqq_chatlist'
 let s:buffer_name_chat = 'vimqq_chat'
 
+" buffer strict name match
+function! s:bnrs(name)
+    return bufnr('^' . a:name . '$')
+endfunction
+
 " -----------------------------------------------------------------------------
 function vimqq#ui#new() abort
     let l:ui = {}
@@ -32,7 +37,7 @@ function vimqq#ui#new() abort
     " {{{ private:
     function! l:ui._open_list_window() dict
         " Check if the buffer already exists
-        let l:bufnum = bufnr(s:buffer_name_list)
+        let l:bufnum = s:bnrs(s:buffer_name_list)
         if l:bufnum == -1
             " Create a new buffer in a vertical split
             silent! execute 'topleft vertical ' . (g:vqq_width / 3) . ' new'
@@ -56,7 +61,7 @@ function vimqq#ui#new() abort
 
     function! l:ui._open_chat_window() dict
         " Check if the buffer already exists
-        let l:bufnum = bufnr(s:buffer_name_chat)
+        let l:bufnum = s:bnrs(s:buffer_name_chat)
         if l:bufnum == -1
             " Create a new buffer in a vertical split
             silent! execute 'vertical ' . (g:vqq_width * 2 / 3) . ' new'
@@ -138,7 +143,7 @@ function vimqq#ui#new() abort
     endfunction
 
     function! l:ui.append_partial(token) dict
-        let l:bufnum    = bufnr(s:buffer_name_chat)
+        let l:bufnum    = s:bnrs(s:buffer_name_chat)
         if l:bufnum != -1
             let l:curr_line = getbufline(bufnum, '$')[0]
             let l:lines     = split(l:curr_line . a:token . "\n", '\n')
@@ -220,8 +225,8 @@ function vimqq#ui#new() abort
     endfunction
 
     function! l:ui.toggle() dict
-        let l:list_bufnum = bufnr(s:buffer_name_list)
-        let l:chat_bufnum = bufnr(s:buffer_name_chat)
+        let l:list_bufnum = s:bnrs(s:buffer_name_list)
+        let l:chat_bufnum = s:bnrs(s:buffer_name_chat)
         
         " If neither buffer exists, create them
         if l:list_bufnum == -1 && l:chat_bufnum == -1

@@ -208,8 +208,13 @@ function! vimqq#main#show_chat(chat_id)
     call s:ui.display_chat(l:messages, l:partial)
 endfunction
 
-function! vimqq#main#toggle()
-    call s:ui.toggle()
+function! vimqq#main#show_current_chat()
+    let l:chat_id = s:state.get_chat_id()
+    if l:chat_id == -1
+        call vimqq#log#error("No current chat to show")
+        return
+    endif
+    call vimqq#main#show_chat(l:chat_id)
 endfunction
 
 function! s:_execute(args, ctx_keys)
