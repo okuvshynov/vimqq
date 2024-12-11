@@ -13,8 +13,9 @@ let g:vqq_log_format = get(g:, 'vqq_log_format', '%Y-%m-%d %H:%M:%S ')
 let s:log_levels = {
     \ 'DEBUG': 0,
     \ 'INFO': 1,
-    \ 'ERROR': 2,
-    \ 'NONE': 3
+    \ 'WARNING': 2,
+    \ 'ERROR': 3,
+    \ 'NONE': 4
 \ }
 
 function s:_log_impl(level, message)
@@ -35,4 +36,9 @@ endfunction
 
 function! vimqq#log#debug(message)
     call s:_log_impl('DEBUG', a:message)
+endfunction
+
+function! vimqq#log#warning(message)
+    call s:_log_impl('WARNING', a:message)
+    echohl WarningMsg | echo a:message | echohl None
 endfunction
