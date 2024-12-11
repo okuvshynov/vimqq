@@ -40,7 +40,7 @@ function vimqq#ui#new() abort
         let l:bufnum = s:bnrs(s:buffer_name_list)
         if l:bufnum == -1
             " Create a new buffer in a vertical split
-            silent! execute 'topleft vertical ' . (g:vqq_width / 3) . ' new'
+            silent! execute 'topleft vertical ' . (g:vqq_width) . ' new'
             silent! execute 'edit ' . s:buffer_name_list
             setlocal buftype=nofile
             setlocal bufhidden=hide
@@ -50,7 +50,7 @@ function vimqq#ui#new() abort
         else
             let winnum = bufwinnr(l:bufnum)
             if winnum == -1
-                silent! execute 'topleft vertical ' . (g:vqq_width / 3) . ' split'
+                silent! execute 'topleft vertical ' . (g:vqq_width) . ' split'
                 silent! execute 'buffer ' l:bufnum
             else
                 silent! execute winnum . 'wincmd w'
@@ -64,7 +64,7 @@ function vimqq#ui#new() abort
         let l:bufnum = s:bnrs(s:buffer_name_chat)
         if l:bufnum == -1
             " Create a new buffer in a vertical split
-            silent! execute 'vertical ' . (g:vqq_width * 2 / 3) . ' new'
+            silent! execute 'rightbelow vertical new'
             silent! execute 'edit ' . s:buffer_name_chat
             setlocal buftype=nofile
             setlocal bufhidden=hide
@@ -87,8 +87,8 @@ function vimqq#ui#new() abort
         else
             let winnum = bufwinnr(l:bufnum)
             if winnum == -1
-                silent! execute 'vertical ' . (g:vqq_width * 2 / 3) . ' split'
                 silent! execute 'buffer ' l:bufnum
+                silent! execute 'rightbelow vertical split'
             else
                 silent! execute winnum . 'wincmd w'
             endif
