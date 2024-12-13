@@ -3,7 +3,7 @@ let s:lib = s:path . "/../libtest.vim"
 execute "source " . s:lib
 
 function! WriteAndQuit(t)
-    :normal q
+    :QQList
 
     let content = getline(1, '$')
     let expected = readfile(s:path . '/' . 'new_chat_nodelay.out')
@@ -16,5 +16,5 @@ endfunction
 
 :Q @mock hello
 :Q -n @mock world!
-call timer_start(200, "WriteAndQuit")
+call timer_start(1000, "WriteAndQuit")
 

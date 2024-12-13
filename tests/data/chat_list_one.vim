@@ -3,7 +3,8 @@ let s:lib = s:path . "/../libtest.vim"
 execute "source " . s:lib
 
 function! WriteAndQuit(t)
-    :normal q
+    " go to list
+    :QQList
     let content = getline(1, '$')
     let expected = readfile(s:path . '/' . 'chat_list_one.out')
     if VQQCompareChats(content, expected) == 0

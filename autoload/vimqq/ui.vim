@@ -34,6 +34,11 @@ function vimqq#ui#new() abort
     let l:ui._bot_status = {}
     let l:ui._queue_size = 0
 
+    " mapping from chat_id -> buffer_id.
+    " it is possible that the buffer would be removed externally
+    " :bw <some_number> so we need to check if buffer exists.
+    let l:ui._buffer_map = {}
+
     " {{{ private:
     function! l:ui._open_list_window() dict
         " Check if the buffer already exists
@@ -185,8 +190,8 @@ function vimqq#ui#new() abort
             call self.call_cb('chat_select_cb', l:chat_id_map[line('.')])
         endfunction
 
-        function! Toggle() closure
-            call self.toggle()
+        function! HideList() closure
+            call self.hide_list()
         endfunction
 
         function! DeleteChat() closure
@@ -194,7 +199,7 @@ function vimqq#ui#new() abort
         endfunction
 
         nnoremap <silent> <buffer> <cr> :call ShowChat()<cr>
-        nnoremap <silent> <buffer> q    :call Toggle()<cr>
+        nnoremap <silent> <buffer> q    :call HideList()<cr>
         nnoremap <silent> <buffer> d    :call DeleteChat()<cr>
     endfunction
 
@@ -221,37 +226,15 @@ function vimqq#ui#new() abort
             call self.call_cb('chat_list_cb')
         endfunction
 
-        nnoremap <silent> <buffer> q  :call ShowChatList()<cr>
+        "nnoremap <silent> <buffer> q  :call ShowChatList()<cr>
     endfunction
 
-    function! l:ui.toggle() dict
+    function! l:ui.hide_list() dict
         let l:list_bufnum = s:bnrs(s:buffer_name_list)
-        let l:chat_bufnum = s:bnrs(s:buffer_name_chat)
-        
-        " If neither buffer exists, create them
-        if l:list_bufnum == -1 && l:chat_bufnum == -1
-            call self._open_list_window()
-            call self._open_chat_window()
-            return
-        endif
-        
         let l:list_winid = bufwinid(s:buffer_name_list)
-        let l:chat_winid = bufwinid(s:buffer_name_chat)
-        
-        " If either window is visible, hide both
-        if l:list_winid != -1 || l:chat_winid != -1
-            if l:list_winid != -1
-                call win_gotoid(l:list_winid)
-                silent! execute 'hide'
-            endif
-            if l:chat_winid != -1
-                call win_gotoid(l:chat_winid)
-                silent! execute 'hide'
-            endif
-        else
-            " Show both windows
-            call self._open_list_window()
-            call self._open_chat_window()
+        if l:list_winid != -1
+            call win_gotoid(l:list_winid)
+            silent! execute 'hide'
         endif
     endfunction
 
