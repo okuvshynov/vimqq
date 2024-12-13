@@ -34,11 +34,6 @@ function vimqq#ui#new() abort
     let l:ui._bot_status = {}
     let l:ui._queue_size = 0
 
-    " mapping from chat_id -> buffer_id.
-    " it is possible that the buffer would be removed externally
-    " :bw <some_number> so we need to check if buffer exists.
-    let l:ui._buffer_map = {}
-
     " {{{ private:
     function! l:ui._open_list_window() dict
         " Check if the buffer already exists

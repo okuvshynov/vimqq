@@ -263,9 +263,6 @@ In chat list view:
  - 'd' will show a dialog confirmation and delete chat if user answers Yes.
  - <cr> will select chat session under cursor, open it and make current.
 
-In chat view:
- - 'q' will open the chat list view;
-
 Other than that, vimqq adds no global key mappings, but it is useful to define
 some of your own.
 
