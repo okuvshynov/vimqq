@@ -143,7 +143,7 @@ function vimqq#ui#new() abort
     endfunction
 
     function! l:ui.append_partial(token) dict
-        let l:bufnum    = s:bnrs(s:buffer_name_chat)
+        let l:bufnum = s:bnrs(s:buffer_name_chat)
         if l:bufnum != -1
             let l:curr_line = getbufline(bufnum, '$')[0]
             let l:lines     = split(l:curr_line . a:token . "\n", '\n')

@@ -29,10 +29,9 @@ function! s:_keep_job(job)
     endif
 endfunction
 
-" This needs to support both vim and nvim jobs
-" this will require
+" async job supporting both vim and nvim
 "   - adapting callbacks.
-"   - different job_start/jobstart.
+"   - using different job_start/jobstart
 "
 " vim callbacks are:
 "   out_cb : {channel, msg -> }

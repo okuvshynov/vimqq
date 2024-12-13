@@ -13,6 +13,9 @@ function! vimqq#chatsdb#new() abort
     let l:db = {}
     let l:db._file = g:vqq_chats_file
     let l:db._chats = {}
+
+    " seq_id is autoincremented value assigned to chats, messages
+    " and partial messages.
     let l:db._seq_id = 0
 
     function! l:db._max_seq_id(chat) dict

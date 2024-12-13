@@ -10,10 +10,12 @@ function! vimqq#state#new(db) abort
     let l:state._db     = a:db
     let l:state._queues = {}
     let l:state._latencies = {}
-    let l:state._deltas = 0
     let l:state._last_bot_name = ""
     
-    " this is the active chat id. New queries would go to this chat by default
+    " this is the active chat id. 
+    " New queries would go to this chat by default
+    " 'active' means 'in the chat view buffer', even 
+    " if buffer is not visible
     let l:state._curr_chat_id = -1
 
     function l:state.get_chat_id() dict
