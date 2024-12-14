@@ -233,6 +233,15 @@ function vimqq#ui#new() abort
         endif
     endfunction
 
+    function! l:ui.handle_event(event, args) dict
+        call vimqq#log#info(a:event)
+        if a:event == 'token_saved'
+            if a:args['chat_id'] == a:args['state'].get_chat_id()
+                call self.append_partial(a:args['token'])
+            endif
+        endif
+    endfunction
+
     " }}}
 
     return l:ui

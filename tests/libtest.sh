@@ -41,7 +41,7 @@ setup_mock_serv() {
     local port=$2
     local vimqq_path="$test_dir/rtp/pack/plugins/start/vimqq"
 
-    python "$vimqq_path/tests/mock_llama.py" --port $port --logs $test_dir> "$test_dir/mock.stdout" 2> "$test_dir/mock.stderr" &
+    python "$vimqq_path/tests/mock_llama.py" --port $port --logs $test_dir> "$test_dir/mock_server.stdout" 2> "$test_dir/mock_server.stderr" &
     server_pid=$!
 
     while ! curl --silent --fail http://localhost:$port/alive > /dev/null 2> /dev/null; do

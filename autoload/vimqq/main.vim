@@ -11,6 +11,7 @@ let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
 
 call vimqq#model#add_observer(s:chatsdb)
+call vimqq#model#add_observer(s:ui)
 
 " Construct warmup_bots list based on do_autowarm() method
 let s:warmup_bots = []
@@ -50,14 +51,7 @@ endfunction
 " if the chat is currently open
 function! s:_on_token_done(chat_id, token)
     call vimqq#metrics#inc('n_deltas')
-    if empty(s:chatsdb.get_partial(a:chat_id).content)
-        " to track TTFT latency
-        call s:state.first_token(a:chat_id)
-    endif
-    call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token' : a:token})
-    if a:chat_id == s:state.get_chat_id()
-        call s:ui.append_partial(a:token)
-    endif
+    call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token' : a:token, 'state' : s:state})
 endfunction
 
 " when we received complete message, we generate title, mark query as complete

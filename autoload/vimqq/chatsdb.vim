@@ -57,8 +57,6 @@ function! vimqq#chatsdb#new() abort
         let self._chats[a:chat_id].partial_message.seq_id = self.seq_id()
         call self._save()
 
-        " now that it's saved we can update UI
-        
     endfunction
 
     function! l:db.delete_chat(chat_id) dict
@@ -169,7 +167,11 @@ function! vimqq#chatsdb#new() abort
     function! l:db.handle_event(event, args) dict
         call vimqq#log#info(a:event)
         if a:event == 'token_done'
+            if empty(self.get_partial(a:args['chat_id']).content)
+                call a:args['state'].first_token(a:args['chat_id'])
+            endif
             call self.append_partial(a:args['chat_id'], a:args['token'])
+            call vimqq#model#notify('token_saved', a:args)
             return
         endif
         if a:event == 'partial_done'
