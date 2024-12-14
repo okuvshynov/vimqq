@@ -10,6 +10,8 @@ let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
 
+call vimqq#model#add_observer(s:chatsdb)
+
 " Construct warmup_bots list based on do_autowarm() method
 let s:warmup_bots = []
 for bot in s:bots.bots()
@@ -52,7 +54,7 @@ function! s:_on_token_done(chat_id, token)
         " to track TTFT latency
         call s:state.first_token(a:chat_id)
     endif
-    call s:chatsdb.append_partial(a:chat_id, a:token)
+    call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token' : a:token})
     if a:chat_id == s:state.get_chat_id()
         call s:ui.append_partial(a:token)
     endif
@@ -61,8 +63,9 @@ endfunction
 " when we received complete message, we generate title, mark query as complete
 function! s:_on_reply_complete(chat_id, bot)
     call vimqq#log#debug('n_deltas = ' . vimqq#metrics#get('n_deltas'))
-    call s:chatsdb.partial_done(a:chat_id)
-    if !s:chatsdb.has_title(a:chat_id)
+    call vimqq#model#notify('partial_done', {'chat_id': a:chat_id})
+    " TODO: modify this with event/observer based 
+    if s:chatsdb.chat_len(a:chat_id) <= 2
         call a:bot.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
     endif
 
