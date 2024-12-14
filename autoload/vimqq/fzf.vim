@@ -5,11 +5,24 @@ endif
 let g:autoloaded_vimqq_fzf = 1
 
 " FuzzyFinder integration
-"
+
+function! vimqq#fzf#fmt_msg(message) abort
+    echomsg a:message
+    if a:message['role'] == 'user'
+        let prompt = "You: @" . a:message['bot_name'] . " "
+    else
+        let prompt = a:message['bot_name'] . ": "
+    endif
+    if has_key(a:message, 'message')
+        return prompt . a:message['message']
+    endif
+    return prompt
+endfunction
+
 function! vimqq#fzf#format(chat) abort
     " Format: "title\x1fcontent\x1fid"
     " \x1f is a field separator that's unlikely to appear in content
-    let content = vimqq#fmt#one(a:chat.messages[0]).content
+    let content = join(map(copy(a:chat.messages), 'vimqq#fzf#fmt_msg(v:val)'), '\n')
     return a:chat.title . "\x1f" . content . "\x1f" . a:chat.id
 endfunction
 
@@ -40,7 +53,6 @@ function! vimqq#fzf#show(db) abort
     let formatted_chats = map(chats, 'vimqq#fzf#format(v:val)')
 
     function! OpenChat(selected_chat)
-        echomsg a:selected_chat
         let chat = vimqq#fzf#parse(a:selected_chat)
         call vimqq#main#show_chat(chat.id)
     endfunction
@@ -52,7 +64,7 @@ function! vimqq#fzf#show(db) abort
         \ 'options': [
             \ '--delimiter=\x1f',
             \ '--with-nth=1',
-            \ '--preview', 'echo -e "{}"| awk -F"\x1f" "{print $2}"',
+            \ '--preview', 'echo -e "{}"',
             \ '--preview-window=right:50%',
             \ '--bind', 'ctrl-/:toggle-preview',
             \ '--multi', 0,
