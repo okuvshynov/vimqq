@@ -307,3 +307,7 @@ function! vimqq#main#record_eval(evaluation)
     let key = "eval." . s:state.last_bot_name() . "." . a:evaluation
     call vimqq#metrics#inc(key)
 endfunction
+
+function! vimqq#main#fzf() abort
+    call vimqq#fzf#show(s:chatsdb)
+endfunction

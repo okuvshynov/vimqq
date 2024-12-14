@@ -114,6 +114,14 @@ function! vimqq#chatsdb#new() abort
         return sort(l:chat_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
     endfunction
 
+    function! l:db.get_ordered_chats_with_messages() dict
+        let l:chat_list = []
+        for [key, chat] in items(self._chats)
+            let l:chat_list += [{'title': chat.title, 'id': chat.id, 'time': self._max_seq_id(chat), 'messages' : chat.messages}]
+        endfor
+        return sort(l:chat_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
+    endfunction
+
     " We return a reference here, not a copy.
     function! l:db.get_messages(chat_id) dict
         return self._chats[a:chat_id].messages
