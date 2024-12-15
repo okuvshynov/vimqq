@@ -12,8 +12,9 @@ VIMQQ_VIM_BINARY=nvim ./tests/run_all.sh
 
 Requirements for tests:
 1. python with flask
-2. vim 8+
+2. vim 8+ or nvim
 3. jq for json comparison
+4. works on linux/mac os
 
 Configuration/env vars:
 1. VIMQQ_VERBOSE - print out each test output

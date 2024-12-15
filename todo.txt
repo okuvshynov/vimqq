@@ -1,3 +1,28 @@
+1. Cleaning up request queue/prioritization/warmups
+
+We have multiple mechanisms implemented now, need to make it better
+
+2. using lucas index and prefetching while I'm still typing. 
+
+Harder with local as there's no built-in function calling.
+
+For example: I selected a piece of context and started typing. In the meantime, we already can:
+
+* we should already have index itself processed.
+* process the prompt + question/request
+* call the tool in the background and start processing these files (?)
+* exploring multiple chains in parallel?
+
+product-like - generalizing idea of prefetch.
+
+3. generalizing bots
+
+4. extracting prompts
+
+5. UI. 
+
+Fix the window relationship, improve fzf context
+
 ```
 * e2e case study for some multi-file change
 - other providers - openai, google

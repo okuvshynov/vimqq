@@ -41,6 +41,9 @@ function! vimqq#state#new(db) abort
         endif
     endfunction
 
+    " TODO: this becomes request dispatcher
+    " We need to make it work together with warmup
+    " prioritization, by bot/chat
     function! l:state.queue_size() dict
         let l:size = 0
         for l:queue in values(self._queues)
@@ -101,6 +104,7 @@ function! vimqq#state#new(db) abort
         return l:sent
     endfunction
 
+    " TODO: this needs to be moved to metrics
     function! l:state.user_started_waiting(chat_id) dict
         if exists('*reltime')
             let self._latencies[a:chat_id] = reltime()
