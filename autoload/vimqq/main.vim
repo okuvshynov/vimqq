@@ -48,11 +48,6 @@ function! s:_on_reply_complete(chat_id, bot)
     call s:ui.update_queue_size(s:state.queue_size())
 endfunction
 
-function! s:_on_title_done(chat_id, title)
-    call s:chatsdb.set_title(a:chat_id, a:title)
-    call vimqq#model#notify('title_done', {'chat_id': a:chat_id})
-endfunction
-
 function! s:_on_chat_select(chat_id)
     call vimqq#main#show_chat(a:chat_id)
     call vimqq#model#notify('chat_opened', {'chat_id': a:chat_id})
@@ -62,7 +57,7 @@ for bot in s:bots.bots()
     " When title is ready, we set it in db
     call bot.set_cb(
           \ 'title_done_cb', 
-          \ {chat_id, title -> s:_if_exists(function('s:_on_title_done'), chat_id, title)}
+          \ {chat_id, title -> vimqq#model#notify('title_done', {'chat_id' : chat_id, 'title': title})}
     \ )
     " When the streaming is done and entire message is received, we mark it as
     " complete and kick off title generation if it is not computed yet

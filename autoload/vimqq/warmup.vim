@@ -15,7 +15,7 @@ function! vimqq#warmup#new(bots, db) abort
     endfor
 
     function! l:w.handle_event(event, args) dict
-        if a:event == 'title_done' || a:event == 'chat_opened'
+        if a:event == 'title_saved' || a:event == 'chat_opened'
 
             let chat_id = a:args['chat_id']
             if !self._db.chat_exists(chat_id)

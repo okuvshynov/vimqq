@@ -189,6 +189,15 @@ function! vimqq#chatsdb#new() abort
             call self.partial_done(a:args['chat_id'])
             return
         endif
+        if a:event == 'title_done'
+            if !self.chat_exists(a:args['chat_id'])
+                call vimqq#log#info("callback on non-existent chat.")
+                return
+            endif
+            call self.set_title(a:args['chat_id'], a:args['title'])
+            call vimqq#model#notify('title_saved', {'chat_id': a:args['chat_id']})
+        endif
+
     endfunction
 
     return l:db
