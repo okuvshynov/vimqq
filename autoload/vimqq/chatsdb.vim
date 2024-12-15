@@ -185,8 +185,13 @@ function! vimqq#chatsdb#new() abort
             call vimqq#model#notify('token_saved', a:args)
             return
         endif
-        if a:event == 'partial_done'
+        if a:event == 'reply_done'
+            if !self.chat_exists(a:args['chat_id'])
+                call vimqq#log#info('reply completed for non-existing (likely deleted) chat.')
+                return
+            endif
             call self.partial_done(a:args['chat_id'])
+            call vimqq#model#notify('reply_saved', {'chat_id': a:args['chat_id'], 'bot': a:args['bot']})
             return
         endif
         if a:event == 'title_done'

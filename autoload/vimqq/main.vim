@@ -17,6 +17,25 @@ function! s:new() abort
     function! l:controller.handle_event(event, args) dict
         if a:event == 'chat_selected'
             call vimqq#main#show_chat(a:args['chat_id'])
+            return
+        endif
+        if a:event == 'reply_saved'
+            let chat_id = a:args['chat_id']
+            let bot = a:args['bot']
+            " TODO: modify this with event/observer based 
+            if s:chatsdb.chat_len(chat_id) <= 2
+                call bot.send_gen_title(chat_id, s:chatsdb.get_first_message(chat_id))
+            endif
+
+            " this might call the next query in queue
+            if s:state.reply_complete(chat_id)
+                " TODO: do we need this? Need to test more to see if it makes sense.
+                " We probably do, because if we are in hidden reasoning mode, we won't
+                " update UI on partial replies.
+                call vimqq#main#show_chat(chat_id)
+            endif
+            call s:ui.update_queue_size(s:state.queue_size())
+            return
         endif
     endfunction
 
@@ -45,30 +64,8 @@ function! s:_if_exists(Fn, chat_id, ...)
 endfunction
 
 " when we received complete message, we generate title, mark query as complete
-function! s:_on_reply_complete(chat_id, bot)
-    call vimqq#model#notify('partial_done', {'chat_id': a:chat_id})
-    " TODO: modify this with event/observer based 
-    if s:chatsdb.chat_len(a:chat_id) <= 2
-        call a:bot.send_gen_title(a:chat_id, s:chatsdb.get_first_message(a:chat_id))
-    endif
-
-    " this might call the next query in queue
-    if s:state.reply_complete(a:chat_id)
-        " TODO: do we need this? Need to test more to see if it makes sense.
-        " We probably do, because if we are in hidden reasoning mode, we won't
-        " update UI on partial replies.
-        call vimqq#main#show_chat(a:chat_id)
-    endif
-    call s:ui.update_queue_size(s:state.queue_size())
-endfunction
 
 for bot in s:bots.bots()
-    " When the streaming is done and entire message is received, we mark it as
-    " complete and kick off title generation if it is not computed yet
-    call bot.set_cb(
-          \ 'stream_done_cb', 
-          \ {chat_id, bot -> s:_if_exists(function('s:_on_reply_complete'), chat_id, bot)}
-    \ )
     " When server produces new streamed token, we update db and maybe update ui, 
     call bot.set_cb(
           \ 'token_cb',

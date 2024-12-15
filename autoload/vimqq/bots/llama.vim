@@ -97,7 +97,7 @@ function vimqq#bots#llama#new(config = {}) abort
   endfunction
 
   function! l:llama._on_stream_close(chat_id)
-      call self.call_cb('stream_done_cb', a:chat_id, self)
+      call vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot': self})
   endfunction
 
   function! l:llama._on_err(chat_id, msg)

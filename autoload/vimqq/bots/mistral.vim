@@ -81,7 +81,7 @@ function! vimqq#bots#mistral#new(config = {}) abort
             " we pretend it's one huge update
             call self.call_cb('token_cb', a:chat_id, l:message)
             " and immediately done
-            call self.call_cb('stream_done_cb', a:chat_id, self)
+            call vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot': self})
         else
             call vimqq#log#error('Unable to process response')
             call vimqq#log#error(json_encode(l:response))
