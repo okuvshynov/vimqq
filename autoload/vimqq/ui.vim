@@ -243,6 +243,9 @@ function vimqq#ui#new() abort
                 call self.append_partial(a:args['token'])
             endif
         endif
+        if a:event == 'bot_status'
+            call self.update_statusline(a:args['status'], a:args['bot'].name())
+        endif
     endfunction
 
     " }}}

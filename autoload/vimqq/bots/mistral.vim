@@ -43,7 +43,7 @@ function! vimqq#bots#mistral#new(config = {}) abort
 
         call vimqq#log#info("mistral " . self.name() . " total usage: " . msg)
 
-        call self.call_cb('status_cb', msg, self)
+        call vimqq#model#notify('bot_status', {'status' : msg, 'bot': self})
     endfunction
 
     function! l:mistral_bot._on_title_out(chat_id, msg) dict

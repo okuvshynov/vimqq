@@ -30,7 +30,7 @@ function vimqq#bots#llama#new(config = {}) abort
   " {{{ private:
   
   function l:llama._update_status(status)
-      call self.call_cb('status_cb', a:status, self)
+      call vimqq#model#notify('bot_status', {'status' : a:status, 'bot': self})
   endfunction
 
   function l:llama._on_status_exit(exit_status) dict
