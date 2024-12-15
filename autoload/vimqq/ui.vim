@@ -184,8 +184,6 @@ function vimqq#ui#new() abort
         function! ShowChat() closure
             let chat_id = l:chat_id_map[line('.')]
             call vimqq#model#notify('chat_selected', {'chat_id': chat_id})
-
-            "call self.call_cb('chat_select_cb', l:chat_id_map[line('.')])
         endfunction
 
         function! HideList() closure
@@ -220,12 +218,6 @@ function vimqq#ui#new() abort
         if has_key(a:partial, 'bot_name') && !empty(a:partial.bot_name)
             call self._append_message(v:false, a:partial)
         endif
-
-        function! ShowChatList() closure
-            call self.call_cb('chat_list_cb')
-        endfunction
-
-        "nnoremap <silent> <buffer> q  :call ShowChatList()<cr>
     endfunction
 
     function! l:ui.hide_list() dict

@@ -73,33 +73,7 @@ call vimqq#model#add_observer(s:controller)
 call vimqq#model#add_observer(s:autowarm)
 
 " -----------------------------------------------------------------------------
-" Setting up wiring between modules
-
-" invoke a callback function for a chat, handling the case where the chat
-" may have been deleted before the callback is processed. If the chat no longer
-" exists, log a message and skip executing the callback.
-function! s:_if_exists(Fn, chat_id, ...)
-    if !s:chatsdb.chat_exists(a:chat_id)
-        call vimqq#log#info("callback on non-existent chat.")
-        return
-    endif
-    call call(a:Fn, [a:chat_id] + a:000)
-endfunction
-
-" If chat was requested for deletion, show confirmation, delete it and update UI
-call s:ui.set_cb(
-      \ 'chat_delete_cb',
-      \ {chat_id -> s:_if_exists(function('vimqq#main#delete_chat'), chat_id)}
-\ )
-" If UI wants to show chat selection list, we need to get fresh list
-call s:ui.set_cb('chat_list_cb', { -> vimqq#main#show_list()})
-
-" -----------------------------------------------------------------------------
 " This is 'internal API' - functions called by defined public commands
-
-" Deletes the chat. Shows a confirmation dialog to user first
-function! vimqq#main#delete_chat(chat_id)
-endfunction
 
 " Sends new message to the server
 function! vimqq#main#send_message(context_mode, force_new_chat, question)
@@ -163,7 +137,6 @@ function! vimqq#main#show_chat(chat_id)
     let l:messages = s:chatsdb.get_messages(a:chat_id)
     let l:partial  = s:chatsdb.get_partial(a:chat_id)
     call s:ui.display_chat(l:messages, l:partial)
-
 endfunction
 
 function! vimqq#main#show_current_chat()
