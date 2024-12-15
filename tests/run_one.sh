@@ -73,10 +73,12 @@ echo "Stopping mock llama server"
 
 stop_mock_serv "$serv_pid"
 
-echo ""
-echo "== Log files =="
-echo "vimqq log:  $working_dir/vimqq.log"
-echo "server log: $working_dir/mock_server.log"
+if [ "$VIMQQ_KEEP_DIR" ]; then
+    echo ""
+    echo "== Log files =="
+    echo "vimqq log:  $working_dir/vimqq.log"
+    echo "server log: $working_dir/mock_server.log"
+fi
 
 echo ""
 echo "== Results =="
