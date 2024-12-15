@@ -79,7 +79,7 @@ function! vimqq#bots#mistral#new(config = {}) abort
             let l:message  = l:response.choices[0].message.content
             call self._update_usage(l:response.usage)
             " we pretend it's one huge update
-            call self.call_cb('token_cb', a:chat_id, l:message)
+            call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token': l:message})
             " and immediately done
             call vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot': self})
         else

@@ -44,6 +44,7 @@ endfunction
 
 let s:controller = s:new()
 
+call vimqq#model#set_state(s:state)
 call vimqq#model#add_observer(s:chatsdb)
 call vimqq#model#add_observer(s:ui)
 call vimqq#model#add_observer(s:warmup)
@@ -66,11 +67,6 @@ endfunction
 " when we received complete message, we generate title, mark query as complete
 
 for bot in s:bots.bots()
-    " When server produces new streamed token, we update db and maybe update ui, 
-    call bot.set_cb(
-          \ 'token_cb',
-          \ {chat_id, token -> vimqq#model#notify('token_done', {'chat_id': chat_id, 'token': token, 'state': s:state})}
-    \ )
     " When server updates health status, we update status line
     call bot.set_cb(
           \ 'status_cb',
