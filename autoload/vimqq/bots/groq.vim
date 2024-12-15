@@ -54,7 +54,7 @@ function! vimqq#bots#groq#new(config = {}) abort
         let l:response = json_decode(join(self._title_reply_by_id[a:chat_id], '\n'))
         let l:title  = l:response.choices[0].message.content
         call self._update_usage(l:response.usage)
-        call self.call_cb('title_done_cb', a:chat_id, title)
+        call vimqq#model#notify('title_done', {'chat_id' : a:chat_id, 'title': title})
     endfunction
 
     function! l:groq_bot._on_out(chat_id, msg) dict

@@ -110,7 +110,7 @@ function vimqq#bots#llama#new(config = {}) abort
       let response = json_decode(json_string)
       if has_key(response.choices[0].message, 'content')
           let title = response.choices[0].message.content
-          call self.call_cb('title_done_cb', a:chat_id, title)
+          call vimqq#model#notify('title_done', {'chat_id' : a:chat_id, 'title': title})
       endif
   endfunction
 

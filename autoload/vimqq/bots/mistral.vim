@@ -55,7 +55,7 @@ function! vimqq#bots#mistral#new(config = {}) abort
         if has_key(l:response, 'choices') && !empty(l:response.choices) && has_key(l:response.choices[0], 'message')
             let l:title  = l:response.choices[0].message.content
             call self._update_usage(l:response.usage)
-            call self.call_cb('title_done_cb', a:chat_id, title)
+            call vimqq#model#notify('title_done', {'chat_id' : a:chat_id, 'title': title})
         else
             call vimqq#log#error('Unable to process response')
             call vimqq#log#error(json_encode(l:response))

@@ -63,11 +63,6 @@ function! s:_on_reply_complete(chat_id, bot)
 endfunction
 
 for bot in s:bots.bots()
-    " When title is ready, we set it in db
-    call bot.set_cb(
-          \ 'title_done_cb', 
-          \ {chat_id, title -> vimqq#model#notify('title_done', {'chat_id' : chat_id, 'title': title})}
-    \ )
     " When the streaming is done and entire message is received, we mark it as
     " complete and kick off title generation if it is not computed yet
     call bot.set_cb(
