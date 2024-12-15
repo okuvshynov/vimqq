@@ -29,8 +29,6 @@ endfunction
 function vimqq#ui#new() abort
     let l:ui = {}
 
-    call extend(l:ui, vimqq#base#new())
-
     let l:ui._bot_status = {}
     let l:ui._queue_size = 0
 
