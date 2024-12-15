@@ -18,8 +18,6 @@ let s:default_conf = {
 function vimqq#bots#llama#new(config = {}) abort
   let l:llama = {} 
   
-  call extend(l:llama, vimqq#base#new())
-
   let l:llama._conf = deepcopy(s:default_conf)
   call extend(l:llama._conf, a:config)
 
@@ -138,7 +136,7 @@ function vimqq#bots#llama#new(config = {}) abort
       let req.n_predict = 0
 
       let l:job_conf = {
-            \ 'close_cb': {channel -> self.call_cb('warmup_done_cb')}
+            \ 'close_cb': {channel -> vimqq#model#notify('warmup_done', {'bot': self})}
       \ }
       return self._send_chat_query(req, l:job_conf)
   endfunction

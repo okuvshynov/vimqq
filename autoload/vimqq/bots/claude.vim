@@ -20,7 +20,6 @@ let s:default_conf = {
 " TODO: handling errors 
 function! vimqq#bots#claude#new(config = {}) abort
     let l:claude = {}
-    call extend(l:claude, vimqq#base#new())
 
     let l:claude._conf = deepcopy(s:default_conf)
     call extend(l:claude._conf, a:config)

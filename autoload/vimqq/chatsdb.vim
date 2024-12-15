@@ -62,6 +62,7 @@ function! vimqq#chatsdb#new() abort
     function! l:db.delete_chat(chat_id) dict
         if has_key(self._chats, a:chat_id)
             call remove(self._chats, a:chat_id)
+            call self._save()
         endif
     endfunction
 

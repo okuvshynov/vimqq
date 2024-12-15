@@ -19,7 +19,6 @@ let s:default_conf = {
 
 function! vimqq#bots#groq#new(config = {}) abort
     let l:groq_bot = {}
-    call extend(l:groq_bot, vimqq#base#new())
 
     let l:groq_bot._conf = deepcopy(s:default_conf)
     call extend(l:groq_bot._conf, a:config)

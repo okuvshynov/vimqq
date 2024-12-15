@@ -10,6 +10,7 @@ let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
 let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
+let s:autowarm = vimqq#autowarm#new()
 
 function! s:new() abort
     let l:controller = {}
@@ -37,6 +38,26 @@ function! s:new() abort
             call s:ui.update_queue_size(s:state.queue_size())
             return
         endif
+        if a:event == 'delete_chat'
+            let chat_id = a:args['chat_id']
+            if !s:chatsdb.chat_exists(chat_id)
+                call vimqq#log#info("trying to delete non-existent chat")
+                return
+            endif
+            let title = s:chatsdb.get_title(chat_id)
+            let choice = confirm("Are you sure you want to delete '" . title . "'?", "&Yes\n&No", 2)
+            if choice != 1
+                return
+            endif
+
+            call s:chatsdb.delete_chat(chat_id)
+            if s:state.get_chat_id() == chat_id
+                " TODO - select next chat instead
+                s:state.set_chat_id(-1)
+            endif
+            call vimqq#main#show_list()
+            return
+        endif
     endfunction
 
     return l:controller
@@ -49,6 +70,7 @@ call vimqq#model#add_observer(s:chatsdb)
 call vimqq#model#add_observer(s:ui)
 call vimqq#model#add_observer(s:warmup)
 call vimqq#model#add_observer(s:controller)
+call vimqq#model#add_observer(s:autowarm)
 
 " -----------------------------------------------------------------------------
 " Setting up wiring between modules
@@ -64,18 +86,6 @@ function! s:_if_exists(Fn, chat_id, ...)
     call call(a:Fn, [a:chat_id] + a:000)
 endfunction
 
-" when we received complete message, we generate title, mark query as complete
-
-for bot in s:bots.bots()
-    " When server updates health status, we update status line
-    call bot.set_cb(
-          \ 'status_cb',
-          \ {status, bot -> s:ui.update_statusline(status, bot.name())}
-    \ )
-    " When warmup is done we check if we have updated message and send new warmup
-    call bot.set_cb('warmup_done_cb', { -> vimqq#autowarm#next()})
-endfor
-
 " If chat was requested for deletion, show confirmation, delete it and update UI
 call s:ui.set_cb(
       \ 'chat_delete_cb',
@@ -89,23 +99,11 @@ call s:ui.set_cb('chat_list_cb', { -> vimqq#main#show_list()})
 
 " Deletes the chat. Shows a confirmation dialog to user first
 function! vimqq#main#delete_chat(chat_id)
-    let title = s:chatsdb.get_title(a:chat_id)
-    let choice = confirm("Are you sure you want to delete '" . title . "'?", "&Yes\n&No", 2)
-    if choice != 1
-        return
-    endif
-
-    call s:chatsdb.delete_chat(a:chat_id)
-    if s:state.get_chat_id() == a:chat_id
-        " TODO - select next chat instead
-        s:state.set_chat_id(-1)
-    endif
-    call vimqq#main#show_list()
 endfunction
 
 " Sends new message to the server
 function! vimqq#main#send_message(context_mode, force_new_chat, question)
-    call vimqq#autowarm#stop()
+    call s:autowarm.stop()
     " pick the bot. we modify message and remove bot tag
     let [l:bot, l:question] = s:bots.select(a:question)
 
@@ -147,7 +145,7 @@ function! vimqq#main#send_warmup(context_mode, force_new_chat, tag="")
 
     call vimqq#log#debug('Sending warmup with message of ' . len(l:messages))
     call l:bot.send_warmup(l:messages)
-    call vimqq#autowarm#start(l:bot, l:messages)
+    call s:autowarm.start(l:bot, l:messages)
 endfunction
 
 " show list of chats to select from 

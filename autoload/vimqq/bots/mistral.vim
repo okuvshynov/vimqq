@@ -19,7 +19,6 @@ let s:default_conf = {
 
 function! vimqq#bots#mistral#new(config = {}) abort
     let l:mistral_bot = {}
-    call extend(l:mistral_bot, vimqq#base#new())
 
     let l:mistral_bot._conf = deepcopy(s:default_conf)
     call extend(l:mistral_bot._conf, a:config)

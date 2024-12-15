@@ -71,27 +71,38 @@ function! s:_cmd_loop()
     call timer_start(g:vqq_autowarm_cmd_ms, { -> s:_cmd_loop()})
 endfunction
 
-function! vimqq#autowarm#start(bot, messages)
-  " strictly greater
-  if g:vqq_autowarm_cmd_ms > 0 && !empty(a:messages)
-      let s:messages = deepcopy(a:messages)
-      let s:bot = a:bot
-      let s:autowarm = 'on'
-      let s:message_updated = v:false
-      call timer_start(g:vqq_autowarm_cmd_ms, { -> s:_cmd_loop()})
-  endif
-endfunction
+function! vimqq#autowarm#new() abort
+    let l:aw = {}
 
-function! vimqq#autowarm#stop()
-    let s:autowarm = 'off'
-endfunction
+    function l:aw.start(bot, messages) dict
+      if g:vqq_autowarm_cmd_ms > 0 && !empty(a:messages)
+          let s:messages = deepcopy(a:messages)
+          let s:bot = a:bot
+          let s:autowarm = 'on'
+          let s:message_updated = v:false
+          call timer_start(g:vqq_autowarm_cmd_ms, { -> s:_cmd_loop()})
+      endif
+    endfunction
 
-" we'll call this when warmup is done, so next warmup is ok to send
-function! vimqq#autowarm#next()
-    call vimqq#log#debug('next warmup')
-    if s:autowarm == 'on'
-        let s:last_warmup_done = v:true
-        call s:_check_cmd()
-        call s:_send_warmup()
-    endif
+    function! l:aw.stop() dict
+        let s:autowarm = 'off'
+    endfunction
+
+    " we'll call this when warmup is done, so next warmup is ok to send
+    function! l:aw.next() dict
+        call vimqq#log#debug('next warmup')
+        if s:autowarm == 'on'
+            let s:last_warmup_done = v:true
+            call s:_check_cmd()
+            call s:_send_warmup()
+        endif
+    endfunction
+
+    function! l:aw.handle_event(event, args) dict
+        if a:event == 'warmup_done'
+            call self.next()
+        endif
+    endfunction
+
+    return l:aw
 endfunction

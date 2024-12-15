@@ -193,7 +193,8 @@ function vimqq#ui#new() abort
         endfunction
 
         function! DeleteChat() closure
-            call timer_start(0, { -> self.call_cb('chat_delete_cb', l:chat_id_map[line('.')])})
+            let chat_id = l:chat_id_map[line('.')]
+            call timer_start(0, { -> vimqq#model#notify('delete_chat', {'chat_id': chat_id}) })
         endfunction
 
         nnoremap <silent> <buffer> <cr> :call ShowChat()<cr>
