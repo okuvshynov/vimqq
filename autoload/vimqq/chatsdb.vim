@@ -173,8 +173,11 @@ function! vimqq#chatsdb#new() abort
     endfunction
 
     function! l:db.handle_event(event, args) dict
-        call vimqq#log#info(a:event)
         if a:event == 'token_done'
+            if !self.chat_exists(a:args['chat_id'])
+                call vimqq#log#info("callback on non-existent chat.")
+                return
+            endif
             if empty(self.get_partial(a:args['chat_id']).content)
                 call a:args['state'].first_token(a:args['chat_id'])
             endif

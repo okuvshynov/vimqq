@@ -9,32 +9,15 @@ let s:ui      = vimqq#ui#new()
 let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
+let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
 
 call vimqq#model#add_observer(s:chatsdb)
 call vimqq#model#add_observer(s:ui)
+call vimqq#model#add_observer(s:warmup)
 
-" Construct warmup_bots list based on do_autowarm() method
-let s:warmup_bots = []
-for bot in s:bots.bots()
-    if bot.do_autowarm()
-        call add(s:warmup_bots, bot)
-    endif
-endfor
 
 " -----------------------------------------------------------------------------
 " Setting up wiring between modules
-
-function! s:_send_warmup(chat_id)
-    if !s:chatsdb.chat_exists(a:chat_id)
-        call vimqq#log#info("warmup on non-existent chat.")
-        return
-    endif
-    for bot in s:warmup_bots
-        let messages = s:chatsdb.get_messages(a:chat_id)
-        call vimqq#metrics#inc(bot.name() . ".chat_warmups" )
-        call bot.send_warmup(messages)
-    endfor
-endfunction
 
 " invoke a callback function for a chat, handling the case where the chat
 " may have been deleted before the callback is processed. If the chat no longer
@@ -47,16 +30,8 @@ function! s:_if_exists(Fn, chat_id, ...)
     call call(a:Fn, [a:chat_id] + a:000)
 endfunction
 
-" append the received token to message in database, and optionally to UI,
-" if the chat is currently open
-function! s:_on_token_done(chat_id, token)
-    call vimqq#metrics#inc('n_deltas')
-    call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token' : a:token, 'state' : s:state})
-endfunction
-
 " when we received complete message, we generate title, mark query as complete
 function! s:_on_reply_complete(chat_id, bot)
-    call vimqq#log#debug('n_deltas = ' . vimqq#metrics#get('n_deltas'))
     call vimqq#model#notify('partial_done', {'chat_id': a:chat_id})
     " TODO: modify this with event/observer based 
     if s:chatsdb.chat_len(a:chat_id) <= 2
@@ -75,12 +50,12 @@ endfunction
 
 function! s:_on_title_done(chat_id, title)
     call s:chatsdb.set_title(a:chat_id, a:title)
-    call s:_send_warmup(a:chat_id)
+    call vimqq#model#notify('title_done', {'chat_id': a:chat_id})
 endfunction
 
 function! s:_on_chat_select(chat_id)
     call vimqq#main#show_chat(a:chat_id)
-    call s:_send_warmup(a:chat_id)
+    call vimqq#model#notify('chat_opened', {'chat_id': a:chat_id})
 endfunction
 
 for bot in s:bots.bots()
@@ -98,7 +73,7 @@ for bot in s:bots.bots()
     " When server produces new streamed token, we update db and maybe update ui, 
     call bot.set_cb(
           \ 'token_cb',
-          \ {chat_id, token -> s:_if_exists(function('s:_on_token_done'), chat_id, token)}
+          \ {chat_id, token -> vimqq#model#notify('token_done', {'chat_id': chat_id, 'token': token, 'state': s:state})}
     \ )
     " When server updates health status, we update status line
     call bot.set_cb(
@@ -203,6 +178,7 @@ function! vimqq#main#show_chat(chat_id)
     let l:messages = s:chatsdb.get_messages(a:chat_id)
     let l:partial  = s:chatsdb.get_partial(a:chat_id)
     call s:ui.display_chat(l:messages, l:partial)
+
 endfunction
 
 function! vimqq#main#show_current_chat()

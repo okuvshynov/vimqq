@@ -12,6 +12,7 @@ endfunction
 
 function vimqq#model#notify(event, context) abort
     call vimqq#log#debug('event: ' . a:event)
+    call vimqq#metrics#inc('event_notify.' . a:event)
     for observer in s:observers
         call observer.handle_event(a:event, a:context)
     endfor
