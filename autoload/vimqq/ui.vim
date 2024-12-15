@@ -182,7 +182,10 @@ function vimqq#ui#new() abort
         mapclear <buffer>
 
         function! ShowChat() closure
-            call self.call_cb('chat_select_cb', l:chat_id_map[line('.')])
+            let chat_id = l:chat_id_map[line('.')]
+            call vimqq#model#notify('chat_selected', {'chat_id': chat_id})
+
+            "call self.call_cb('chat_select_cb', l:chat_id_map[line('.')])
         endfunction
 
         function! HideList() closure

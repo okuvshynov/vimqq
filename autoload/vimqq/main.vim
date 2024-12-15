@@ -11,10 +11,24 @@ let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
 let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
 
+function! s:new() abort
+    let l:controller = {}
+
+    function! l:controller.handle_event(event, args) dict
+        if a:event == 'chat_selected'
+            call vimqq#main#show_chat(a:args['chat_id'])
+        endif
+    endfunction
+
+    return l:controller
+endfunction
+
+let s:controller = s:new()
+
 call vimqq#model#add_observer(s:chatsdb)
 call vimqq#model#add_observer(s:ui)
 call vimqq#model#add_observer(s:warmup)
-
+call vimqq#model#add_observer(s:controller)
 
 " -----------------------------------------------------------------------------
 " Setting up wiring between modules
@@ -48,11 +62,6 @@ function! s:_on_reply_complete(chat_id, bot)
     call s:ui.update_queue_size(s:state.queue_size())
 endfunction
 
-function! s:_on_chat_select(chat_id)
-    call vimqq#main#show_chat(a:chat_id)
-    call vimqq#model#notify('chat_opened', {'chat_id': a:chat_id})
-endfunction
-
 for bot in s:bots.bots()
     " When title is ready, we set it in db
     call bot.set_cb(
@@ -79,11 +88,6 @@ for bot in s:bots.bots()
     call bot.set_cb('warmup_done_cb', { -> vimqq#autowarm#next()})
 endfor
 
-" If chat is selected in UI, show it
-call s:ui.set_cb(
-      \ 'chat_select_cb', 
-      \ {chat_id -> s:_if_exists(function('s:_on_chat_select'), chat_id)}
-\ )
 " If chat was requested for deletion, show confirmation, delete it and update UI
 call s:ui.set_cb(
       \ 'chat_delete_cb',
