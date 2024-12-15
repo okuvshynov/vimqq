@@ -8,7 +8,7 @@ function! vimqq#state#new(db) abort
     let l:state = {}
     
     let l:state._db     = a:db
-    let l:state._queues = {}
+    let l:state._dispatcher = vimqq#dispatcher#new(a:db)  
     let l:state._latencies = {}
     let l:state._last_bot_name = ""
     
@@ -41,66 +41,20 @@ function! vimqq#state#new(db) abort
         endif
     endfunction
 
-    " TODO: this becomes request dispatcher
-    " We need to make it work together with warmup
-    " prioritization, by bot/chat
     function! l:state.queue_size() dict
-        let l:size = 0
-        for l:queue in values(self._queues)
-          let l:size += len(l:queue)
-        endfor
-        return l:size
+        return self._dispatcher.queue_size()
     endfunction 
 
     " returns
     "   - v:true if query started running immediately
     "   - v:false if query was enqueued
     function! l:state.enqueue_query(chat_id, bot, message) dict
-        let l:queue = get(self._queues, a:chat_id, [])
-        let l:sent  = v:false
-        if empty(l:queue)
-            " timestamp and other metadata might get appended here
-            call self._db.append_message(a:chat_id, a:message)
-            call self._db.reset_partial(a:chat_id, a:bot.name())
-            if a:bot.send_chat(a:chat_id, self._db.get_messages(a:chat_id))
-                call add(l:queue, [a:message, a:bot])
-                let l:sent = v:true
-            else
-                call vimqq#log#error('Unable to send message')
-            endif
-        else
-            call add(l:queue, [a:message, a:bot])
-        endif
-        let self._queues[a:chat_id] = l:queue
-        return l:sent
+        return self._dispatcher.enqueue_query(a:chat_id, a:bot, a:message)
     endfunction
 
     function! l:state.reply_complete(chat_id) dict
-        let l:sent  = v:false
-        let l:queue = get(self._queues, a:chat_id, [])
-
-        if empty(l:queue)
-            vimqq#log#error('got a reply from non-enqueued query')
-            return v:false
-        endif
-
-        " Keep track of last bot
-        let [l:last_message, l:last_bot] = remove(l:queue, 0)
-        let self._last_bot_name = l:last_bot.name()
-
-        " kick off the next request if there was one
-        if !empty(l:queue)
-            let [l:message, l:bot] = remove(l:queue, 0)
-            call self._db.append_message(a:chat_id, l:message)
-            call self._db.reset_partial(a:chat_id, l:bot.name())
-            if l:bot.send_chat(a:chat_id, self._db.get_messages(a:chat_id))
-                let l:queue = [[l:message, l:bot]] + l:queue
-                let l:sent = v:true
-            else
-                call vimqq#log#error('Unable to send message')
-            endif
-        endif
-        let self._queues[a:chat_id] = l:queue
+        let [l:sent, l:last_bot_name] = self._dispatcher.reply_complete(a:chat_id)
+        let self._last_bot_name = l:last_bot_name
         return l:sent
     endfunction
 
