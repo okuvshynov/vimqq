@@ -84,6 +84,10 @@ function vimqq#bots#llama#new(config = {}) abort
           if message !~# '^data: '
               continue
           endif
+          if message == 'data: [DONE]'
+              call vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot': self})
+              return
+          endif
           let json_string = substitute(message, '^data: ', '', '')
 
           let response = json_decode(json_string)
@@ -95,7 +99,7 @@ function vimqq#bots#llama#new(config = {}) abort
   endfunction
 
   function! l:llama._on_stream_close(chat_id)
-      call vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot': self})
+      "call vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot': self})
   endfunction
 
   function! l:llama._on_err(chat_id, msg)

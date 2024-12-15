@@ -2,6 +2,10 @@ if exists('g:autoloaded_vimqq_dispatcher')
     finish
 endif
 
+" dispatcher needs to take into account two things:
+" - chat-level queueing, so that we have alternate turns
+" - bot-level prioritization, so, for example, we stop warmup
+"   if user initiates new query. Does llama.cpp server support cancel?
 let g:autoloaded_vimqq_dispatcher = 1
 
 function! vimqq#dispatcher#new(db) abort

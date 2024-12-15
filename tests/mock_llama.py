@@ -78,6 +78,8 @@ def chat():
             yield f"data: {json.dumps(response_data)}\n\n"
             stats['n_deltas'] += 1
 
+            yield "data: [DONE]"
+
         return Response(generate(), content_type='text/event-stream')
     else:
         stats['n_non_stream_queries'] += 1
