@@ -21,6 +21,8 @@ product-like - generalizing idea of prefetch.
 
 5. UI. 
 
+6. Claude streaming
+
 Fix the window relationship, improve fzf context
 
 ```

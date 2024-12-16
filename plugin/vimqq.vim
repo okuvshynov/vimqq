@@ -38,6 +38,7 @@ command!        -nargs=+ Q  call vimqq#main#q(<q-args>)
 command!        -nargs=+ QF call vimqq#main#fork_chat(<q-args>)
 
 command!        -nargs=0 QQList     call vimqq#main#show_list()
+command!        -nargs=0 QQFZF      call vimqq#main#fzf()
 command!        -nargs=1 QQOpenChat call vimqq#main#show_chat(<f-args>)
 command!        -nargs=0 QQChat     call vimqq#main#show_current_chat()
 

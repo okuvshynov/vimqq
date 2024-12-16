@@ -7,7 +7,6 @@ let g:autoloaded_vimqq_fzf = 1
 " FuzzyFinder integration
 
 function! vimqq#fzf#fmt_msg(message) abort
-    echomsg a:message
     if a:message['role'] == 'user'
         let prompt = "You: @" . a:message['bot_name'] . " "
     else

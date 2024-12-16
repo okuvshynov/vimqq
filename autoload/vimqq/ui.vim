@@ -84,9 +84,9 @@ function vimqq#ui#new() abort
             setlocal statusline=%{GetStatus()}%=%{GetQueueSize()}
         else
             let winnum = bufwinnr(l:bufnum)
+            call vimqq#log#info('winnum: ' . winnum)
             if winnum == -1
-                silent! execute 'buffer ' l:bufnum
-                silent! execute 'rightbelow vertical split'
+                silent! execute 'vert sb ' l:bufnum
             else
                 silent! execute winnum . 'wincmd w'
             endif
