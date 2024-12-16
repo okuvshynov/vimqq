@@ -26,5 +26,6 @@ endfunction
 
 " Save every N seconds + at exit
 autocmd VimLeavePre * call vimqq#metrics#save()
-let s:save_interval = 10
+" TODO: make configurable
+let s:save_interval = 600
 call timer_start(s:save_interval * 1000, {t -> vimqq#metrics#save()}, {'repeat': -1})

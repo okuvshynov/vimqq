@@ -21,9 +21,17 @@ product-like - generalizing idea of prefetch.
 
 5. UI. 
 
+Open in current window, not split by default?
+
 6. Claude streaming
 
-Fix the window relationship, improve fzf context
+7. AutoFix TODO 
+
+Observation: sometimes I notice a thing which I think would be easy for bot to fix.
+I don't want to ask it do be fixed right now, as I'm in the middle of something else
+So I leave TODO(bot) comment
+Something should automatically parse these and fix one by one.
+
 
 ```
 * e2e case study for some multi-file change

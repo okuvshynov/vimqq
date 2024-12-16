@@ -5,6 +5,7 @@ endif
 let g:autoloaded_vimqq_fzf = 1
 
 " FuzzyFinder integration
+" TODO: this needs to be improved, both search and presentation
 
 function! vimqq#fzf#fmt_msg(message) abort
     if a:message['role'] == 'user'
@@ -21,8 +22,7 @@ endfunction
 function! vimqq#fzf#format(chat) abort
     " Format: "title\x1fcontent\x1fid"
     " \x1f is a field separator that's unlikely to appear in content
-    let content = join(map(copy(a:chat.messages), 'vimqq#fzf#fmt_msg(v:val)'), '\n')
-    return a:chat.title . "\x1f" . content . "\x1f" . a:chat.id
+    return a:chat.title . "\x1f" . a:chat.id
 endfunction
 
 function! vimqq#fzf#parse(selected) abort
@@ -30,8 +30,7 @@ function! vimqq#fzf#parse(selected) abort
     let parts = split(a:selected, "\x1f")
     return {
         \ 'title': parts[0],
-        \ 'content': parts[1],
-        \ 'id': parts[2]
+        \ 'id': parts[1]
     \ }
 endfunction
 
