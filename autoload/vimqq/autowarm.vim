@@ -15,6 +15,8 @@ let g:vqq_autowarm_cmd_ms = get(g:, 'vqq_autowarm_cmd_ms', 500)
 " Thus, we have an option to keep sending warmup queries even if message
 " hasn't changed
 " TODO: should this be per bot? 
+" We need to rowrk this to support normal command-line warmups as well
+" Let's say I'm typing a question, we should already be prefetching.
 let g:vqq_autowarm_same_msg = get(g:, 'vqq_autowarm_same_msg', v:true)
 
 let s:autowarm = 'off'

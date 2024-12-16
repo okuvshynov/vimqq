@@ -158,16 +158,12 @@ function! vimqq#chatsdb#new() abort
 
     function! l:db.new_chat() dict
         let l:chat = {}
-        " This is problematic as we'll reuse IDs
-        " For example, we deleted last chat, added new chat and then reply for
-        " old chat arrived. We need real autoincrement with last value saved
-        " separately
-        let l:chat.id = empty(self._chats) ? 1 : max(keys(self._chats)) + 1
+        let l:chat.id = self.seq_id()
         let l:chat.messages = []
         let l:chat.title = "new chat"
         let l:chat.title_computed = v:false
         let l:chat.timestamp = localtime()
-        let l:chat.seq_id = self.seq_id()
+        let l:chat.seq_id = l:chat.id
 
         let self._chats[l:chat.id] = l:chat
         call self.clear_partial(l:chat.id)
