@@ -23,7 +23,10 @@ product-like - generalizing idea of prefetch.
 
 Open in current window, not split by default?
 
-6. Claude streaming
+6. Claude:
+ - streaming
+ - caching
+ - warmup
 
 7. AutoFix TODO 
 
