@@ -34,8 +34,8 @@ function! vimqq#bots#claude#new(config = {}) abort
     " {{{ private:
 
     function! l:claude._update_usage(usage) dict
-        let self._usage['in']  += a:usage['input_tokens']
-        let self._usage['out'] += a:usage['output_tokens']
+        let self._usage['in']  += get(a:usage, 'input_tokens', 0)
+        let self._usage['out'] += get(a:usage, 'output_tokens', 0)
 
         let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
 
@@ -54,6 +54,38 @@ function! vimqq#bots#claude#new(config = {}) abort
         call self._update_usage(l:response.usage)
         call vimqq#model#notify('title_done', {'chat_id' : a:chat_id, 'title': title})
     endfunction
+
+      function! l:claude._on_stream_out(chat_id, msg) dict
+          let l:messages = split(a:msg, '\n')
+          for message in l:messages
+              if message !~# '^data: '
+                  continue
+              endif
+              let json_string = substitute(message, '^data: ', '', '')
+              let response = json_decode(json_string)
+
+              if response['type'] == 'message_start'
+                call self._update_usage(response.message.usage)
+                return
+              endif
+              if response['type'] == 'message_stop'
+                  call vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot': self})
+                  return
+              endif
+              if response['type'] == 'message_delta'
+                call self._update_usage(response.usage)
+                return
+              endif
+              if response['type'] == 'content_block_delta'
+                  let next_token = response.delta.text
+                  call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token': next_token})
+              endif
+          endfor
+      endfunction
+
+  function! l:claude._on_stream_close(chat_id)
+      " Do nothing
+  endfunction
 
     function! l:claude._on_out(chat_id, msg) dict
         call add(self._reply_by_id[a:chat_id], a:msg)
@@ -117,6 +149,9 @@ function! vimqq#bots#claude#new(config = {}) abort
 
     function! l:claude.send_warmup(messages) dict
       " do nothing, as Claude API is stateless
+      " TODO: this is not true anymore, we can cache now
+      " Figure out a right way to do it, we probably don't want to cache every
+      " query
     endfunction
 
     function! l:claude.send_chat(chat_id, messages) dict
@@ -125,12 +160,13 @@ function! vimqq#bots#claude#new(config = {}) abort
         let req.system     = self._conf.system_prompt
         let req.messages   = self._format_messages(a:messages)
         let req.max_tokens = self._conf.max_tokens
+        let req.stream     = v:true
         let self._reply_by_id[a:chat_id] = []
 
         let l:job_conf = {
-              \ 'out_cb'  : {channel, msg -> self._on_out(a:chat_id, msg)}, 
+              \ 'out_cb'  : {channel, msg -> self._on_stream_out(a:chat_id, msg)}, 
               \ 'err_cb'  : {channel, msg -> self._on_err(a:chat_id, msg)},
-              \ 'close_cb': {channel      -> self._on_close(a:chat_id)}
+              \ 'close_cb': {channel      -> self._on_stream_close(a:chat_id)}
         \ }
 
         return self._send_query(req, l:job_conf)

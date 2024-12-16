@@ -1,6 +1,18 @@
 1. Cleaning up request queue/prioritization/warmups
 
-We have multiple mechanisms implemented now, need to make it better
+We have multiple mechanisms implemented now, need to make it better.
+
+Let's look at local model first.
+
+We have multiple types of queries being sent:
+ - autowarm on opening old chat/title gen
+ - on-demand warmup
+ - autowarm while typing message
+ - real query
+ - title queries
+
+ How should it work with/without query cancellation? 
+
 
 2. using lucas index and prefetching while I'm still typing. 
 
