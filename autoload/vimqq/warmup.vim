@@ -39,6 +39,13 @@ function! s:parse_command_line(cmd)
         return v:true
     endif
 
+    if a:cmd =~# '^QN\s'
+        let message = a:cmd[3:]
+        call vimqq#log#debug(string(message))
+        call vimqq#main#send_warmup(v:true, message)
+        return v:true
+    endif
+
     let l:qq_pattern = '\v^(.+)QQ\s+(.+)$'
     let l:matches = matchlist(a:cmd, l:qq_pattern)
     if len(l:matches) > 0
@@ -48,6 +55,21 @@ function! s:parse_command_line(cmd)
         call vimqq#log#debug('query ' . s:current_message)
         try
             execute l:range . 'call s:ranged_warmup(v:false)'
+            return v:true
+        catch
+            return v:false
+        endtry
+    endif
+
+    let l:qq_pattern = '\v^(.+)QQN\s+(.+)$'
+    let l:matches = matchlist(a:cmd, l:qq_pattern)
+    if len(l:matches) > 0
+        let l:range = l:matches[1]
+        let s:current_message = l:matches[2]
+        call vimqq#log#debug('range ' . l:range)
+        call vimqq#log#debug('query ' . s:current_message)
+        try
+            execute l:range . 'call s:ranged_warmup(v:true)'
             return v:true
         catch
             return v:false
