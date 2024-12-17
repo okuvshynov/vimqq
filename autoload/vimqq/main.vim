@@ -9,8 +9,10 @@ let s:ui      = vimqq#ui#new()
 let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
-let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
-let s:autowarm = vimqq#autowarm#new()
+" let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
+" let s:autowarm = vimqq#autowarm#new()
+
+let s:warmup = vimqq#cmdwatch#new()
 
 function! s:new() abort
     let l:controller = {}
@@ -70,14 +72,14 @@ call vimqq#model#add_observer(s:chatsdb)
 call vimqq#model#add_observer(s:ui)
 call vimqq#model#add_observer(s:warmup)
 call vimqq#model#add_observer(s:controller)
-call vimqq#model#add_observer(s:autowarm)
+"call vimqq#model#add_observer(s:autowarm)
 
 " -----------------------------------------------------------------------------
 " This is 'internal API' - functions called by defined public commands
 
 " Sends new message to the server
 function! vimqq#main#send_message(context_mode, force_new_chat, question)
-    call s:autowarm.stop()
+    " call s:autowarm.stop()
     " pick the bot. we modify message and remove bot tag
     let [l:bot, l:question] = s:bots.select(a:question)
 
@@ -119,7 +121,7 @@ function! vimqq#main#send_warmup(context_mode, force_new_chat, tag="")
 
     call vimqq#log#debug('Sending warmup with message of ' . len(l:messages))
     call l:bot.send_warmup(l:messages)
-    call s:autowarm.start(l:bot, l:messages)
+    "call s:autowarm.start(l:bot, l:messages)
 endfunction
 
 " show list of chats to select from 

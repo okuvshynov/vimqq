@@ -20,9 +20,9 @@ let s:q_ctx_keys = {
 \}
 
 function! vimqq#parser#parse_command(args, ctx_keys) abort
+    call vimqq#log#debug(a:args)
     let args = split(a:args, ' ')
     let params = []
-    let message = ''
 
     " Parse optional params starting with '-'
     " For example, -nfw would mean 
@@ -62,4 +62,12 @@ endfunction
 
 function! vimqq#parser#get_q_ctx_keys() abort
     return s:q_ctx_keys
+endfunction
+
+function! vimqq#parser#q(args) abort
+    return vimqq#parser#parse_command(a:args, vimqq#parser#get_q_ctx_keys())
+endfunction
+
+function! vimqq#parser#qq(args) abort
+    return vimqq#parser#parse_command(a:args, vimqq#parser#get_qq_ctx_keys())
 endfunction
