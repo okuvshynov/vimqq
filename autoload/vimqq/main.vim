@@ -10,9 +10,6 @@ let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
 let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
-" let s:autowarm = vimqq#autowarm#new()
-
-let s:auto_warmup = vimqq#cmdwatch#new()
 
 function! s:new() abort
     let l:controller = {}
@@ -71,16 +68,13 @@ call vimqq#model#set_state(s:state)
 call vimqq#model#add_observer(s:chatsdb)
 call vimqq#model#add_observer(s:ui)
 call vimqq#model#add_observer(s:warmup)
-call vimqq#model#add_observer(s:auto_warmup)
 call vimqq#model#add_observer(s:controller)
-"call vimqq#model#add_observer(s:autowarm)
 
 " -----------------------------------------------------------------------------
 " This is 'internal API' - functions called by defined public commands
 
 " Sends new message to the server
 function! vimqq#main#send_message(context_mode, force_new_chat, question)
-    " call s:autowarm.stop()
     " pick the bot. we modify message and remove bot tag
     let [l:bot, l:question] = s:bots.select(a:question)
 
@@ -151,26 +145,22 @@ function! vimqq#main#show_current_chat()
     call vimqq#main#show_chat(l:chat_id)
 endfunction
 
-function! s:_execute(args, ctx_keys)
-    let l:parsed = vimqq#parser#parse_command(a:args, a:ctx_keys)
-    if l:parsed.do_warmup
-        call vimqq#main#send_warmup(l:parsed.ctx_options, l:parsed.new_chat, l:parsed.message)
-    else
-        call vimqq#main#send_message(l:parsed.ctx_options, l:parsed.new_chat, l:parsed.message)
-    endif
-endfunction
-
 " -----------------------------------------------------------------------------
 function! vimqq#main#qq(args) abort
     call vimqq#log#debug('qq: sending message')
-    call s:_execute(a:args, vimqq#parser#get_qq_ctx_keys())
+    let l:ctx_keys = vimqq#parser#get_qq_ctx_keys()
+    let l:parsed = vimqq#parser#parse_command(a:args, l:ctx_keys)
+    call vimqq#main#send_message(l:parsed.ctx_options, l:parsed.new_chat, l:parsed.message)
 endfunction
 
 function! vimqq#main#q(args) abort
     call vimqq#log#debug('q: sending message')
-    call s:_execute(a:args, vimqq#parser#get_q_ctx_keys())
+    let l:ctx_keys = vimqq#parser#get_q_ctx_keys()
+    let l:parsed = vimqq#parser#parse_command(a:args, l:ctx_keys)
+    call vimqq#main#send_message(l:parsed.ctx_options, l:parsed.new_chat, l:parsed.message)
 endfunction
 
+" TODO: forking will become particularly important if we use lucas index
 function! vimqq#main#fork_chat(args) abort
     let args = split(a:args, ' ')
     let l:src_chat_id = s:state.get_chat_id()

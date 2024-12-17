@@ -39,7 +39,6 @@ function! vimqq#parser#parse_command(args, ctx_keys) abort
 
     let l:message = join(args, ' ')
     let l:new_chat  = index(params, 'n') >= 0
-    let l:do_warmup = index(params, 'w') >= 0
 
     let l:ctx_options = {}
     for [k, v] in items(a:ctx_keys)
@@ -50,7 +49,6 @@ function! vimqq#parser#parse_command(args, ctx_keys) abort
 
     return {
         \ 'new_chat': l:new_chat,
-        \ 'do_warmup': l:do_warmup,
         \ 'ctx_options': l:ctx_options,
         \ 'message': l:message
     \ }
