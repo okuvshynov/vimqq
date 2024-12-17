@@ -9,10 +9,10 @@ let s:ui      = vimqq#ui#new()
 let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
-" let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
+let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
 " let s:autowarm = vimqq#autowarm#new()
 
-let s:warmup = vimqq#cmdwatch#new()
+let s:auto_warmup = vimqq#cmdwatch#new()
 
 function! s:new() abort
     let l:controller = {}
@@ -71,6 +71,7 @@ call vimqq#model#set_state(s:state)
 call vimqq#model#add_observer(s:chatsdb)
 call vimqq#model#add_observer(s:ui)
 call vimqq#model#add_observer(s:warmup)
+call vimqq#model#add_observer(s:auto_warmup)
 call vimqq#model#add_observer(s:controller)
 "call vimqq#model#add_observer(s:autowarm)
 
