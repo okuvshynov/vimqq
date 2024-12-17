@@ -37,7 +37,9 @@ function! vimqq#fmt#content(message, folding_context=v:false)
 
     for [key, pattern] in items(l:replacements)
         if has_key(a:message, key)
-            let l:escaped = escape(a:message[key], '/\' . (&magic ? '&~' : ''))
+            let l:escaped = a:message[key]
+            " TODO: why did I have this?
+            "let l:escaped = escape(a:message[key], '/\' . (&magic ? '&~' : ''))
             let l:res = substitute(l:res, pattern, l:escaped, 'g')
         endif
     endfor

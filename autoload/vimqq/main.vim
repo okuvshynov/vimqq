@@ -157,12 +157,19 @@ function! vimqq#main#qq(message) abort range
     call vimqq#main#send_message(v:false, a:message, l:context)
 endfunction
 
+function! vimqq#main#qqn(message) abort range
+    call vimqq#log#debug('qq: sending message')
+    let l:lines = getline(a:firstline, a:lastline)
+    let l:context = join(l:lines, '\n')
+    call vimqq#main#send_message(v:true, a:message, l:context)
+endfunction
+
 function! vimqq#main#q(message) abort
     call vimqq#log#debug('q: sending message')
     call vimqq#main#send_message(v:false, a:message)
 endfunction
 
-function! vimqq#main#qn(args) abort
+function! vimqq#main#qn(message) abort
     call vimqq#log#debug('qn: sending message')
     call vimqq#main#send_message(v:true, a:message)
 endfunction
