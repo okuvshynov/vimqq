@@ -25,6 +25,7 @@ function! s:ParseRange(cmdline)
   let l:result = {'start': '', 'end': '', 'cmd': ''}
   
   " TODO: This needs to be tested well
+  "  - doesn't work for % (entire file)
   let l:range_regex = '^\%('
         \ . '\%(\d\+\|\.\|\$\|\%([+-]\d*\)\|'
         \ . '\/[^/]\\{-}\/\|?[^?]\\{-}?\|'

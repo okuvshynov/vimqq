@@ -116,7 +116,6 @@ function! vimqq#main#send_warmup(context_mode, force_new_chat, tag="")
 
     call vimqq#log#debug('Sending warmup with message of ' . len(l:messages))
     call l:bot.send_warmup(l:messages)
-    "call s:autowarm.start(l:bot, l:messages)
 endfunction
 
 " show list of chats to select from 
