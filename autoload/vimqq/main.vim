@@ -74,7 +74,7 @@ call vimqq#model#add_observer(s:controller)
 " This is 'internal API' - functions called by defined public commands
 
 " Sends new message to the server
-function! vimqq#main#send_message(context_mode, force_new_chat, question)
+function! vimqq#main#send_message(force_new_chat, question, context=v:null)
     " pick the bot. we modify message and remove bot tag
     let [l:bot, l:question] = s:bots.select(a:question)
 
@@ -86,7 +86,7 @@ function! vimqq#main#send_message(context_mode, force_new_chat, question)
           \ "bot_name" : l:bot.name()
     \ }
 
-    let l:message = vimqq#context#context#fill(l:message, a:context_mode)
+    let l:message = vimqq#context#context#fill(l:message, a:context)
 
     let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
     call s:state.user_started_waiting(l:chat_id)
@@ -99,15 +99,20 @@ function! vimqq#main#send_message(context_mode, force_new_chat, question)
 endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.
-function! vimqq#main#send_warmup(context_mode, force_new_chat, tag="")
+function! vimqq#main#send_warmup(force_new_chat, question, context=v:null)
+    let [l:bot, l:question] = s:bots.select(a:question)
+    call vimqq#log#debug(l:bot.name())
+    call vimqq#log#debug(l:question)
     let l:message = {
-          \ "role"     : "user",
-          \ "message"  : "",
+          \ "role"     : 'user',
+          \ "message"  : l:question,
+          \ "bot_name" : l:bot.name()
     \ }
-    let l:message = vimqq#context#context#fill(l:message, a:context_mode)
+
+    let l:message = vimqq#context#context#fill(l:message, a:context)
 
     let l:chat_id = s:state.get_chat_id()
-    let [l:bot, _msg] = s:bots.select(a:tag)
+
     if l:chat_id >= 0 && !a:force_new_chat
         let l:messages = s:chatsdb.get_messages(l:chat_id) + [l:message]
     else
@@ -145,18 +150,21 @@ function! vimqq#main#show_current_chat()
 endfunction
 
 " -----------------------------------------------------------------------------
-function! vimqq#main#qq(args) abort
+function! vimqq#main#qq(message) abort range
     call vimqq#log#debug('qq: sending message')
-    let l:ctx_keys = vimqq#parser#get_qq_ctx_keys()
-    let l:parsed = vimqq#parser#parse_command(a:args, l:ctx_keys)
-    call vimqq#main#send_message(l:parsed.ctx_options, l:parsed.new_chat, l:parsed.message)
+    let l:lines = getline(a:firstline, a:lastline)
+    let l:context = join(l:lines, '\n')
+    call vimqq#main#send_message(v:false, a:message, l:context)
 endfunction
 
-function! vimqq#main#q(args) abort
+function! vimqq#main#q(message) abort
     call vimqq#log#debug('q: sending message')
-    let l:ctx_keys = vimqq#parser#get_q_ctx_keys()
-    let l:parsed = vimqq#parser#parse_command(a:args, l:ctx_keys)
-    call vimqq#main#send_message(l:parsed.ctx_options, l:parsed.new_chat, l:parsed.message)
+    call vimqq#main#send_message(v:false, a:message)
+endfunction
+
+function! vimqq#main#qn(args) abort
+    call vimqq#log#debug('qn: sending message')
+    call vimqq#main#send_message(v:true, a:message)
 endfunction
 
 " TODO: forking will become particularly important if we use lucas index

@@ -21,76 +21,52 @@ function! s:GetCurrentCommand()
   return ''
 endfunction
 
-function! s:ParseRange(cmdline)
-  let l:result = {'start': '', 'end': '', 'cmd': ''}
-  
-  " TODO: This needs to be tested well
-  "  - doesn't work for % (entire file)
-  let l:range_regex = '^\%('
-        \ . '\%(\d\+\|\.\|\$\|\%([+-]\d*\)\|'
-        \ . '\/[^/]\\{-}\/\|?[^?]\\{-}?\|'
-        \ . '''[[:alpha:]<>]\)'
-        \ . '\%([-+]\d*\)*'
-        \ . '\)'
-        \ . '\%([,;]'
-        \ . '\%(\d\+\|\.\|\$\|\%([+-]\d*\)\|'
-        \ . '\/[^/]\\{-}\/\|?[^?]\\{-}?\|'
-        \ . '''[[:alpha:]<>]\)'
-        \ . '\%([-+]\d*\)*'
-        \ . '\)*'
-
-
-  let l:cmdline = a:cmdline
-  let l:match = matchstr(l:cmdline, l:range_regex)
-  
-  if !empty(l:match)
-    " Split range into start and end if comma exists
-    let l:range_parts = split(l:match, '[,;]')
-    let l:result.start = get(l:range_parts, 0, '')
-    let l:result.end = get(l:range_parts, 1, '')
-    
-    " Get the actual command after the range
-    let l:result.cmd = strpart(l:cmdline, len(l:match))
-  else
-    let l:result.cmd = l:cmdline
-  endif
-  
-  return l:result
+let s:current_message = ''
+function! s:ranged_warmup(new_chat) range
+    let l:lines = getline(a:firstline, a:lastline)
+    let l:context = join(l:lines, '\n')
+    "call vimqq#log#debug(l:context)
+    call vimqq#main#send_warmup(a:new_chat, s:current_message, l:context)
 endfunction
-
 
 function! s:parse_command_line(cmd)
     call vimqq#log#debug(a:cmd)
+    " Q doesn't receive range. This is the only way to invoke it.
     if a:cmd =~# '^Q\s'
-        let args = a:cmd[2:]
-        let parsed = vimqq#parser#q(args)
-        call vimqq#log#debug(string(parsed))
-        return parsed
+        let message = a:cmd[2:]
+        call vimqq#log#debug(string(message))
+        call vimqq#main#send_warmup(v:false, message)
+        return v:true
     endif
-    if a:cmd =~# '^QQ\s'
-        let args = a:cmd[3:]
-        let parsed = vimqq#parser#qq(args)
-        call vimqq#log#debug(string(parsed))
-        return parsed
+
+    let l:qq_pattern = '\v^(.+)QQ\s+(.+)$'
+    let l:matches = matchlist(a:cmd, l:qq_pattern)
+    if len(l:matches) > 0
+        let l:range = l:matches[1]
+        let s:current_message = l:matches[2]
+        call vimqq#log#debug('range ' . l:range)
+        call vimqq#log#debug('query ' . s:current_message)
+        try
+            execute l:range . 'call s:ranged_warmup(v:false)'
+            return v:true
+        catch
+            return v:false
+        endtry
     endif
-    return v:null
+
+    return v:false
 endfunction
 
 " Timer callback function
 function! s:CheckCommandLine(timer_id)
     if mode() ==# 'c'  " Check if we're in command mode
-        let cmd = s:GetCurrentCommand()
-        let parsed = s:ParseRange(cmd)
-        let parsed_cmd = s:parse_command_line(parsed.cmd)
-        if parsed_cmd is v:null
-            return
-        endif
         if s:warmup_in_progress 
             call vimqq#log#debug('not issuing second warmup')
             return
         endif
-        let s:warmup_in_progress = v:true
-        call vimqq#main#send_warmup(parsed_cmd.ctx_options, parsed_cmd.new_chat, parsed_cmd.message)
+        let cmd = s:GetCurrentCommand()
+        " TODO: here we are actually missing the range.
+        let s:warmup_in_progress = s:parse_command_line(cmd)
     endif
 endfunction
 

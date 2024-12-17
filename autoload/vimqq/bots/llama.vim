@@ -68,6 +68,7 @@ function vimqq#bots#llama#new(config = {}) abort
   endfunction
 
   function l:llama._send_chat_query(req, job_conf) dict
+      call vimqq#log#debug('sending query')
       let l:json_req  = json_encode(a:req)
       let l:json_req  = substitute(l:json_req, "'", "'\\\\''", "g")
 
@@ -136,6 +137,7 @@ function vimqq#bots#llama#new(config = {}) abort
   " warmup query to pre-fill the cache on the server.
   " We ask for 0 tokens and ignore the response.
   function! l:llama.send_warmup(messages) dict
+      call vimqq#log#debug('Local: sending warmup')
       let req = self._prepare_request(a:messages)
       let req.n_predict = 0
 
