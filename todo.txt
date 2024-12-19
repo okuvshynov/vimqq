@@ -1,20 +1,31 @@
 1. Cleaning up request queue/prioritization/warmups
 
-We have multiple mechanisms implemented now, need to make it better.
+    We have multiple mechanisms implemented now, need to make it better.
 
-Let's look at local model first.
+    Let's look at local model first.
 
-We have multiple types of queries being sent:
- - autowarm on opening old chat/title gen
- - on-demand warmup
- - autowarm while typing message
- - real query
- - title queries
+    We have multiple types of queries being sent:
+     - autowarm on opening old chat/title gen
+     - on-demand warmup
+     - autowarm while typing message
+     - real query
+     - title queries
 
- How should it work with/without query cancellation? 
+     How should it work with/without query cancellation? 
 
+2. using lucas index
 
-2. using lucas index and prefetching while I'm still typing. 
+A few things needed:
+ * tool calling - possible with claude, hard with local
+ * 
+
+How should it look like? For example, I select a piece of code, do something like
+
+'<,>:QQL Do XYZ instead'
+
+This becomes a separate command, not chat. It will loop until fix and manage multiple turns with
+tool calling.
+
 
 Harder with local as there's no built-in function calling.
 
@@ -36,7 +47,7 @@ product-like - generalizing idea of prefetch.
 Open in current window, not split by default?
 
 6. Claude:
- - streaming
+ + streaming
  - caching
  - warmup
 
@@ -47,6 +58,7 @@ I don't want to ask it do be fixed right now, as I'm in the middle of something 
 So I leave TODO(bot) comment
 Something should automatically parse these and fix one by one.
 
+8. cleanup logging
 
 ```
 * e2e case study for some multi-file change
