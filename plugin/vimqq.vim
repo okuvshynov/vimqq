@@ -8,19 +8,13 @@
 "  Universal command
 
 "  format is 
-"     :QQ [options] [bot_tag] message
+"     :QQ [bot_tag] message
 "  example:
-"     :QQ -nwf @llama How would you refactor this file?
-"  Supported options:
-"  - n - [n]ew chat
-"  - w - do [w]armup
-"  - s - use visual [s]election as context
-"  - f - use current [f]ile as context
-"  - p - use entire [p]roject as context -- be careful here
-"  - t - use c[t]ags from the selection as context
-"  - b - use git [b]lame and pull commits relevant to the selection
-command! -range -nargs=+ QQ call vimqq#main#qq(<q-args>)
+"     :%QQ @llama How would you refactor this file?
+command! -range -nargs=+ QQ <line1>,<line2>call vimqq#main#qq(<q-args>)
 command!        -nargs=+ Q  call vimqq#main#q(<q-args>)
+command! -range -nargs=+ QQN <line1>,<line2>call vimqq#main#qqn(<q-args>)
+command!        -nargs=+ QN  call vimqq#main#qn(<q-args>)
 
 " Fork the current chat reusing the context from the first message.
 " It is useful in cases of long context, but when you want to start a new
@@ -50,3 +44,7 @@ command!        -nargs=0 QQChat     call vimqq#main#show_current_chat()
 "   :QE ok
 "   :QE slow
 command! -nargs=1 QE call vimqq#main#record_eval(<f-args>)
+
+if !has_key(g:, 'vqq_skip_init')
+    call vimqq#main#init()
+endif

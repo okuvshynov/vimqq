@@ -10,7 +10,6 @@ let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
 let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
-let s:autowarm = vimqq#autowarm#new()
 
 function! s:new() abort
     let l:controller = {}
@@ -70,14 +69,12 @@ call vimqq#model#add_observer(s:chatsdb)
 call vimqq#model#add_observer(s:ui)
 call vimqq#model#add_observer(s:warmup)
 call vimqq#model#add_observer(s:controller)
-call vimqq#model#add_observer(s:autowarm)
 
 " -----------------------------------------------------------------------------
 " This is 'internal API' - functions called by defined public commands
 
 " Sends new message to the server
-function! vimqq#main#send_message(context_mode, force_new_chat, question)
-    call s:autowarm.stop()
+function! vimqq#main#send_message(force_new_chat, question, context=v:null)
     " pick the bot. we modify message and remove bot tag
     let [l:bot, l:question] = s:bots.select(a:question)
 
@@ -89,7 +86,7 @@ function! vimqq#main#send_message(context_mode, force_new_chat, question)
           \ "bot_name" : l:bot.name()
     \ }
 
-    let l:message = vimqq#context#context#fill(l:message, a:context_mode)
+    let l:message = vimqq#context#context#fill(l:message, a:context)
 
     let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
     call s:state.user_started_waiting(l:chat_id)
@@ -102,15 +99,20 @@ function! vimqq#main#send_message(context_mode, force_new_chat, question)
 endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.
-function! vimqq#main#send_warmup(context_mode, force_new_chat, tag="")
+function! vimqq#main#send_warmup(force_new_chat, question, context=v:null)
+    let [l:bot, l:question] = s:bots.select(a:question)
+    call vimqq#log#debug(l:bot.name())
+    call vimqq#log#debug(l:question)
     let l:message = {
-          \ "role"     : "user",
-          \ "message"  : "",
+          \ "role"     : 'user',
+          \ "message"  : l:question,
+          \ "bot_name" : l:bot.name()
     \ }
-    let l:message = vimqq#context#context#fill(l:message, a:context_mode)
+
+    let l:message = vimqq#context#context#fill(l:message, a:context)
 
     let l:chat_id = s:state.get_chat_id()
-    let [l:bot, _msg] = s:bots.select(a:tag)
+
     if l:chat_id >= 0 && !a:force_new_chat
         let l:messages = s:chatsdb.get_messages(l:chat_id) + [l:message]
     else
@@ -119,7 +121,6 @@ function! vimqq#main#send_warmup(context_mode, force_new_chat, tag="")
 
     call vimqq#log#debug('Sending warmup with message of ' . len(l:messages))
     call l:bot.send_warmup(l:messages)
-    call s:autowarm.start(l:bot, l:messages)
 endfunction
 
 " show list of chats to select from 
@@ -148,26 +149,32 @@ function! vimqq#main#show_current_chat()
     call vimqq#main#show_chat(l:chat_id)
 endfunction
 
-function! s:_execute(args, ctx_keys)
-    let l:parsed = vimqq#parser#parse_command(a:args, a:ctx_keys)
-    if l:parsed.do_warmup
-        call vimqq#main#send_warmup(l:parsed.ctx_options, l:parsed.new_chat, l:parsed.message)
-    else
-        call vimqq#main#send_message(l:parsed.ctx_options, l:parsed.new_chat, l:parsed.message)
-    endif
-endfunction
-
 " -----------------------------------------------------------------------------
-function! vimqq#main#qq(args) abort
+function! vimqq#main#qq(message) abort range
     call vimqq#log#debug('qq: sending message')
-    call s:_execute(a:args, vimqq#parser#get_qq_ctx_keys())
+    let l:lines = getline(a:firstline, a:lastline)
+    let l:context = join(l:lines, '\n')
+    call vimqq#main#send_message(v:false, a:message, l:context)
 endfunction
 
-function! vimqq#main#q(args) abort
+function! vimqq#main#qqn(message) abort range
+    call vimqq#log#debug('qq: sending message')
+    let l:lines = getline(a:firstline, a:lastline)
+    let l:context = join(l:lines, '\n')
+    call vimqq#main#send_message(v:true, a:message, l:context)
+endfunction
+
+function! vimqq#main#q(message) abort
     call vimqq#log#debug('q: sending message')
-    call s:_execute(a:args, vimqq#parser#get_q_ctx_keys())
+    call vimqq#main#send_message(v:false, a:message)
 endfunction
 
+function! vimqq#main#qn(message) abort
+    call vimqq#log#debug('qn: sending message')
+    call vimqq#main#send_message(v:true, a:message)
+endfunction
+
+" TODO: forking will become particularly important if we use lucas index
 function! vimqq#main#fork_chat(args) abort
     let args = split(a:args, ' ')
     let l:src_chat_id = s:state.get_chat_id()
@@ -201,4 +208,8 @@ endfunction
 
 function! vimqq#main#fzf() abort
     call vimqq#fzf#show(s:chatsdb)
+endfunction
+
+function! vimqq#main#init() abort
+    " Just to autoload
 endfunction

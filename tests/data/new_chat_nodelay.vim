@@ -15,6 +15,6 @@ function! WriteAndQuit(t)
 endfunction
 
 :Q @mock hello
-:Q -n @mock world!
+:QN @mock world!
 call timer_start(1000, "WriteAndQuit")
 

@@ -83,7 +83,7 @@ function! vimqq#bots#bots#new() abort
             if len(a:question) > len(l:tag)
                 let l:tag .= ' '
             endif
-            call vimqq#log#debug(l:tag . "|")
+            "call vimqq#log#debug(l:tag . "|")
             if strpart(a:question, 0, len(l:tag)) ==# l:tag
                 " removing tag before passing it to backend
                 let i = len(l:tag)

@@ -29,7 +29,7 @@ function! vimqq#chatsdb#new() abort
         endif
         for message in a:chat.messages
             if has_key(l:message, 'seq_id')
-                let res = max([res, a:chat.seq_id])
+                let res = max([res, l:message.seq_id])
             endif
         endfor
         return res

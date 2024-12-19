@@ -15,5 +15,5 @@ endfunction
 :put!=range(1,5)
 :normal ggV5j
 :execute "normal! \<Esc>"
-:'<,'>QQ -s @mock hello
+:'<,'>QQ @mock hello
 call timer_start(200, "WriteAndQuit")

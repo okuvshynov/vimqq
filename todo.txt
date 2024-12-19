@@ -1,52 +1,9 @@
-1. Cleaning up request queue/prioritization/warmups
-
-We have multiple mechanisms implemented now, need to make it better.
-
-Let's look at local model first.
-
-We have multiple types of queries being sent:
- - autowarm on opening old chat/title gen
- - on-demand warmup
- - autowarm while typing message
- - real query
- - title queries
-
- How should it work with/without query cancellation? 
-
-
-2. using lucas index and prefetching while I'm still typing. 
-
-Harder with local as there's no built-in function calling.
-
-For example: I selected a piece of context and started typing. In the meantime, we already can:
-
-* we should already have index itself processed.
-* process the prompt + question/request
-* call the tool in the background and start processing these files (?)
-* exploring multiple chains in parallel?
-
-product-like - generalizing idea of prefetch.
-
-3. generalizing bots
-
-4. extracting prompts
-
-5. UI. 
-
-Open in current window, not split by default?
-
-6. Claude:
- - streaming
- - caching
- - warmup
-
 7. AutoFix TODO 
 
 Observation: sometimes I notice a thing which I think would be easy for bot to fix.
 I don't want to ask it do be fixed right now, as I'm in the middle of something else
 So I leave TODO(bot) comment
 Something should automatically parse these and fix one by one.
-
 
 ```
 * e2e case study for some multi-file change
