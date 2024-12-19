@@ -30,6 +30,7 @@ let g:vqq_log_level = 'DEBUG'
 let g:vqq_chats_file = "$test_dir/vimqq_db.json"
 let g:vqq_llama_servers = [{'bot_name': 'mock', 'addr': 'http://localhost:$port'}]
 let g:vqq_time_format = "00:00"
+let g:vqq_skip_init = 1
 set packpath=$test_dir/rtp
 EOF
 
