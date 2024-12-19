@@ -44,3 +44,5 @@ command!        -nargs=0 QQChat     call vimqq#main#show_current_chat()
 "   :QE ok
 "   :QE slow
 command! -nargs=1 QE call vimqq#main#record_eval(<f-args>)
+
+call vimqq#main#init()

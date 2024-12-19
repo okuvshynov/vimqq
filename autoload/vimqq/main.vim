@@ -209,3 +209,7 @@ endfunction
 function! vimqq#main#fzf() abort
     call vimqq#fzf#show(s:chatsdb)
 endfunction
+
+function! vimqq#main#init() abort
+    " Just to autoload
+endfunction
