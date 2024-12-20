@@ -101,8 +101,6 @@ endfunction
 " sends a warmup message to the server to pre-fill kv cache with context.
 function! vimqq#main#send_warmup(force_new_chat, question, context=v:null)
     let [l:bot, l:question] = s:bots.select(a:question)
-    call vimqq#log#debug(l:bot.name())
-    call vimqq#log#debug(l:question)
     let l:message = {
           \ "role"     : 'user',
           \ "message"  : l:question,
