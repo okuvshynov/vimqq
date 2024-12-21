@@ -21,7 +21,7 @@ endfunction
 
 function! vimqq#metrics#save()
     let metrics_json = json_encode(s:metrics)
-    call writefile([metrics_json], vimqq#path#data(s:metrics_file))
+    call writefile([metrics_json], vimqq#platform#path#data(s:metrics_file))
 endfunction
 
 " Save every N seconds + at exit

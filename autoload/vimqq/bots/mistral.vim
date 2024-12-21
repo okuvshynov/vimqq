@@ -98,7 +98,7 @@ function! vimqq#bots#mistral#new(config = {}) abort
         let l:curl_cmd .= " -H 'Authorization: Bearer " . self._api_key . "'"
         let l:curl_cmd .= " -d '" . l:json_req . "'"
 
-        return vimqq#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
+        return vimqq#platform#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
     endfunction
 
     function! l:mistral_bot._format_messages(messages) dict

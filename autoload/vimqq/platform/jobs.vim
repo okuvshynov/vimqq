@@ -39,9 +39,9 @@ endfunction
 "   close_cb : {channel -> }
 "   exit_cb : {job_id, status -> }
 
-function! vimqq#jobs#start(command, config)
+function! vimqq#platform#jobs#start(command, config)
     if has('nvim')
-        return vimqq#jobs#start_nvim(a:command, a:config)
+        return s:_start_nvim(a:command, a:config)
     endif
     let l:job = job_start(a:command, a:config)
     if job_status(l:job) == 'fail'
@@ -52,7 +52,7 @@ function! vimqq#jobs#start(command, config)
     return v:true
 endfunction
 
-function! vimqq#jobs#start_nvim(command, config)
+function! s:_start_nvim(command, config)
     " need to transform config
     let l:conf = {}
     let OnOut = {c,d,n -> {}}

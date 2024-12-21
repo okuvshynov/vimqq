@@ -6,7 +6,7 @@ endif
 
 let g:autoloaded_vimqq_log = 1
 
-let g:vqq_log_file = get(g:, 'vqq_log_file', vimqq#path#log('vimqq.log'))
+let g:vqq_log_file = get(g:, 'vqq_log_file', vimqq#platform#path#log('vimqq.log'))
 let g:vqq_log_level = get(g:, 'vqq_log_level', 'INFO')
 let g:vqq_log_format = get(g:, 'vqq_log_format', '%Y-%m-%d %H:%M:%S ')
 

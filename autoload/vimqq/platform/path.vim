@@ -6,7 +6,7 @@ endif
 
 let g:autoloaded_vimqq_path = 1
 
-function! vimqq#path#log(filename)
+function! vimqq#platform#path#log(filename)
     if has('nvim')
         return stdpath("data") . '/' . a:filename
     else
@@ -14,7 +14,7 @@ function! vimqq#path#log(filename)
     endif
 endfunction
 
-function! vimqq#path#data(filename)
+function! vimqq#platform#path#data(filename)
     if has('nvim')
         return stdpath("data") . '/' . a:filename
     else
