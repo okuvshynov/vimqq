@@ -25,23 +25,19 @@ let s:current_message = ''
 function! s:ranged_warmup(new_chat) range
     let l:lines = getline(a:firstline, a:lastline)
     let l:context = join(l:lines, '\n')
-    "call vimqq#log#debug(l:context)
     call vimqq#main#send_warmup(a:new_chat, s:current_message, l:context)
 endfunction
 
 function! s:parse_command_line(cmd)
-    call vimqq#log#debug(a:cmd)
     " Q doesn't receive range. This is the only way to invoke it.
     if a:cmd =~# '^Q\s'
         let message = a:cmd[2:]
-        call vimqq#log#debug(string(message))
         call vimqq#main#send_warmup(v:false, message)
         return v:true
     endif
 
     if a:cmd =~# '^QN\s'
         let message = a:cmd[3:]
-        call vimqq#log#debug(string(message))
         call vimqq#main#send_warmup(v:true, message)
         return v:true
     endif
@@ -51,8 +47,6 @@ function! s:parse_command_line(cmd)
     if len(l:matches) > 0
         let l:range = l:matches[1]
         let s:current_message = l:matches[2]
-        call vimqq#log#debug('range ' . l:range)
-        call vimqq#log#debug('query ' . s:current_message)
         try
             execute l:range . 'call s:ranged_warmup(v:false)'
             return v:true
@@ -66,8 +60,6 @@ function! s:parse_command_line(cmd)
     if len(l:matches) > 0
         let l:range = l:matches[1]
         let s:current_message = l:matches[2]
-        call vimqq#log#debug('range ' . l:range)
-        call vimqq#log#debug('query ' . s:current_message)
         try
             execute l:range . 'call s:ranged_warmup(v:true)'
             return v:true
