@@ -4,6 +4,17 @@ endif
 
 let g:autoloaded_vimqq_fmt = 1
 
+" Fill context into message object
+function! vimqq#fmt#fill_context(message, context)
+    let l:message = deepcopy(a:message)
+
+    if a:context is v:null
+        return l:message
+    endif
+    let l:message.context = a:context
+    return l:message
+endfunction
+
 let s:template_context = 
       \  "Here's a code snippet: \n\n{vqq_context}\n\n{vqq_message}"
 

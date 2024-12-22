@@ -86,7 +86,7 @@ function! vimqq#main#send_message(force_new_chat, question, context=v:null)
           \ "bot_name" : l:bot.name()
     \ }
 
-    let l:message = vimqq#context#context#fill(l:message, a:context)
+    let l:message = vimqq#fmt#fill_context(l:message, a:context)
 
     let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
     call s:state.user_started_waiting(l:chat_id)
@@ -107,7 +107,7 @@ function! vimqq#main#send_warmup(force_new_chat, question, context=v:null)
           \ "bot_name" : l:bot.name()
     \ }
 
-    let l:message = vimqq#context#context#fill(l:message, a:context)
+    let l:message = vimqq#fmt#fill_context(l:message, a:context)
 
     let l:chat_id = s:state.get_chat_id()
 
