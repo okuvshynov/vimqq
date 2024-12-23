@@ -36,15 +36,30 @@ function! vimqq#chatsdb#new() abort
     endfunction
 
     if filereadable(l:db._file)
-        let l:db._chats = json_decode(join(readfile(l:db._file), ''))
-        for [key, chat] in items(l:db._chats)
-            let l:db._seq_id = max([l:db._seq_id, l:db._max_seq_id(chat)])
-        endfor
+        let l:data = json_decode(join(readfile(l:db._file), ''))
+        " Handle both old and new format
+        if type(l:data) == v:t_dict && has_key(l:data, 'chats')
+            " New format with metadata
+            let l:db._chats = l:data.chats
+            let l:db._seq_id = l:data.max_seq_id
+        else
+            " Old format - data is just chats
+            let l:db._chats = l:data
+            " Compute max_seq_id from chats
+            for [key, chat] in items(l:db._chats)
+                let l:db._seq_id = max([l:db._seq_id, l:db._max_seq_id(chat)])
+            endfor
+        endif
     endif
 
     function! l:db._save() dict
-        let l:chats_text = json_encode(self._chats)
-        silent! call writefile([l:chats_text], self._file)
+        let l:data = {
+            \ 'chats': self._chats,
+            \ 'max_seq_id': self._seq_id,
+            \ 'schema_version': 1
+            \ }
+        let l:json_text = json_encode(l:data)
+        silent! call writefile([l:json_text], self._file)
     endfunction
 
     function! l:db.seq_id() dict
