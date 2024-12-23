@@ -112,16 +112,17 @@ function! vimqq#bots#claude#new(config = {}) abort
     endfunction
 
     function! l:claude._send_query(req, job_conf) dict
-        let l:json_req  = json_encode(a:req)
-        let l:json_req  = substitute(l:json_req, "'", "'\\\\''", "g")
-
-        let l:curl_cmd  = "curl -s -X POST 'https://api.anthropic.com/v1/messages'"
-        let l:curl_cmd .= " -H 'Content-Type: application/json'"
-        let l:curl_cmd .= " -H 'x-api-key: " . self._api_key . "'"
-        let l:curl_cmd .= " -H 'anthropic-version: 2023-06-01'"
-        let l:curl_cmd .= " -d '" . l:json_req . "'"
-
-        return vimqq#platform#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
+        let l:json_req = json_encode(a:req)
+        let l:headers = {
+            \ 'Content-Type': 'application/json',
+            \ 'x-api-key': self._api_key,
+            \ 'anthropic-version': '2023-06-01'
+        \ }
+        return vimqq#platform#http_client#post(
+            \ 'https://api.anthropic.com/v1/messages',
+            \ l:headers,
+            \ l:json_req,
+            \ a:job_conf)
     endfunction
 
     function! l:claude._format_messages(messages) dict

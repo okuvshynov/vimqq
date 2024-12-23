@@ -58,25 +58,24 @@ function vimqq#bots#llama#new(config = {}) abort
       if self._conf.healthcheck_ms < 0
           return
       endif
-      let l:curl_cmd = ["curl", "--max-time", "5", self._status_endpoint]
       let l:job_conf = {
             \ 'out_cb' : {channel, msg   -> self._on_status_out(msg)},
             \ 'exit_cb': {job_id, status -> self._on_status_exit(status)}
       \}
-
-      call vimqq#platform#jobs#start(l:curl_cmd, l:job_conf)
+      call vimqq#platform#http_client#get(self._status_endpoint, ["--max-time", "5"], l:job_conf)
   endfunction
 
   function l:llama._send_chat_query(req, job_conf) dict
       call vimqq#log#debug('sending query')
-      let l:json_req  = json_encode(a:req)
-      let l:json_req  = substitute(l:json_req, "'", "'\\\\''", "g")
-
-      let l:curl_cmd  = "curl --no-buffer -s -X POST '" . self._chat_endpoint . "'"
-      let l:curl_cmd .= " -H 'Content-Type: application/json'"
-      let l:curl_cmd .= " -d '" . l:json_req . "'"
-
-      return vimqq#platform#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
+      let l:json_req = json_encode(a:req)
+      let l:headers = {
+          \ 'Content-Type': 'application/json'
+      \ }
+      return vimqq#platform#http_client#post(
+          \ self._chat_endpoint,
+          \ l:headers,
+          \ l:json_req,
+          \ a:job_conf)
   endfunction
 
   function! l:llama._on_stream_out(chat_id, msg) dict

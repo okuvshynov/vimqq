@@ -83,15 +83,16 @@ function! vimqq#bots#groq#new(config = {}) abort
     endfunction
 
     function! l:groq_bot._send_query(req, job_conf) dict
-        let l:json_req  = json_encode(a:req)
-        let l:json_req  = substitute(l:json_req, "'", "'\\\\''", "g")
-
-        let l:curl_cmd  = "curl -s -X POST 'https://api.groq.com/openai/v1/chat/completions'"
-        let l:curl_cmd .= " -H 'Content-Type: application/json'"
-        let l:curl_cmd .= " -H 'Authorization: Bearer " . self._api_key . "'"
-        let l:curl_cmd .= " -d '" . l:json_req . "'"
-
-        return vimqq#platform#jobs#start(['/bin/sh', '-c', l:curl_cmd], a:job_conf)
+        let l:json_req = json_encode(a:req)
+        let l:headers = {
+            \ 'Content-Type': 'application/json',
+            \ 'Authorization': 'Bearer ' . self._api_key
+        \ }
+        return vimqq#platform#http_client#post(
+            \ 'https://api.groq.com/openai/v1/chat/completions',
+            \ l:headers,
+            \ l:json_req,
+            \ a:job_conf)
     endfunction
 
     function! l:groq_bot._format_messages(messages) dict
