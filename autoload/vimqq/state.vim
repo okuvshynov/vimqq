@@ -9,7 +9,6 @@ function! vimqq#state#new(db) abort
     
     let l:state._db     = a:db
     let l:state._dispatcher = vimqq#dispatcher#new(a:db)  
-    let l:state._latencies = {}
     let l:state._last_bot_name = ""
     
     " this is the active chat id. 
@@ -56,27 +55,6 @@ function! vimqq#state#new(db) abort
         let [l:sent, l:last_bot_name] = self._dispatcher.reply_complete(a:chat_id)
         let self._last_bot_name = l:last_bot_name
         return l:sent
-    endfunction
-
-    " TODO: this needs to be moved to metrics
-    function! l:state.user_started_waiting(chat_id) dict
-        if exists('*reltime')
-            let self._latencies[a:chat_id] = reltime()
-        endif
-    endfunction
-
-    function! l:state.first_token(chat_id) dict
-        if exists('*reltime')
-            if has_key(self._latencies, a:chat_id)
-                let latency = reltimefloat(reltime(self._latencies[a:chat_id]))
-                call vimqq#log#info(printf('TTFT %.3f s', latency))
-                unlet self._latencies[a:chat_id]
-            else
-                " TODO: this tracking is wrong in case of non-empty queue
-                " as we would unlet the start point for both messages
-                call vimqq#log#info('token for chat with no start point.')
-            endif
-        endif
     endfunction
 
     function! l:state.last_bot_name() dict

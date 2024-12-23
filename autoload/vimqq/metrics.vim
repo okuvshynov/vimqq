@@ -7,6 +7,27 @@ let s:metrics_file = strftime('%Y%m%d_%H%M%S_session_metrics.json')
 let g:autoloaded_vimqq_metrics = 1
 
 let s:metrics = {}
+let s:latencies = {}
+
+function! vimqq#metrics#user_started_waiting(chat_id) abort
+    if exists('*reltime')
+        let s:latencies[a:chat_id] = reltime()
+    endif
+endfunction
+
+function! vimqq#metrics#first_token(chat_id) abort
+    if exists('*reltime')
+        if has_key(s:latencies, a:chat_id)
+            let latency = reltimefloat(reltime(s:latencies[a:chat_id]))
+            call vimqq#log#info(printf('TTFT %.3f s', latency))
+            unlet s:latencies[a:chat_id]
+        else
+            " TODO: this tracking is wrong in case of non-empty queue
+            " as we would unlet the start point for both messages
+            call vimqq#log#info('token for chat with no start point.')
+        endif
+    endif
+endfunction
 
 function! vimqq#metrics#inc(name, value=1)
     if !has_key(s:metrics, a:name)

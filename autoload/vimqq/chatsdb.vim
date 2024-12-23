@@ -180,7 +180,7 @@ function! vimqq#chatsdb#new() abort
                 return
             endif
             if empty(self.get_partial(a:args['chat_id']).content)
-                call a:args['state'].first_token(a:args['chat_id'])
+                call vimqq#metrics#first_token(a:args['chat_id'])
             endif
             call self.append_partial(a:args['chat_id'], a:args['token'])
             call vimqq#model#notify('token_saved', a:args)

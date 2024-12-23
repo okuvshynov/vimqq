@@ -89,7 +89,7 @@ function! vimqq#main#send_message(force_new_chat, question, context=v:null)
     let l:message = vimqq#fmt#fill_context(l:message, a:context)
 
     let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
-    call s:state.user_started_waiting(l:chat_id)
+    call vimqq#metrics#user_started_waiting(l:chat_id)
     call vimqq#log#debug('user started waiting')
     if s:state.enqueue_query(l:chat_id, l:bot, l:message)
         call vimqq#main#show_chat(l:chat_id)
