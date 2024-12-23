@@ -15,7 +15,7 @@ let g:autoloaded_vimqq_http_client_module = 1
 function! vimqq#platform#http_client#post(url, headers, body, job_conf) abort
     let l:json_req = substitute(a:body, "'", "'\\\\''", "g")
     
-    let l:curl_cmd = "curl -s -X POST '" . a:url . "'"
+    let l:curl_cmd = "curl -s --no-buffer -X POST '" . a:url . "'"
     for [key, value] in items(a:headers)
         let l:curl_cmd .= " -H '" . key . ": " . value . "'"
     endfor
