@@ -7,8 +7,7 @@ let g:autoloaded_vimqq_state = 1
 function! vimqq#state#new(db) abort
     let l:state = {}
     
-    let l:state._db     = a:db
-    let l:state._dispatcher = vimqq#dispatcher#new(a:db)  
+    let l:state._db = a:db
     
     " this is the active chat id. 
     " New queries would go to this chat by default
@@ -37,21 +36,6 @@ function! vimqq#state#new(db) abort
         else
             return self._get_or_create_chat_id() 
         endif
-    endfunction
-
-    function! l:state.queue_size() dict
-        return self._dispatcher.queue_size()
-    endfunction 
-
-    " returns
-    "   - v:true if query started running immediately
-    "   - v:false if query was enqueued
-    function! l:state.enqueue_query(chat_id, bot, message) dict
-        return self._dispatcher.enqueue_query(a:chat_id, a:bot, a:message)
-    endfunction
-
-    function! l:state.reply_complete(chat_id) dict
-        return self._dispatcher.reply_complete(a:chat_id)
     endfunction
 
     return l:state

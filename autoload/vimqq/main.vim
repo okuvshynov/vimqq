@@ -10,6 +10,7 @@ let s:chatsdb = vimqq#chatsdb#new()
 let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
 let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
+let s:dispatcher = vimqq#dispatcher#new(s:chatsdb)  
 
 function! s:new() abort
     let l:controller = {}
@@ -28,13 +29,13 @@ function! s:new() abort
             endif
 
             " this might call the next query in queue
-            if s:state.reply_complete(chat_id)
+            if s:dispatcher.reply_complete(chat_id)
                 " TODO: do we need this? Need to test more to see if it makes sense.
                 " We probably do, because if we are in hidden reasoning mode, we won't
                 " update UI on partial replies.
                 call vimqq#main#show_chat(chat_id)
             endif
-            call s:ui.update_queue_size(s:state.queue_size())
+            call s:ui.update_queue_size(s:dispatcher.queue_size())
             return
         endif
         if a:event == 'delete_chat'
@@ -91,11 +92,11 @@ function! vimqq#main#send_message(force_new_chat, question, context=v:null)
     let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
     call vimqq#metrics#user_started_waiting(l:chat_id)
     call vimqq#log#debug('user started waiting')
-    if s:state.enqueue_query(l:chat_id, l:bot, l:message)
+    if s:dispatcher.enqueue_query(l:chat_id, l:bot, l:message)
         call vimqq#main#show_chat(l:chat_id)
     endif
 
-    call s:ui.update_queue_size(s:state.queue_size())
+    call s:ui.update_queue_size(s:dispatcher.queue_size())
 endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.
@@ -193,7 +194,7 @@ function! vimqq#main#fork_chat(args) abort
 
     let l:chat_id = s:chatsdb.new_chat()
 
-    if s:state.enqueue_query(l:chat_id, l:bot, l:message)
+    if s:dispatcher.enqueue_query(l:chat_id, l:bot, l:message)
         call vimqq#main#show_chat(l:chat_id)
     endif
     call s:ui.update_queue_size(s:state.queue_size())
