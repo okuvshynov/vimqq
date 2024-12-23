@@ -73,7 +73,7 @@ function! vimqq#dispatcher#new(db) abort
             endif
         endif
         let self._queues[a:chat_id] = l:queue
-        return [l:sent, l:last_bot.name()]
+        return l:sent
     endfunction
 
     return l:dispatcher

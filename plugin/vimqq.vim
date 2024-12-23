@@ -36,15 +36,6 @@ command!        -nargs=0 QQFZF      call vimqq#main#fzf()
 command!        -nargs=1 QQOpenChat call vimqq#main#show_chat(<f-args>)
 command!        -nargs=0 QQChat     call vimqq#main#show_current_chat()
 
-" This command is to record the subjective evaluation of the last completed
-" response.
-" For example 
-"   :QE good
-"   :QE bad
-"   :QE ok
-"   :QE slow
-command! -nargs=1 QE call vimqq#main#record_eval(<f-args>)
-
 if !has_key(g:, 'vqq_skip_init')
     call vimqq#main#init()
 endif

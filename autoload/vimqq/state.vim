@@ -9,7 +9,6 @@ function! vimqq#state#new(db) abort
     
     let l:state._db     = a:db
     let l:state._dispatcher = vimqq#dispatcher#new(a:db)  
-    let l:state._last_bot_name = ""
     
     " this is the active chat id. 
     " New queries would go to this chat by default
@@ -52,13 +51,7 @@ function! vimqq#state#new(db) abort
     endfunction
 
     function! l:state.reply_complete(chat_id) dict
-        let [l:sent, l:last_bot_name] = self._dispatcher.reply_complete(a:chat_id)
-        let self._last_bot_name = l:last_bot_name
-        return l:sent
-    endfunction
-
-    function! l:state.last_bot_name() dict
-       return self._last_bot_name 
+        return self._dispatcher.reply_complete(a:chat_id)
     endfunction
 
     return l:state
