@@ -19,34 +19,18 @@ function! vimqq#bots#mistral#new(config = {}) abort
 
     " {{{ private:
 
-    function! l:mistral_bot._update_usage(usage) dict
-        let self._usage['in']  += a:usage['prompt_tokens']
-        let self._usage['out'] += a:usage['completion_tokens']
-        call vimqq#metrics#inc('mistral.' . self._conf.model . '.tokens_in', a:usage['prompt_tokens'])
-        call vimqq#metrics#inc('mistral.' . self._conf.model . '.tokens_out', a:usage['completion_tokens'])
+    function! l:mistral_bot._update_usage(response) dict
+        let usage = a:response.usage
+        let self._usage['in']  += usage['prompt_tokens']
+        let self._usage['out'] += usage['completion_tokens']
+        call vimqq#metrics#inc('mistral.' . self._conf.model . '.tokens_in', usage['prompt_tokens'])
+        call vimqq#metrics#inc('mistral.' . self._conf.model . '.tokens_out', usage['completion_tokens'])
 
         let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
 
         call vimqq#log#info("mistral " . self.name() . " total usage: " . msg)
 
         call vimqq#model#notify('bot_status', {'status' : msg, 'bot': self})
-    endfunction
-
-    function! l:mistral_bot._on_title_out(chat_id, msg) dict
-        call add(self._title_reply_by_id[a:chat_id], a:msg)
-    endfunction
-
-    function! l:mistral_bot._on_title_close(chat_id) dict
-        let l:response = json_decode(join(self._title_reply_by_id[a:chat_id], '\n'))
-        if has_key(l:response, 'choices') && !empty(l:response.choices) && has_key(l:response.choices[0], 'message')
-            let l:title  = l:response.choices[0].message.content
-            call self._update_usage(l:response.usage)
-            call vimqq#model#notify('title_done', {'chat_id' : a:chat_id, 'title': title})
-        else
-            call vimqq#log#error('Unable to process response')
-            call vimqq#log#error(json_encode(l:response))
-            " TODO: still need to mark query as done
-        endif
     endfunction
 
     function! l:mistral_bot._on_out(chat_id, msg) dict
@@ -63,7 +47,7 @@ function! vimqq#bots#mistral#new(config = {}) abort
         let l:response = json_decode(l:response)
         if has_key(l:response, 'choices') && !empty(l:response.choices) && has_key(l:response.choices[0], 'message')
             let l:message  = l:response.choices[0].message.content
-            call self._update_usage(l:response.usage)
+            call self._update_usage(l:response)
             " we pretend it's one huge update
             call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token': l:message})
             " and immediately done
@@ -124,27 +108,20 @@ function! vimqq#bots#mistral#new(config = {}) abort
         return self._send_query(req, l:job_conf)
     endfunction
 
-    " ask for a title we'll use. Uses first message in a chat
-    function! l:mistral_bot.send_gen_title(chat_id, message) dict
+    " Following interface required by bot.vim for title generation
+    function! l:mistral_bot.get_req(user_content) dict
         let req = {}
-        let l:message_text = vimqq#fmt#content(a:message)
-        " TODO: make configurable and remove duplicate code with llama.vim
-        let prompt = vimqq#prompts#gen_title_prompt()
         let req.messages = [
             \ {'role': 'system', 'content' : self._conf.system_prompt},
-            \ {"role": "user", "content": prompt . l:message_text}
+            \ {"role": "user", "content": a:user_content}
         \]
         let req.max_tokens = self._conf.title_tokens
         let req.model      = self._conf.model
+        return req
+    endfunction
 
-        let self._title_reply_by_id[a:chat_id] = []
-
-        let l:job_conf = {
-              \ 'out_cb'  : {channel, msg -> self._on_title_out(a:chat_id, msg)},
-              \ 'close_cb': {channel      -> self._on_title_close(a:chat_id)}
-        \ }
-
-        return self._send_query(req, l:job_conf)
+    function! l:mistral_bot.get_response_text(response) dict
+        return a:response.choices[0].message.content
     endfunction
 
     return l:mistral_bot
