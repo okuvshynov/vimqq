@@ -33,8 +33,6 @@ function! vimqq#bots#groq#new(config = {}) abort
         call vimqq#model#notify('bot_status', {'status' : msg, 'bot': self})
     endfunction
 
-
-
     function! l:groq_bot._on_out(chat_id, msg) dict
         call add(self._reply_by_id[a:chat_id], a:msg)
     endfunction

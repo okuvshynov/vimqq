@@ -22,8 +22,12 @@ function vimqq#bots#llama#new(config = {}) abort
   let l:llama._status_endpoint = l:server . '/health'
 
   " {{{ private:
+
+  function l:llama._update_usage(response) dict
+      " TODO: implement local token counter
+  endfunction
   
-  function l:llama._update_status(status)
+  function l:llama._update_status(status) dict
       call vimqq#model#notify('bot_status', {'status' : a:status, 'bot': self})
   endfunction
 
@@ -61,7 +65,7 @@ function vimqq#bots#llama#new(config = {}) abort
       call vimqq#platform#http_client#get(self._status_endpoint, ["--max-time", "5"], l:job_conf)
   endfunction
 
-  function l:llama._send_chat_query(req, job_conf) dict
+  function l:llama._send_query(req, job_conf) dict
       call vimqq#log#debug('sending query')
       let l:json_req = json_encode(a:req)
       let l:headers = {
@@ -102,16 +106,6 @@ function vimqq#bots#llama#new(config = {}) abort
       call vimqq#log#error(join(a:msg, '\n'))
   endfunction
 
-  function! l:llama._on_title_out(chat_id, msg)
-      let json_string = substitute(a:msg, '^data: ', '', '')
-
-      let response = json_decode(json_string)
-      if has_key(response.choices[0].message, 'content')
-          let title = response.choices[0].message.content
-          call vimqq#model#notify('title_done', {'chat_id' : a:chat_id, 'title': title})
-      endif
-  endfunction
-
   function! l:llama._prepare_system_prompt() dict
       return {"role": "system", "content": self._conf.system_prompt}
   endfunction
@@ -139,7 +133,7 @@ function vimqq#bots#llama#new(config = {}) abort
       let l:job_conf = {
             \ 'close_cb': {channel -> vimqq#model#notify('warmup_done', {'bot': self})}
       \ }
-      return self._send_chat_query(req, l:job_conf)
+      return self._send_query(req, l:job_conf)
   endfunction
 
   function! l:llama.send_chat(chat_id, messages) dict
@@ -152,28 +146,22 @@ function vimqq#bots#llama#new(config = {}) abort
             \ 'close_cb': {channel      -> self._on_stream_close(a:chat_id)}
       \ }
 
-      return self._send_chat_query(req, l:job_conf)
+      return self._send_query(req, l:job_conf)
   endfunction
 
-  " ask for a title we'll use. Uses first message in a chat
-  " TODO: this pollutes the kv cache for next messages.
-  function! l:llama.send_gen_title(chat_id, message) dict
+  " Following interface required by bot.vim for title generation
+  function! l:llama.get_req(user_content) dict
       let req = {}
-      let l:message_text = vimqq#fmt#content(a:message)
-      let l:prompt = vimqq#prompts#gen_llama_title_prompt()
-      let req.messages  = [self._prepare_system_prompt()] + [{"role": "user", "content": l:message_text . l:prompt}]
-      let req.n_predict    = self._conf.title_tokens
-      let req.stream       = v:false
+      let req.messages = [self._prepare_system_prompt()] + [{"role": "user", "content": a:user_content}]
+      let req.n_predict = self._conf.title_tokens
+      let req.stream = v:false
       let req.cache_prompt = v:true
-
-      let l:job_conf = {
-            \ 'out_cb': {channel, msg -> self._on_title_out(a:chat_id, msg)}
-      \ }
-
-      return self._send_chat_query(req, l:job_conf)
+      return req
   endfunction
 
-
+  function! l:llama.get_response_text(response) dict
+      return a:response.choices[0].message.content
+  endfunction
 
   " }}}
   
