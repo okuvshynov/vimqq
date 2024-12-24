@@ -41,6 +41,23 @@ function! vimqq#bots#bot#new(config = {}) abort
         " Do nothing by default, bot implementations can override
     endfunction
 
+    function! l:bot._update_usage(response) dict
+        let usage = self.get_usage(a:response)
+        let self._usage['in']  += usage['in']
+        let self._usage['out'] += usage['out']
+
+        let key = self.name() . "." . self._conf.model
+        call vimqq#metrics#inc(key . '.tokens_in', usage['in'])
+        call vimqq#metrics#inc(key . '.tokens_out', usage['out'])
+
+        let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
+
+        call vimqq#log#info(key . " total usage: " . msg)
+
+        call vimqq#model#notify('bot_status', {'status' : msg, 'bot': self})
+    endfunction
+
+
     " can be overridden by specific implementations
     function! l:bot._on_title_out(chat_id, msg) dict
         call add(self._title_reply_by_id[a:chat_id], a:msg)

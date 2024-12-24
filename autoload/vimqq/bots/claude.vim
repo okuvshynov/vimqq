@@ -19,17 +19,12 @@ function! vimqq#bots#claude#new(config = {}) abort
     let l:claude._api_key = g:vqq_claude_api_key
 
     " {{{ private:
-
-    function! l:claude._update_usage(response) dict
-        let usage = a:response.usage
-        let self._usage['in']  += get(usage, 'input_tokens', 0)
-        let self._usage['out'] += get(usage, 'output_tokens', 0)
-
-        let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
-
-        call vimqq#log#info("claude " . self.name() . " total usage: " . msg)
-
-        call vimqq#model#notify('bot_status', {'status' : msg, 'bot': self})
+    
+    function! l:claude.get_usage(response) dict
+        let usage = {}
+        let usage['in'] = get(a:response.usage, 'input_tokens', 0)
+        let usage['out'] = get(a:response.usage, 'output_tokens', 0)
+        return usage
     endfunction
 
     function! l:claude._on_stream_out(chat_id, msg) dict
@@ -62,10 +57,6 @@ function! vimqq#bots#claude#new(config = {}) abort
 
     function! l:claude._on_stream_close(chat_id)
       " Do nothing
-    endfunction
-
-    function! l:claude._on_out(chat_id, msg) dict
-        call add(self._reply_by_id[a:chat_id], a:msg)
     endfunction
 
     function! l:claude._on_err(chat_id, msg) dict

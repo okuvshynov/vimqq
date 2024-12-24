@@ -23,11 +23,11 @@ function vimqq#bots#llama#new(config = {}) abort
 
   " {{{ private:
 
-  function l:llama._update_usage(response) dict
-      " TODO: implement local token counter
+  function! l:llama.get_usage(resp) dict
+      return {'in': 0, out: 0}
   endfunction
-  
-  function l:llama._update_status(status) dict
+
+  function! l:llama._update_status(status) dict
       call vimqq#model#notify('bot_status', {'status' : a:status, 'bot': self})
   endfunction
 

@@ -18,19 +18,11 @@ function! vimqq#bots#mistral#new(config = {}) abort
     let l:mistral_bot._api_key = g:vqq_mistral_api_key
 
     " {{{ private:
-
-    function! l:mistral_bot._update_usage(response) dict
-        let usage = a:response.usage
-        let self._usage['in']  += usage['prompt_tokens']
-        let self._usage['out'] += usage['completion_tokens']
-        call vimqq#metrics#inc('mistral.' . self._conf.model . '.tokens_in', usage['prompt_tokens'])
-        call vimqq#metrics#inc('mistral.' . self._conf.model . '.tokens_out', usage['completion_tokens'])
-
-        let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
-
-        call vimqq#log#info("mistral " . self.name() . " total usage: " . msg)
-
-        call vimqq#model#notify('bot_status', {'status' : msg, 'bot': self})
+    function! l:mistral_bot.get_usage(response) dict
+        let usage = {}
+        let usage['in'] = get(a:response.usage, 'prompt_tokens', 0)
+        let usage['out'] = get(a:response.usage, 'completion_tokens', 0)
+        return usage
     endfunction
 
     function! l:mistral_bot._on_out(chat_id, msg) dict
@@ -43,7 +35,6 @@ function! vimqq#bots#mistral#new(config = {}) abort
 
     function l:mistral_bot._on_close(chat_id) dict
         let l:response = join(self._reply_by_id[a:chat_id], '\n')
-        call vimqq#log#debug('Mistral API reply: ' . l:response)
         let l:response = json_decode(l:response)
         if has_key(l:response, 'choices') && !empty(l:response.choices) && has_key(l:response.choices[0], 'message')
             let l:message  = l:response.choices[0].message.content
