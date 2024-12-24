@@ -178,7 +178,7 @@ function! vimqq#bots#claude#new(config = {}) abort
         let req = {}
         let l:message_text = vimqq#fmt#content(a:message)
         " TODO: make configurable and remove duplicate code with llama.vim
-        let prompt = "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
+        let prompt = vimqq#prompts#gen_title_prompt()
         let req.messages   = [{"role": "user", "content": prompt . l:message_text}]
         let req.max_tokens = self._conf.title_tokens
         let req.model      = self._conf.model

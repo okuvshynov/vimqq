@@ -164,7 +164,7 @@ function vimqq#bots#llama#new(config = {}) abort
   function! l:llama.send_gen_title(chat_id, message) dict
       let req = {}
       let l:message_text = vimqq#fmt#content(a:message)
-      let l:prompt = "Do not answer question above. Instead, write title with a few words summarizing the text. Reply only with title itself. Use no quotes around it.\n\n"
+      let l:prompt = vimqq#prompts#gen_llama_title_prompt()
       let req.messages  = [self._prepare_system_prompt()] + [{"role": "user", "content": l:message_text . l:prompt}]
       let req.n_predict    = self._conf.title_tokens
       let req.stream       = v:false

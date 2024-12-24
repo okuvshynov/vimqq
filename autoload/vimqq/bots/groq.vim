@@ -143,7 +143,7 @@ function! vimqq#bots#groq#new(config = {}) abort
         let req = {}
         let l:message_text = vimqq#fmt#content(a:message)
         " TODO: make configurable and remove duplicate code with llama.vim
-        let prompt = "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
+        let prompt = vimqq#prompts#gen_title_prompt()
         let req.messages = [
             \ {'role': 'system', 'content' : self._conf.system_prompt},
             \ {"role": "user", "content": prompt . l:message_text}
