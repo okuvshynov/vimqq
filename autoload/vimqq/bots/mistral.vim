@@ -9,26 +9,13 @@ let g:autoloaded_vimqq_mistral_module = 1
 " API key for mistral
 let g:vqq_mistral_api_key = get(g:, 'vqq_mistral_api_key', $MISTRAL_API_KEY)
 
-let s:default_conf = {
-  \ 'title_tokens'   : 16,
-  \ 'max_tokens'     : 1024,
-  \ 'bot_name'       : 'mistral',
-  \ 'system_prompt'  : 'You are a helpful assistant.',
-  \ 'do_autowarm'    : v:false
-\ }
-
 function! vimqq#bots#mistral#new(config = {}) abort
-    let l:mistral_bot = {}
-
-    let l:mistral_bot._conf = deepcopy(s:default_conf)
-    call extend(l:mistral_bot._conf, a:config)
-
+    " Start with base bot
+    let l:mistral_bot = vimqq#bots#bot#new(extend(
+        \ {'bot_name': 'mistral'}, 
+        \ a:config))
+    
     let l:mistral_bot._api_key = g:vqq_mistral_api_key
-
-    let l:mistral_bot._reply_by_id = {}
-    let l:mistral_bot._title_reply_by_id = {}
-
-    let l:mistral_bot._usage = {'in': 0, 'out': 0}
 
     " {{{ private:
 
@@ -117,13 +104,7 @@ function! vimqq#bots#mistral#new(config = {}) abort
 
     " }}}
 
-    function! l:mistral_bot.name() dict
-        return self._conf.bot_name
-    endfunction
 
-    function! l:mistral_bot.do_autowarm() dict
-        return self._conf.do_autowarm
-    endfunction
 
     function! l:mistral_bot.send_warmup(messages) dict
       " do nothing for now

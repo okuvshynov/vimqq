@@ -9,26 +9,13 @@ let g:autoloaded_vimqq_groq_module = 1
 " API key for groq
 let g:vqq_groq_api_key = get(g:, 'vqq_groq_api_key', $GROQ_API_KEY)
 
-let s:default_conf = {
-  \ 'title_tokens'   : 16,
-  \ 'max_tokens'     : 1024,
-  \ 'bot_name'       : 'groq',
-  \ 'system_prompt'  : 'You are a helpful assistant.',
-  \ 'do_autowarm'    : v:false
-\ }
-
 function! vimqq#bots#groq#new(config = {}) abort
-    let l:groq_bot = {}
-
-    let l:groq_bot._conf = deepcopy(s:default_conf)
-    call extend(l:groq_bot._conf, a:config)
-
+    " Start with base bot
+    let l:groq_bot = vimqq#bots#bot#new(extend(
+        \ {'bot_name': 'groq'}, 
+        \ a:config))
+    
     let l:groq_bot._api_key = g:vqq_groq_api_key
-
-    let l:groq_bot._reply_by_id = {}
-    let l:groq_bot._title_reply_by_id = {}
-
-    let l:groq_bot._usage = {'in': 0, 'out': 0}
 
     " {{{ private:
 
@@ -110,13 +97,7 @@ function! vimqq#bots#groq#new(config = {}) abort
 
     " }}}
 
-    function! l:groq_bot.name() dict
-        return self._conf.bot_name
-    endfunction
 
-    function! l:groq_bot.do_autowarm() dict
-        return self._conf.do_autowarm
-    endfunction
 
     function! l:groq_bot.send_warmup(messages) dict
       " do nothing for now

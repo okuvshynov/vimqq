@@ -9,27 +9,14 @@ let g:autoloaded_vimqq_claude_module = 1
 " API key for anthropic
 let g:vqq_claude_api_key = get(g:, 'vqq_claude_api_key', $ANTHROPIC_API_KEY)
 
-let s:default_conf = {
-  \ 'title_tokens'   : 16,
-  \ 'max_tokens'     : 1024,
-  \ 'bot_name'       : 'Claude',
-  \ 'system_prompt'  : 'You are a helpful assistant.',
-  \ 'do_autowarm'    : v:false
-\ }
-
 " TODO: handling errors 
 function! vimqq#bots#claude#new(config = {}) abort
-    let l:claude = {}
-
-    let l:claude._conf = deepcopy(s:default_conf)
-    call extend(l:claude._conf, a:config)
-
+    " Start with base bot
+    let l:claude = vimqq#bots#bot#new(extend(
+        \ {'bot_name': 'Claude'}, 
+        \ a:config))
+    
     let l:claude._api_key = g:vqq_claude_api_key
-
-    let l:claude._reply_by_id = {}
-    let l:claude._title_reply_by_id = {}
-
-    let l:claude._usage = {'in': 0, 'out': 0}
 
     " {{{ private:
 
@@ -124,13 +111,7 @@ function! vimqq#bots#claude#new(config = {}) abort
 
     " {{{ public:
 
-    function! l:claude.name() dict
-        return self._conf.bot_name
-    endfunction
 
-    function! l:claude.do_autowarm() dict
-        return self._conf.do_autowarm
-    endfunction
 
     function! l:claude.send_warmup(messages) dict
       " do nothing, as Claude API is stateless

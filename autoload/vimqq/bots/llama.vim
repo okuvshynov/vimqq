@@ -6,20 +6,16 @@ endif
 
 let g:autoloaded_vimqq_llama_module = 1
 
-let s:default_conf = {
-  \ 'healthcheck_ms' : 10000,
-  \ 'title_tokens'   : 16,
-  \ 'max_tokens'     : 1024,
-  \ 'bot_name'       : 'Llama',
-  \ 'system_prompt'  : 'You are a helpful assistant. Make sure to use all the provided context before producing an answer.',
-  \ 'do_autowarm'    : v:false
-\ }
+let s:healthcheck_ms = 10000
 
 function vimqq#bots#llama#new(config = {}) abort
-  let l:llama = {} 
+  " Start with base bot
+  let l:llama = vimqq#bots#bot#new(extend(
+      \ {'bot_name': 'Llama', 
+      \  'system_prompt': 'You are a helpful assistant. Make sure to use all the provided context before producing an answer.'}, 
+      \ a:config))
   
-  let l:llama._conf = deepcopy(s:default_conf)
-  call extend(l:llama._conf, a:config)
+  let l:llama._conf.healthcheck_ms = get(a:config, 'healthcheck_ms', s:healthcheck_ms)
 
   let l:server = substitute(l:llama._conf.addr, '/*$', '', '')
   let l:llama._chat_endpoint   = l:server . '/v1/chat/completions'
@@ -177,13 +173,7 @@ function vimqq#bots#llama#new(config = {}) abort
       return self._send_chat_query(req, l:job_conf)
   endfunction
 
-  function! l:llama.name() dict
-      return self._conf.bot_name
-  endfunction
 
-  function! l:llama.do_autowarm() dict
-      return self._conf.do_autowarm
-  endfunction
 
   " }}}
   
