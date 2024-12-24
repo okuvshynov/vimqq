@@ -55,37 +55,37 @@ function! vimqq#bots#claude#new(config = {}) abort
         call vimqq#model#notify('title_done', {'chat_id' : a:chat_id, 'title': title})
     endfunction
 
-      function! l:claude._on_stream_out(chat_id, msg) dict
-          let l:messages = split(a:msg, '\n')
-          for message in l:messages
-              if message !~# '^data: '
-                  continue
-              endif
-              let json_string = substitute(message, '^data: ', '', '')
-              let response = json_decode(json_string)
+    function! l:claude._on_stream_out(chat_id, msg) dict
+      let l:messages = split(a:msg, '\n')
+      for message in l:messages
+          if message !~# '^data: '
+              continue
+          endif
+          let json_string = substitute(message, '^data: ', '', '')
+          let response = json_decode(json_string)
 
-              if response['type'] == 'message_start'
-                call self._update_usage(response.message.usage)
-                return
-              endif
-              if response['type'] == 'message_stop'
-                  call vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot': self})
-                  return
-              endif
-              if response['type'] == 'message_delta'
-                call self._update_usage(response.usage)
-                return
-              endif
-              if response['type'] == 'content_block_delta'
-                  let next_token = response.delta.text
-                  call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token': next_token})
-              endif
-          endfor
-      endfunction
+          if response['type'] == 'message_start'
+              call self._update_usage(response.message.usage)
+              return
+          endif
+          if response['type'] == 'message_stop'
+              call vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot': self})
+              return
+          endif
+          if response['type'] == 'message_delta'
+              call self._update_usage(response.usage)
+              return
+          endif
+          if response['type'] == 'content_block_delta'
+              let next_token = response.delta.text
+              call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token': next_token})
+          endif
+      endfor
+    endfunction
 
-  function! l:claude._on_stream_close(chat_id)
+    function! l:claude._on_stream_close(chat_id)
       " Do nothing
-  endfunction
+    endfunction
 
     function! l:claude._on_out(chat_id, msg) dict
         call add(self._reply_by_id[a:chat_id], a:msg)
@@ -93,22 +93,6 @@ function! vimqq#bots#claude#new(config = {}) abort
 
     function! l:claude._on_err(chat_id, msg) dict
         call vimqq#log#error('claude error: ' . a:msg)
-    endfunction
-
-    function l:claude._on_close(chat_id) dict
-        let l:response = json_decode(join(self._reply_by_id[a:chat_id], '\n'))
-        if has_key(l:response, 'content') && !empty(l:response.content) && has_key(l:response.content[0], 'text')
-            let l:message  = l:response.content[0].text
-            call self._update_usage(l:response.usage)
-            " we pretend it's one huge update
-            call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token': l:message})
-            " and immediately done
-            call vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot': self})
-        else
-            call vimqq#log#error('Unable to process response')
-            call vimqq#log#error(json_encode(l:response))
-            " TODO: still need to mark query as done
-        endif
     endfunction
 
     function! l:claude._send_query(req, job_conf) dict
