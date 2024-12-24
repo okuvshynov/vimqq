@@ -20,26 +20,16 @@ function! vimqq#bots#claude#new(config = {}) abort
 
     " {{{ private:
 
-    function! l:claude._update_usage(usage) dict
-        let self._usage['in']  += get(a:usage, 'input_tokens', 0)
-        let self._usage['out'] += get(a:usage, 'output_tokens', 0)
+    function! l:claude._update_usage(response) dict
+        let usage = a:response.usage
+        let self._usage['in']  += get(usage, 'input_tokens', 0)
+        let self._usage['out'] += get(usage, 'output_tokens', 0)
 
         let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
 
         call vimqq#log#info("claude " . self.name() . " total usage: " . msg)
 
         call vimqq#model#notify('bot_status', {'status' : msg, 'bot': self})
-    endfunction
-
-    function! l:claude._on_title_out(chat_id, msg) dict
-        call add(self._title_reply_by_id[a:chat_id], a:msg)
-    endfunction
-
-    function l:claude._on_title_close(chat_id) dict
-        let l:response = json_decode(join(self._title_reply_by_id[a:chat_id], '\n'))
-        let l:title  = l:response.content[0].text
-        call self._update_usage(l:response.usage)
-        call vimqq#model#notify('title_done', {'chat_id' : a:chat_id, 'title': title})
     endfunction
 
     function! l:claude._on_stream_out(chat_id, msg) dict
@@ -52,7 +42,7 @@ function! vimqq#bots#claude#new(config = {}) abort
           let response = json_decode(json_string)
 
           if response['type'] == 'message_start'
-              call self._update_usage(response.message.usage)
+              call self._update_usage(response.message)
               return
           endif
           if response['type'] == 'message_stop'
@@ -60,7 +50,7 @@ function! vimqq#bots#claude#new(config = {}) abort
               return
           endif
           if response['type'] == 'message_delta'
-              call self._update_usage(response.usage)
+              call self._update_usage(response)
               return
           endif
           if response['type'] == 'content_block_delta'
@@ -111,8 +101,6 @@ function! vimqq#bots#claude#new(config = {}) abort
 
     " {{{ public:
 
-
-
     function! l:claude.send_warmup(messages) dict
       " do nothing, as Claude API is stateless
       " TODO: this is not true anymore, we can cache now
@@ -139,24 +127,17 @@ function! vimqq#bots#claude#new(config = {}) abort
     endfunction
 
     " ask for a title we'll use. Uses first message in a chat
-    function! l:claude.send_gen_title(chat_id, message) dict
+    function! l:claude.get_req(user_content) dict
         let req = {}
-        let l:message_text = vimqq#fmt#content(a:message)
-        " TODO: make configurable and remove duplicate code with llama.vim
-        let prompt = vimqq#prompts#gen_title_prompt()
-        let req.messages   = [{"role": "user", "content": prompt . l:message_text}]
+        let req.messages   = [{"role": "user", "content": a:user_content}]
         let req.max_tokens = self._conf.title_tokens
         let req.model      = self._conf.model
         let req.system     = self._conf.system_prompt
+        return req
+    endfunction
 
-        let self._title_reply_by_id[a:chat_id] = []
-
-        let l:job_conf = {
-              \ 'out_cb'  : {channel, msg -> self._on_title_out(a:chat_id, msg)},
-              \ 'close_cb': {channel      -> self._on_title_close(a:chat_id)}
-        \ }
-
-        return self._send_query(req, l:job_conf)
+    function! l:claude.get_response_text(response) dict
+        return a:response.content[0].text
     endfunction
 
     " }}}

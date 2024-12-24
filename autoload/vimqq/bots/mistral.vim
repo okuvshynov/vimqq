@@ -36,7 +36,7 @@ function! vimqq#bots#mistral#new(config = {}) abort
         call add(self._title_reply_by_id[a:chat_id], a:msg)
     endfunction
 
-    function l:mistral_bot._on_title_close(chat_id) dict
+    function! l:mistral_bot._on_title_close(chat_id) dict
         let l:response = json_decode(join(self._title_reply_by_id[a:chat_id], '\n'))
         if has_key(l:response, 'choices') && !empty(l:response.choices) && has_key(l:response.choices[0], 'message')
             let l:title  = l:response.choices[0].message.content
@@ -103,8 +103,6 @@ function! vimqq#bots#mistral#new(config = {}) abort
     endfunction
 
     " }}}
-
-
 
     function! l:mistral_bot.send_warmup(messages) dict
       " do nothing for now

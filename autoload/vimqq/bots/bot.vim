@@ -41,5 +41,31 @@ function! vimqq#bots#bot#new(config = {}) abort
         " Do nothing by default, bot implementations can override
     endfunction
 
+    " can be overridden by specific implementations
+    function! l:bot._on_title_out(chat_id, msg) dict
+        call add(self._title_reply_by_id[a:chat_id], a:msg)
+    endfunction
+
+    function! l:bot._on_title_close(chat_id) dict
+        let l:response = json_decode(join(self._title_reply_by_id[a:chat_id], '\n'))
+        let l:title  = self.get_response_text(l:response)
+        call self._update_usage(l:response)
+        call vimqq#model#notify('title_done', {'chat_id' : a:chat_id, 'title': l:title})
+    endfunction
+
+    function! l:bot.send_gen_title(chat_id, message) dict
+        let self._title_reply_by_id[a:chat_id] = []
+        let l:message_text = vimqq#fmt#content(a:message)
+        let prompt = vimqq#prompts#gen_title_prompt()
+
+        let req = self.get_req(prompt . l:message_text)
+        let l:job_conf = {
+              \ 'out_cb'  : {channel, msg -> self._on_title_out(a:chat_id, msg)},
+              \ 'close_cb': {channel      -> self._on_title_close(a:chat_id)}
+        \ }
+
+        return self._send_query(req, l:job_conf)
+    endfunction
+
     return l:bot
 endfunction

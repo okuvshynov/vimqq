@@ -36,7 +36,7 @@ function! vimqq#bots#groq#new(config = {}) abort
         call add(self._title_reply_by_id[a:chat_id], a:msg)
     endfunction
 
-    function l:groq_bot._on_title_close(chat_id) dict
+    function! l:groq_bot._on_title_close(chat_id) dict
         let l:response = json_decode(join(self._title_reply_by_id[a:chat_id], '\n'))
         let l:title  = l:response.choices[0].message.content
         call self._update_usage(l:response.usage)
@@ -123,7 +123,6 @@ function! vimqq#bots#groq#new(config = {}) abort
     function! l:groq_bot.send_gen_title(chat_id, message) dict
         let req = {}
         let l:message_text = vimqq#fmt#content(a:message)
-        " TODO: make configurable and remove duplicate code with llama.vim
         let prompt = vimqq#prompts#gen_title_prompt()
         let req.messages = [
             \ {'role': 'system', 'content' : self._conf.system_prompt},
