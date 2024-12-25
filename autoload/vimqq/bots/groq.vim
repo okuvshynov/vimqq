@@ -65,17 +65,14 @@ function! vimqq#bots#groq#new(config = {}) abort
             \ a:job_conf)
     endfunction
 
-    function! l:groq_bot._format_messages(messages) dict
-        " Add system message
-        let l:res = [{'role': 'system', 'content' : self._conf.system_prompt}]
+    function! l:groq_bot._prepare_request(messages) dict
+        let l:sys = [{'role': 'system', 'content' : self._conf.system_prompt}]
+        let req = {}
+        let req.model      = self._conf.model
+        let req.messages   = l:sys + self._format_messages(a:messages)
+        let req.max_tokens = self._conf.max_tokens
 
-        for msg in vimqq#fmt#many(a:messages)
-            " Skipping empty messages
-            if !empty(msg.content)
-                call add (l:res, {'role': msg.role, 'content': msg.content})
-            endif
-        endfor
-        return l:res
+        return req
     endfunction
 
     " }}}
@@ -85,10 +82,7 @@ function! vimqq#bots#groq#new(config = {}) abort
     endfunction
 
     function! l:groq_bot.send_chat(chat_id, messages) dict
-        let req = {}
-        let req.model      = self._conf.model
-        let req.messages   = self._format_messages(a:messages)
-        let req.max_tokens = self._conf.max_tokens
+        let req = self._prepare_request(a:messages)
         let self._reply_by_id[a:chat_id] = []
 
         let l:job_conf = {

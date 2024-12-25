@@ -82,5 +82,16 @@ function! vimqq#bots#bot#new(config = {}) abort
         return self._send_query(req, l:job_conf)
     endfunction
 
+    function! l:bot._format_messages(messages) dict
+        let l:res = []
+        for msg in vimqq#fmt#many(a:messages)
+            " Skipping empty messages
+            if !empty(msg.content)
+                call add (l:res, {'role': msg.role, 'content': msg.content})
+            endif
+        endfor
+        return l:res
+    endfunction
+
     return l:bot
 endfunction

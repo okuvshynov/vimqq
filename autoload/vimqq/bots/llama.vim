@@ -68,7 +68,7 @@ function vimqq#bots#llama#new(config = {}) abort
   function l:llama._send_query(req, job_conf) dict
       call vimqq#log#debug('sending query')
       let l:json_req = json_encode(a:req)
-      "call vimqq#log#debug(l:json_req)
+      call vimqq#log#debug(l:json_req)
       let l:headers = {
           \ 'Content-Type': 'application/json'
       \ }
@@ -112,8 +112,9 @@ function vimqq#bots#llama#new(config = {}) abort
   endfunction
 
   function! l:llama._prepare_request(messages) dict
+      let l:sys = [{"role": "system", "content": self._conf.system_prompt}]
       let req = {}
-      let req.messages     = [self._prepare_system_prompt()] + vimqq#fmt#many(a:messages)
+      let req.messages     = l:sys + self._format_messages(a:messages)
       let req.n_predict    = 0
       let req.stream       = v:true
       let req.cache_prompt = v:true
@@ -151,6 +152,7 @@ function vimqq#bots#llama#new(config = {}) abort
   endfunction
 
   " Following interface required by bot.vim for title generation
+  " TODO: this should be merged with main generation
   function! l:llama.get_req(user_content) dict
       let req = {}
       let req.messages = [self._prepare_system_prompt()] + [{"role": "user", "content": a:user_content}]

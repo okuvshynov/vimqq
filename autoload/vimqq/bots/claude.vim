@@ -77,15 +77,14 @@ function! vimqq#bots#claude#new(config = {}) abort
             \ a:job_conf)
     endfunction
 
-    function! l:claude._format_messages(messages) dict
-        let l:res = []
-        for msg in vimqq#fmt#many(a:messages)
-            " Skipping empty messages
-            if !empty(msg.content)
-                call add (l:res, {'role': msg.role, 'content': msg.content})
-            endif
-        endfor
-        return l:res
+    function! l:claude._prepare_request(messages) dict
+        let req = {}
+        let req.model      = self._conf.model
+        let req.system     = self._conf.system_prompt
+        let req.messages   = self._format_messages(a:messages)
+        let req.max_tokens = self._conf.max_tokens
+        let req.stream     = v:true
+        return req
     endfunction
 
     " }}}
@@ -100,12 +99,7 @@ function! vimqq#bots#claude#new(config = {}) abort
     endfunction
 
     function! l:claude.send_chat(chat_id, messages) dict
-        let req = {}
-        let req.model      = self._conf.model
-        let req.system     = self._conf.system_prompt
-        let req.messages   = self._format_messages(a:messages)
-        let req.max_tokens = self._conf.max_tokens
-        let req.stream     = v:true
+        let req = self._prepare_request(a:messages)
         let self._reply_by_id[a:chat_id] = []
 
         let l:job_conf = {
