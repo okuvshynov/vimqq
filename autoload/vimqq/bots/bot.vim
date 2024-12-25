@@ -26,8 +26,6 @@ function! vimqq#bots#bot#new(config = {}) abort
     let l:bot._reply_by_id = {}
     let l:bot._title_reply_by_id = {}
     
-    " {{{ public interface
-
     function! l:bot.name() dict
         return self._conf.bot_name
     endfunction
@@ -51,12 +49,12 @@ function! vimqq#bots#bot#new(config = {}) abort
         call vimqq#metrics#inc(key . '.tokens_out', usage['out'])
 
         let msg = self._usage['in'] . " in, " . self._usage['out'] . " out"
-
         call vimqq#log#info(key . " total usage: " . msg)
-
         call vimqq#model#notify('bot_status', {'status' : msg, 'bot': self})
     endfunction
 
+    """""""""""""""""""
+    " TITLE GENERATION
     function! l:bot._on_title_out(chat_id, msg) dict
         call add(self._title_reply_by_id[a:chat_id], a:msg)
     endfunction
@@ -82,6 +80,7 @@ function! vimqq#bots#bot#new(config = {}) abort
         return self._send_query(req, l:job_conf)
     endfunction
 
+    " Formatting for non-system messages
     function! l:bot._format_messages(messages) dict
         let l:res = []
         for msg in vimqq#fmt#many(a:messages)

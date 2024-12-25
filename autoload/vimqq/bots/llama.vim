@@ -100,7 +100,7 @@ function vimqq#bots#llama#new(config = {}) abort
   endfunction
 
   function! l:llama._on_stream_close(chat_id)
-      " Do nothing
+      call vimqq#log#info('streaming for llama client closed')
   endfunction
 
   function! l:llama._on_err(chat_id, msg)
