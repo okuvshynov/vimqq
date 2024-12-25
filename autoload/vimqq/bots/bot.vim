@@ -46,7 +46,7 @@ function! vimqq#bots#bot#new(config = {}) abort
         let self._usage['in']  += usage['in']
         let self._usage['out'] += usage['out']
 
-        let key = self.name() . "." . self._conf.model
+        let key = self.name()
         call vimqq#metrics#inc(key . '.tokens_in', usage['in'])
         call vimqq#metrics#inc(key . '.tokens_out', usage['out'])
 
@@ -57,8 +57,6 @@ function! vimqq#bots#bot#new(config = {}) abort
         call vimqq#model#notify('bot_status', {'status' : msg, 'bot': self})
     endfunction
 
-
-    " can be overridden by specific implementations
     function! l:bot._on_title_out(chat_id, msg) dict
         call add(self._title_reply_by_id[a:chat_id], a:msg)
     endfunction

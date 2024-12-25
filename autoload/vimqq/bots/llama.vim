@@ -24,7 +24,7 @@ function vimqq#bots#llama#new(config = {}) abort
   " {{{ private:
 
   function! l:llama.get_usage(resp) dict
-      return {'in': 0, out: 0}
+      return {'in': 0, 'out': 0}
   endfunction
 
   function! l:llama._update_status(status) dict
@@ -68,6 +68,7 @@ function vimqq#bots#llama#new(config = {}) abort
   function l:llama._send_query(req, job_conf) dict
       call vimqq#log#debug('sending query')
       let l:json_req = json_encode(a:req)
+      "call vimqq#log#debug(l:json_req)
       let l:headers = {
           \ 'Content-Type': 'application/json'
       \ }
@@ -165,6 +166,7 @@ function vimqq#bots#llama#new(config = {}) abort
 
   " }}}
   
+  " TODO: this is probably called during load? do it in a timer?
   call l:llama._get_status()
   return l:llama
 
