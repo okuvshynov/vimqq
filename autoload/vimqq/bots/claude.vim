@@ -50,7 +50,7 @@ function! vimqq#bots#claude#new(config = {}) abort
           endif
           if response['type'] == 'content_block_delta'
               let next_token = response.delta.text
-              call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token': next_token})
+              call vimqq#model#notify('chunk_done', {'chat_id': a:chat_id, 'chunk': next_token})
           endif
       endfor
     endfunction
