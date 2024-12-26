@@ -189,7 +189,7 @@ function! vimqq#chatsdb#new() abort
     endfunction
 
     function! l:db.handle_event(event, args) dict
-        if a:event == 'token_done'
+        if a:event == 'chunk_done'
             if !self.chat_exists(a:args['chat_id'])
                 call vimqq#log#info("callback on non-existent chat.")
                 return
@@ -197,8 +197,8 @@ function! vimqq#chatsdb#new() abort
             if empty(self.get_partial(a:args['chat_id']).content)
                 call vimqq#metrics#first_token(a:args['chat_id'])
             endif
-            call self.append_partial(a:args['chat_id'], a:args['token'])
-            call vimqq#model#notify('token_saved', a:args)
+            call self.append_partial(a:args['chat_id'], a:args['chunk'])
+            call vimqq#model#notify('chunk_saved', a:args)
             return
         endif
         if a:event == 'reply_done'

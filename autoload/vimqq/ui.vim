@@ -229,9 +229,9 @@ function vimqq#ui#new() abort
 
     function! l:ui.handle_event(event, args) dict
         call vimqq#log#info(a:event)
-        if a:event == 'token_saved'
+        if a:event == 'chunk_saved'
             if a:args['chat_id'] == a:args['state'].get_chat_id()
-                call self.append_partial(a:args['token'])
+                call self.append_partial(a:args['chunk'])
             endif
         endif
         if a:event == 'bot_status'

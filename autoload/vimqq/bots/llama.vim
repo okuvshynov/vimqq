@@ -94,7 +94,7 @@ function vimqq#bots#llama#new(config = {}) abort
           let response = json_decode(json_string)
           if has_key(response.choices[0].delta, 'content')
               let next_token = response.choices[0].delta.content
-              call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token': next_token})
+              call vimqq#model#notify('chunk_done', {'chat_id': a:chat_id, 'chunk': next_token})
           endif
       endfor
   endfunction

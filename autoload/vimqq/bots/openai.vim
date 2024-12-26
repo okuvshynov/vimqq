@@ -35,7 +35,7 @@ function! vimqq#bots#openai#new(config = {}) abort
             let l:message  = l:response.choices[0].message.content
             call self._update_usage(l:response)
             " we pretend it's one huge update
-            call vimqq#model#notify('token_done', {'chat_id': a:chat_id, 'token': l:message})
+            call vimqq#model#notify('chunk_done', {'chat_id': a:chat_id, 'chunk': l:message})
             " and immediately done
             call vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot': self})
         else
