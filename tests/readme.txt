@@ -21,6 +21,9 @@ Configuration/env vars:
 2. VIMQQ_KEEP_DIR - do not delete temp working directory
 3. VIMQQ_VIM_BINARY - path/name for vim to use. default is 'vim'. Can be useful to test specific version or nvim.
 
+api_ tests are using real API (local or remote) and require extra setup. They are not free to run and require API tokens for remote providers. run_all will skip running them by default.
+
+
 What tests should we write:
 1. multi-bot
 2. testing errors/timeouts
