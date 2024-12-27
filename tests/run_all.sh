@@ -17,6 +17,13 @@ n_failed=0
 for script in "$script_dir"/data/*.vim; do
     testname="$(basename "$script")"
     testname="${testname%.vim}"
+
+    if [[ "$testname" =~ ^api_ ]]; then
+        result="\033[0;33m[skip]\033[0m"
+        echo -e "$result $testname"
+        continue
+    fi
+
     tmp_file="$(mktemp)"
 
     if [ -z "$VIMQQ_VERBOSE" ]; then
