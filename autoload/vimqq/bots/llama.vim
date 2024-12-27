@@ -9,36 +9,36 @@ let g:autoloaded_vimqq_llama_module = 1
 let s:healthcheck_ms = 10000
 
 function vimqq#bots#llama#new(config = {}) abort
-  " Start with base bot
-  let l:llama = vimqq#bots#bot#new(extend(
+    " Start with base bot
+    let l:llama = vimqq#bots#bot#new(extend(
       \ {'bot_name': 'Llama', 
       \  'system_prompt': 'You are a helpful assistant. Make sure to use all the provided context before producing an answer.'}, 
       \ a:config))
-  
-  let l:llama._conf.healthcheck_ms = get(a:config, 'healthcheck_ms', s:healthcheck_ms)
 
-  let l:server = substitute(l:llama._conf.addr, '/*$', '', '')
-  let l:llama._chat_endpoint   = l:server . '/v1/chat/completions'
-  let l:llama._status_endpoint = l:server . '/health'
+    let l:llama._conf.healthcheck_ms = get(a:config, 'healthcheck_ms', s:healthcheck_ms)
 
-  " {{{ private:
+    let l:server = substitute(l:llama._conf.addr, '/*$', '', '')
+    let l:llama._chat_endpoint   = l:server . '/v1/chat/completions'
+    let l:llama._status_endpoint = l:server . '/health'
 
-  function! l:llama.get_usage(resp) dict
+    " {{{ private:
+
+    function! l:llama.get_usage(resp) dict
       return {'in': 0, 'out': 0}
-  endfunction
+    endfunction
 
-  function! l:llama._update_status(status) dict
+    function! l:llama._update_status(status) dict
       call vimqq#model#notify('bot_status', {'status' : a:status, 'bot': self})
-  endfunction
+    endfunction
 
-  function l:llama._on_status_exit(exit_status) dict
+    function l:llama._on_status_exit(exit_status) dict
       if a:exit_status != 0
           call self._update_status("unavailable")
       endif
       call timer_start(self._conf.healthcheck_ms, { -> self._get_status() })
-  endfunction
+    endfunction
 
-  function l:llama._on_status_out(msg) dict
+    function l:llama._on_status_out(msg) dict
       try
           let l:status = json_decode(a:msg)
           if empty(l:status)
@@ -52,9 +52,9 @@ function vimqq#bots#llama#new(config = {}) abort
           call vimqq#log#info("Error decoding status: " . v:exception)
           call self._update_status("error")
       endtry
-  endfunction
+    endfunction
 
-  function l:llama._get_status() dict
+    function l:llama._get_status() dict
       if self._conf.healthcheck_ms < 0
           return
       endif
@@ -63,7 +63,10 @@ function vimqq#bots#llama#new(config = {}) abort
             \ 'exit_cb': {job_id, status -> self._on_status_exit(status)}
       \}
       call vimqq#platform#http_client#get(self._status_endpoint, ["--max-time", "5"], l:job_conf)
-  endfunction
+    endfunction
+
+
+
 
   function l:llama._send_query(req, job_conf) dict
       call vimqq#log#debug('sending query')

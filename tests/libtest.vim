@@ -57,3 +57,15 @@ function! DeepDictCompare(dict1, dict2)
 
     return 0
 endfunction
+
+function! ArrayCompare(a, b)
+    if len(a:a) != len(a:b)
+        return 1
+    endif
+    for i in range(len(a:a))
+        if a:a[i] != a:b[i]
+            return 1
+        endif
+    endfor
+    return 0
+endfunction
