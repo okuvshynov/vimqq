@@ -1,16 +1,18 @@
-if exists('g:autoloaded_vimqq_api_llama_module')
+if exists('g:autoloaded_vimqq_api_deepseek_module')
     finish
 endif
 
-let g:autoloaded_vimqq_api_llama_module = 1
+let g:autoloaded_vimqq_api_deepseek_module = 1
 
-function! vimqq#api#llama_api#new(endpoint) abort
+let g:vqq_deepseek_api_key = get(g:, 'vqq_deepseek_api_key', $DEEPSEEK_API_KEY)
+
+function! vimqq#api#deepseek_api#new() abort
     let l:api = {}
 
-    let l:api._endpoint = a:endpoint
     " stores partial responses
     let l:api._replies = {}
     let l:api._req_id = 0
+    let l:api._api_key = g:vqq_deepseek_api_key
 
     function! l:api._on_stream_out(msg, params) dict
       let l:messages = split(a:msg, '\n')
@@ -34,12 +36,12 @@ function! vimqq#api#llama_api#new(endpoint) abort
 
     " Not calling any callback as we expect to act on data: [DONE]
     function! l:api._on_stream_close(params) dict
-        call vimqq#log#info('llama stream closed.')
+        call vimqq#log#info('deepseek_api stream closed.')
     endfunction
 
     function! l:api._on_out(msg, params, req_id) dict
         if !has_key(self._replies, a:req_id)
-            call vimqq#log#error('llama_api: reply for non-existent request: ' . a:req_id)
+            call vimqq#log#error('deepseek_api: reply for non-existent request: ' . a:req_id)
             return
         endif
         call add(self._replies[a:req_id], a:msg)
@@ -47,13 +49,13 @@ function! vimqq#api#llama_api#new(endpoint) abort
 
     function! l:api._on_close(params, req_id) dict
         if !has_key(self._replies, a:req_id)
-            call vimqq#log#error('llama_api: reply for non-existent request: ' . a:req_id)
+            call vimqq#log#error('deepseek_api: reply for non-existent request: ' . a:req_id)
             return
         endif
         let l:response = join(self._replies[a:req_id], '\n')
         let l:response = json_decode(l:response)
         if has_key(l:response, 'choices') && !empty(l:response.choices) && has_key(l:response.choices[0], 'message')
-            let l:message  = l:response.choices[0].message.content
+            let l:message = l:response.choices[0].message.content
             if has_key(a:params, 'on_chunk')
                 call a:params.on_chunk(a:params, l:message)
             endif
@@ -61,7 +63,7 @@ function! vimqq#api#llama_api#new(endpoint) abort
                 call a:params.on_complete(a:params)
             endif
         else
-            call vimqq#log#error('llama_api: Unable to process response')
+            call vimqq#log#error('deepseek_api: Unable to process response')
             call vimqq#log#error(json_encode(l:response))
         endif
     endfunction
@@ -73,9 +75,9 @@ function! vimqq#api#llama_api#new(endpoint) abort
     function! l:api.chat(params) dict
         let req = {
         \   'messages': get(a:params, 'messages', []),
+        \   'model': a:params.model,
         \   'n_predict': get(a:params, 'max_tokens', 1024),
-        \   'stream': get(a:params, 'stream', v:false),
-        \   'cache_prompt': get(a:params, 'cache_prompt', v:true)
+        \   'stream': get(a:params, 'stream', v:false)
         \ }
 
         let req_id = self._req_id
@@ -98,10 +100,12 @@ function! vimqq#api#llama_api#new(endpoint) abort
 
         let l:json_req = json_encode(req)
         let l:headers = {
-            \ 'Content-Type': 'application/json'
+            \ 'Content-Type': 'application/json',
+            \ 'Accept': 'application/json',
+            \ 'Authorization': 'Bearer ' . self._api_key
         \ }
         return vimqq#platform#http_client#post(
-            \ self._endpoint,
+            \ 'https://api.deepseek.com/chat/completions',
             \ l:headers,
             \ l:json_req,
             \ l:job_conf)
