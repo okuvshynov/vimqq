@@ -9,7 +9,8 @@ let s:default_conf = {
     \ 'bot_name'      : 'ai',
     \ 'system_prompt' : 'You are a helpful assistant.',
     \ 'send_warmup'   : v:false,
-    \ 'do_autowarm'   : v:false
+    \ 'do_autowarm'   : v:false,
+    \ 'model'         : ''
 \ }
 
 function! vimqq#client#new(impl, config = {}) abort
@@ -33,6 +34,7 @@ function! vimqq#client#new(impl, config = {}) abort
             let req = {
             \   'messages' : self._format(a:messages),
             \   'max_tokens' : 0,
+            \   'model' : self._conf.model,
             \   'on_complete' : {p -> vimqq#model#notify('warmup_done', {'bot' : self})}
             \ }
             return self._impl.chat(req)
@@ -51,6 +53,7 @@ function! vimqq#client#new(impl, config = {}) abort
         let req = {
         \   'messages' : messages,
         \   'max_tokens' : self._conf.title_tokens,
+        \   'model' : self._conf.model,
         \   'on_chunk' : {p, m -> vimqq#model#notify('title_done', {'chat_id' : a:chat_id, 'title': m})}
         \ }
         return self._impl.chat(req)
@@ -62,6 +65,7 @@ function! vimqq#client#new(impl, config = {}) abort
         let req = {
         \   'messages' : self._format(a:messages),
         \   'max_tokens' : self._conf.max_tokens,
+        \   'model' : self._conf.model,
         \   'on_chunk' : {p, m -> vimqq#model#notify('chunk_done', {'chat_id': a:chat_id, 'chunk': m})},
         \   'on_complete' : {p -> vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot' : self})}
         \ }

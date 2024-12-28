@@ -48,6 +48,29 @@ function! vimqq#api#anthropic_api#new() abort
         endfor
     endfunction
 
+    function! l:api._on_out(msg, params, req_id) dict
+        if !has_key(self._replies, a:req_id)
+            call vimqq#log#error('anthropic: reply for non-existent request: ' . a:req_id)
+            return
+        endif
+        call add(self._replies[a:req_id], a:msg)
+    endfunction
+
+    function! l:api._on_close(params, req_id) dict
+        let l:response = json_decode(join(self._replies[a:req_id], '\n'))
+        if has_key(l:response, 'content') && !empty(l:response.content) && has_key(l:response.content[0], 'text')
+            let l:message  = l:response.content[0].text
+            if has_key(a:params, 'on_chunk')
+                call a:params.on_chunk(a:params, l:message)
+            endif
+            if has_key(a:params, 'on_complete')
+                call a:params.on_complete(a:params)
+            endif
+        else
+            call vimqq#log#error('Unable to process response')
+            call vimqq#log#error(json_encode(l:response))
+        endif
+    endfunction
 
     function! l:api.chat(params) dict
         let l:messages = a:params.messages
@@ -67,6 +90,10 @@ function! vimqq#api#anthropic_api#new() abort
         if l:system != v:none
             let req['system'] = l:system
         endif
+
+        let req_id = self._req_id
+        let self._req_id = self._req_id + 1
+        let self._replies[req_id] = []
 
         if req.stream
             let l:job_conf = {
