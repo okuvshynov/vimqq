@@ -1,47 +1,47 @@
-if exists('g:autoloaded_vimqq_api_deepseek_module')
+if exists('g:autoloaded_vimqq_api_mistral_module')
     finish
 endif
 
-let g:autoloaded_vimqq_api_deepseek_module = 1
+let g:autoloaded_vimqq_api_mistral_module = 1
 
-let g:vqq_deepseek_api_key = get(g:, 'vqq_deepseek_api_key', $DEEPSEEK_API_KEY)
+let g:vqq_mistral_api_key = get(g:, 'vqq_mistral_api_key', $MISTRAL_API_KEY)
 
-function! vimqq#api#deepseek_api#new() abort
+function! vimqq#api#mistral_api#new() abort
     let l:api = {}
 
     " stores partial responses
     let l:api._replies = {}
     let l:api._req_id = 0
-    let l:api._api_key = g:vqq_deepseek_api_key
+    let l:api._api_key = g:vqq_mistral_api_key
 
     function! l:api._on_stream_out(msg, params) dict
-      let l:messages = split(a:msg, '\n')
-      for message in l:messages
-          if message !~# '^data: '
-              call vimqq#log#info('Unexpected reply: ' . message)
-              continue
-          endif
-          if message == 'data: [DONE]'
-              call a:params.on_complete(a:params)
-              return
-          endif
-          let json_string = substitute(message, '^data: ', '', '')
-          let response = json_decode(json_string)
-          if has_key(response.choices[0].delta, 'content')
-              let chunk = response.choices[0].delta.content
-              call a:params.on_chunk(a:params, chunk)
-          endif
-      endfor
+        let l:messages = split(a:msg, '\n')
+        for message in l:messages
+            if message !~# '^data: '
+                call vimqq#log#info('Unexpected reply: ' . message)
+                continue
+            endif
+            if message == 'data: [DONE]'
+                call a:params.on_complete(a:params)
+                return
+            endif
+            let json_string = substitute(message, '^data: ', '', '')
+            let response = json_decode(json_string)
+            if has_key(response.choices[0].delta, 'content')
+                let chunk = response.choices[0].delta.content
+                call a:params.on_chunk(a:params, chunk)
+            endif
+        endfor
     endfunction
 
     " Not calling any callback as we expect to act on data: [DONE]
     function! l:api._on_stream_close(params) dict
-        call vimqq#log#info('deepseek_api stream closed.')
+        call vimqq#log#info('mistral_api stream closed.')
     endfunction
 
     function! l:api._on_out(msg, params, req_id) dict
         if !has_key(self._replies, a:req_id)
-            call vimqq#log#error('deepseek_api: reply for non-existent request: ' . a:req_id)
+            call vimqq#log#error('mistral_api: reply for non-existent request: ' . a:req_id)
             return
         endif
         call add(self._replies[a:req_id], a:msg)
@@ -49,7 +49,7 @@ function! vimqq#api#deepseek_api#new() abort
 
     function! l:api._on_close(params, req_id) dict
         if !has_key(self._replies, a:req_id)
-            call vimqq#log#error('deepseek_api: reply for non-existent request: ' . a:req_id)
+            call vimqq#log#error('mistral_api: reply for non-existent request: ' . a:req_id)
             return
         endif
         let l:response = join(self._replies[a:req_id], '\n')
@@ -63,7 +63,7 @@ function! vimqq#api#deepseek_api#new() abort
                 call a:params.on_complete(a:params)
             endif
         else
-            call vimqq#log#error('deepseek_api: Unable to process response')
+            call vimqq#log#error('mistral_api: Unable to process response')
             call vimqq#log#error(json_encode(l:response))
         endif
     endfunction
@@ -105,7 +105,7 @@ function! vimqq#api#deepseek_api#new() abort
             \ 'Authorization': 'Bearer ' . self._api_key
         \ }
         return vimqq#platform#http_client#post(
-            \ 'https://api.deepseek.com/chat/completions',
+            \ 'https://api.mistral.ai/v1/chat/completions',
             \ l:headers,
             \ l:json_req,
             \ l:job_conf)
