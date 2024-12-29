@@ -1,34 +1,10 @@
-let s:chunks = []
-let s:completed = v:false
+let s:path = expand('<sfile>:p:h')
+let s:lib = s:path . "/../api_chat_test.vim"
+execute "source " . s:lib
+let s:lib = s:path . "/../api_chat_test_stream.vim"
+execute "source " . s:lib
 
-function! s:on_chunk(params, chunk)
-    echom a:chunk
-    call add(s:chunks, a:chunk)
-endfunction
+let impl = vimqq#api#groq_api#new()
 
-function! s:on_complete(params)
-    let s:completed = v:true
-endfunction
-
-let llm = vimqq#api#groq_api#new()
-
-let params = {
-    \ 'messages' : [{'role': 'user', 'content': 'What is the capital of Poland?'}],
-    \ 'on_chunk' : {p, chunk -> s:on_chunk(p, chunk)},
-    \ 'on_complete' : {p -> s:on_complete(p)},
-    \ 'model': 'llama-3.1-8b-instant',
-\ }
-
-call llm.chat(params)
-
-function! Verify(t)
-    if !s:completed
-        cquit 1
-    endif
-    if len(s:chunks) != 1
-        cquit 1
-    endif
-    cquit 0
-endfunction
-
-call timer_start(10000, 'Verify')
+call TestAPIChat(impl, 'llama-3.1-8b-instant')
+call TestAPIChatStream(impl, 'llama-3.1-8b-instant')

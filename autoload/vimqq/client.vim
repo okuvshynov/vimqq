@@ -59,14 +59,14 @@ function! vimqq#client#new(impl, config = {}) abort
         return self._impl.chat(req)
     endfunction
 
-    function! l:client.send_chat(chat_id, messages) dict
+    function! l:client.send_chat(chat_id, messages, stream=v:true) dict
         " here we attemt to do streaming. If API implementation
         " doesn't support it, it would 'stream' everything in single chunk
         let req = {
         \   'messages' : self._format(a:messages),
         \   'max_tokens' : self._conf.max_tokens,
         \   'model' : self._conf.model,
-        \   'stream' : v:true,
+        \   'stream' : a:stream,
         \   'on_chunk' : {p, m -> vimqq#model#notify('chunk_done', {'chat_id': a:chat_id, 'chunk': m})},
         \   'on_complete' : {p -> vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot' : self})}
         \ }
