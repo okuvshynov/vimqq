@@ -66,6 +66,7 @@ function! vimqq#client#new(impl, config = {}) abort
         \   'messages' : self._format(a:messages),
         \   'max_tokens' : self._conf.max_tokens,
         \   'model' : self._conf.model,
+        \   'stream' : v:true,
         \   'on_chunk' : {p, m -> vimqq#model#notify('chunk_done', {'chat_id': a:chat_id, 'chunk': m})},
         \   'on_complete' : {p -> vimqq#model#notify('reply_done', {'chat_id': a:chat_id, 'bot' : self})}
         \ }

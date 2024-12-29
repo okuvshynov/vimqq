@@ -54,7 +54,7 @@ def chat():
 
     if is_warmup:
         stats['n_warmups'] += 1
-        response_data = { }
+        response_data = { "choices": [{"message": {"content": ""}}]}
         return Response(json.dumps(response_data), content_type='application/json')
 
     if do_stream:
