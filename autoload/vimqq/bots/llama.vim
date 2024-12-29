@@ -6,8 +6,6 @@ endif
 
 let g:autoloaded_vimqq_llama_module = 1
 
-let s:healthcheck_ms = 10000
-
 let s:default_conf = {
     \ 'title_tokens'  : 32,
     \ 'max_tokens'    : 1024,
