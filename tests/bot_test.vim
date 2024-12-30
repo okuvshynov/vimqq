@@ -33,8 +33,8 @@ function! VQQBotTest(client)
 
     let s:client = a:client
 
-    call vimqq#model#set_state({})
-    call vimqq#model#add_observer(s:observer)
+    call vimqq#events#set_state({})
+    call vimqq#events#add_observer(s:observer)
 
     call s:client.send_warmup([s:message])
     call s:client.send_chat(1, [s:message], v:false)

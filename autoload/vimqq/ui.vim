@@ -181,7 +181,7 @@ function vimqq#ui#new() abort
 
         function! ShowChat() closure
             let chat_id = l:chat_id_map[line('.')]
-            call vimqq#model#notify('chat_selected', {'chat_id': chat_id})
+            call vimqq#events#notify('chat_selected', {'chat_id': chat_id})
         endfunction
 
         function! HideList() closure
@@ -190,7 +190,7 @@ function vimqq#ui#new() abort
 
         function! DeleteChat() closure
             let chat_id = l:chat_id_map[line('.')]
-            call timer_start(0, { -> vimqq#model#notify('delete_chat', {'chat_id': chat_id}) })
+            call timer_start(0, { -> vimqq#events#notify('delete_chat', {'chat_id': chat_id}) })
         endfunction
 
         nnoremap <silent> <buffer> <cr> :call ShowChat()<cr>

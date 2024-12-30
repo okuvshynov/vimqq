@@ -6,15 +6,15 @@ let g:autoloaded_vimqq_model = 1
 
 let s:observers = []
 
-function! vimqq#model#set_state(state) abort
+function! vimqq#events#set_state(state) abort
     let s:state = a:state
 endfunction
 
-function! vimqq#model#add_observer(observer) abort
+function! vimqq#events#add_observer(observer) abort
     call add(s:observers, a:observer)
 endfunction
 
-function! vimqq#model#notify(event, context) abort
+function! vimqq#events#notify(event, context) abort
     call vimqq#log#debug('event: ' . a:event)
     call vimqq#metrics#inc('event_notify.' . a:event)
     let a:context['state'] = s:state

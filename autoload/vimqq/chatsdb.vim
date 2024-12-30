@@ -198,7 +198,7 @@ function! vimqq#chatsdb#new() abort
                 call vimqq#metrics#first_token(a:args['chat_id'])
             endif
             call self.append_partial(a:args['chat_id'], a:args['chunk'])
-            call vimqq#model#notify('chunk_saved', a:args)
+            call vimqq#events#notify('chunk_saved', a:args)
             return
         endif
         if a:event == 'reply_done'
@@ -207,7 +207,7 @@ function! vimqq#chatsdb#new() abort
                 return
             endif
             call self.partial_done(a:args['chat_id'])
-            call vimqq#model#notify('reply_saved', {'chat_id': a:args['chat_id'], 'bot': a:args['bot']})
+            call vimqq#events#notify('reply_saved', {'chat_id': a:args['chat_id'], 'bot': a:args['bot']})
             return
         endif
         if a:event == 'title_done'
@@ -216,7 +216,7 @@ function! vimqq#chatsdb#new() abort
                 return
             endif
             call self.set_title(a:args['chat_id'], a:args['title'])
-            call vimqq#model#notify('title_saved', {'chat_id': a:args['chat_id']})
+            call vimqq#events#notify('title_saved', {'chat_id': a:args['chat_id']})
         endif
 
     endfunction
