@@ -1,5 +1,53 @@
 {
     "files": {
+        "autoload/vimqq/api/anthropic_api.vim": {
+            "path": "autoload/vimqq/api/anthropic_api.vim",
+            "size": 4270,
+            "checksum": "0a48aff1c23021787f8859fdf64c7e8a",
+            "processing_timestamp": "2024-12-29T09:22:49.121910",
+            "approx_tokens": 1110,
+            "processing_result": "This file contains the implementation of the Anthropic API for the VimQQ plugin. It provides a function `vimqq#api#anthropic_api#new()` that returns an API object with a `chat()` method. The `chat()` method sends a request to the Anthropic API with the provided parameters and handles the response. The API object also has several internal functions for handling errors, streaming output, and closing the connection. The file uses the `vimqq#log` module for logging and the `vimqq#platform#http_client` module for making HTTP requests. The API key is stored in the `g:vqq_claude_api_key` variable."
+        },
+        "autoload/vimqq/api/deepseek_api.vim": {
+            "path": "autoload/vimqq/api/deepseek_api.vim",
+            "size": 4125,
+            "checksum": "edb289333262e7534aba55df38e64ee8",
+            "processing_timestamp": "2024-12-29T09:22:49.121910",
+            "approx_tokens": 1074,
+            "processing_result": "This file contains the implementation of the DeepSeek API for the VimQQ plugin. It provides a function `vimqq#api#deepseek_api#new()` that returns an API object with a `chat()` method. The `chat()` method sends a request to the DeepSeek API with the provided parameters and handles the response. The API object also has several internal functions for handling errors, streaming output, and closing the connection. The file uses the `vimqq#log` module for logging and the `vimqq#platform#http_client` module for making HTTP requests. The API key is stored in the `g:vqq_deepseek_api_key` variable. The API is similar to the Anthropic API, but with some differences in the request and response handling."
+        },
+        "autoload/vimqq/api/groq_api.vim": {
+            "path": "autoload/vimqq/api/groq_api.vim",
+            "size": 4121,
+            "checksum": "50ebc4023f1cee5fd6fa00e4041cfab9",
+            "processing_timestamp": "2024-12-29T09:22:49.121910",
+            "approx_tokens": 1083,
+            "processing_result": "This file contains the implementation of the Groq API for the VimQQ plugin. It provides a function `vimqq#api#groq_api#new()` that returns an API object with a `chat()` method. The `chat()` method sends a request to the Groq API with the provided parameters and handles the response. The API object also has several internal functions for handling errors, streaming output, and closing the connection. The file uses the `vimqq#log` module for logging and the `vimqq#platform#http_client` module for making HTTP requests. The API key is stored in the `g:vqq_groq_api_key` variable. The API is similar to the DeepSeek API, with some differences in the request and response handling."
+        },
+        "autoload/vimqq/api/llama_api.vim": {
+            "path": "autoload/vimqq/api/llama_api.vim",
+            "size": 3915,
+            "checksum": "9fa22865c0ea51ba2f44aeed6100d709",
+            "processing_timestamp": "2024-12-29T09:26:08.603268",
+            "approx_tokens": 1019,
+            "processing_result": "This file contains the implementation of the Llama API in Vimscript. The API provides a single function, `vimqq#api#llama_api#new`, which returns an instance of the Llama API. The API instance has a `chat` method that sends a request to the Llama API and returns the response. The method takes a `params` dictionary as an argument, which can contain options such as `messages`, `max_tokens`, and `stream`. The API also provides several callback functions, including `_on_stream_out`, `_on_stream_close`, `_on_out`, `_on_close`, and `_on_error`, which are used to handle the response from the Llama API. The file also defines a `vimqq#api#llama_api` module, which is used to autoload the Llama API implementation."
+        },
+        "autoload/vimqq/api/mistral_api.vim": {
+            "path": "autoload/vimqq/api/mistral_api.vim",
+            "size": 4149,
+            "checksum": "a746ef3e68f25fae77adae6447d69c48",
+            "processing_timestamp": "2024-12-29T09:26:08.603268",
+            "approx_tokens": 1081,
+            "processing_result": "This file contains the implementation of the Mistral API in Vimscript. The API provides a single function, `vimqq#api#mistral_api#new`, which returns an instance of the Mistral API. The API instance has a `chat` method that sends a request to the Mistral API and returns the response. The method takes a `params` dictionary as an argument, which can contain options such as `messages`, `model`, `max_tokens`, and `stream`. The API also provides several callback functions, including `_on_stream_out`, `_on_stream_close`, `_on_out`, `_on_close`, and `_on_error`, which are used to handle the response from the Mistral API. The file also defines a `vimqq#api#mistral_api` module, which is used to autoload the Mistral API implementation."
+        },
+        "autoload/vimqq/api/readme.txt": {
+            "path": "autoload/vimqq/api/readme.txt",
+            "size": 946,
+            "checksum": "de393027eaf6e91a27b8493483d1cdb4",
+            "processing_timestamp": "2024-12-29T09:26:08.603268",
+            "approx_tokens": 209,
+            "processing_result": "This file contains a README for the API implementation in Vimscript. It describes the purpose of the API, which is to provide a single layer of abstraction for different AI providers, and lists the parameters that can be passed to the `chat` method, including `model`, `messages`, `max_tokens`, `stream`, `on_complete`, and `on_chunk`."
+        },
         "autoload/vimqq/bots/bots.vim": {
             "path": "autoload/vimqq/bots/bots.vim",
             "size": 3268,
@@ -7,6 +55,62 @@
             "processing_timestamp": "2024-12-26T15:15:59.675593",
             "approx_tokens": 925,
             "processing_result": "This file contains the bot manager implementation for the VimQQ plugin. It defines a function `vimqq#bots#bots#new` that creates a new bot manager instance. The bot manager is responsible for creating and managing a list of bot instances based on the configuration defined in the file. The configuration includes lists of bot servers and models for different AI services, such as LLaMA, Claude, and Groq. The bot manager also provides methods for selecting a bot instance based on a given question and for getting the list of available bot instances."
+        },
+        "autoload/vimqq/bots/claude.vim": {
+            "path": "autoload/vimqq/bots/claude.vim",
+            "size": 379,
+            "checksum": "04d0f3d8cec8eeeb0eacbd1a52de7230",
+            "processing_timestamp": "2024-12-29T09:26:08.603268",
+            "approx_tokens": 104,
+            "processing_result": "This file contains the implementation of the Claude bot in Vimscript. The bot uses the `vimqq#api#anthropic_api` module to interact with the Anthropica API. The file defines a `vimqq#bots#claude#new` function, which returns a new instance of the Claude bot. The function takes a `config` dictionary as an argument, which is passed to the `vimqq#client#new` function to create a new client instance."
+        },
+        "autoload/vimqq/bots/deepseek.vim": {
+            "path": "autoload/vimqq/bots/deepseek.vim",
+            "size": 384,
+            "checksum": "aa7f735eb32358f41444dbb1a913b875",
+            "processing_timestamp": "2024-12-29T09:26:08.603268",
+            "approx_tokens": 102,
+            "processing_result": "This file contains the implementation of the Deepseek bot in Vimscript. The bot uses the `vimqq#api#deepseek_api` module to interact with the Deepseek API. The file defines a `vimqq#bots#deepseek#new` function, which returns a new instance of the Deepseek bot. The function takes a `config` dictionary as an argument, which is passed to the `vimqq#client#new` function to create a new client instance."
+        },
+        "autoload/vimqq/bots/groq.vim": {
+            "path": "autoload/vimqq/bots/groq.vim",
+            "size": 368,
+            "checksum": "cbe87b35d8fd569eaaaedf26898a8d38",
+            "processing_timestamp": "2024-12-29T09:26:08.603268",
+            "approx_tokens": 104,
+            "processing_result": "This file contains the implementation of the Groq bot in Vimscript. The bot uses the `vimqq#api#groq_api` module to interact with the Groq API. The file defines a `vimqq#bots#groq#new` function, which returns a new instance of the Groq bot. The function takes a `config` dictionary as an argument, which is passed to the `vimqq#client#new` function to create a new client instance."
+        },
+        "autoload/vimqq/bots/llama.vim": {
+            "path": "autoload/vimqq/bots/llama.vim",
+            "size": 816,
+            "checksum": "275a95ebc1f4f02ccc7d26f253d02534",
+            "processing_timestamp": "2024-12-29T09:26:08.603268",
+            "approx_tokens": 246,
+            "processing_result": "This file contains the implementation of the Llama bot in Vimscript. The bot uses the `vimqq#api#llama_api` module to interact with the Llama API. The file defines a `vimqq#bots#llama#new` function, which returns a new instance of the Llama bot. The function takes a `config` dictionary as an argument, which is used to configure the bot. The function also defines a default configuration for the bot, which can be overridden by the user."
+        },
+        "autoload/vimqq/bots/mistral.vim": {
+            "path": "autoload/vimqq/bots/mistral.vim",
+            "size": 380,
+            "checksum": "c14c415f03fddb849510b122e147bdee",
+            "processing_timestamp": "2024-12-29T09:26:08.603268",
+            "approx_tokens": 104,
+            "processing_result": "This file contains the implementation of the Mistral bot in Vimscript. The bot uses the `vimqq#api#mistral_api` module to interact with the Mistral API. The file defines a `vimqq#bots#mistral#new` function, which returns a new instance of the Mistral bot. The function takes a `config` dictionary as an argument, which is passed to the `vimqq#client#new` function to create a new client instance."
+        },
+        "autoload/vimqq/chatsdb.vim": {
+            "path": "autoload/vimqq/chatsdb.vim",
+            "size": 7549,
+            "checksum": "f59394ed09fdb0b68bd8e00549d813b5",
+            "processing_timestamp": "2024-12-29T09:27:46.549474",
+            "approx_tokens": 2024,
+            "processing_result": "This file contains the implementation of the chat database module for the Vimqq plugin. It provides functions for managing chats, including creating new chats, appending messages, and saving chat data to a file. The module also handles events such as chunk completion and reply completion. The chat data is stored in a JSON file, and the module provides functions for reading and writing this data. The module uses a seq_id to keep track of the order of messages and chats.\n\nKey functions include:\n- `vimqq#chatsdb#new()`: Creates a new chat database object.\n- `l:db.append_message(chat_id, message)`: Appends a message to a chat.\n- `l:db.get_ordered_chats()`: Returns a list of chats in order of most recent activity.\n- `l:db.handle_event(event, args)`: Handles events such as chunk completion and reply completion.\n\nThe module also provides several other functions for managing chats and messages, including `l:db.get_title(chat_id)`, `l:db.set_title(chat_id, title)`, and `l:db.delete_chat(chat_id)`."
+        },
+        "autoload/vimqq/client.vim": {
+            "path": "autoload/vimqq/client.vim",
+            "size": 3020,
+            "checksum": "e76bcabd8421623a645b09dcfcd9c407",
+            "processing_timestamp": "2024-12-29T09:27:46.549474",
+            "approx_tokens": 848,
+            "processing_result": "This file contains the implementation of the client module for the Vimqq plugin. It provides functions for sending messages to a chat model, including generating titles and sending chat messages. The module uses a configuration object to store settings such as the bot name, system prompt, and maximum tokens.\n\nKey functions include:\n- `vimqq#client#new(impl, config = {})`: Creates a new client object.\n- `l:client.send_gen_title(chat_id, message)`: Sends a request to generate a title for a chat.\n- `l:client.send_chat(chat_id, messages, stream=v:true)`: Sends a chat message to the model.\n\nThe module also provides several other functions for managing the client, including `l:client.name()`, `l:client.do_autowarm()`, and `l:client.send_warmup(messages)`.\n\nThe client module is closely related to the chat database module, as it uses the chat database to store and retrieve chat data. The client module also uses the `vimqq#model#notify()` function to notify the model of events such as chunk completion and reply completion."
         },
         "autoload/vimqq/dispatcher.vim": {
             "path": "autoload/vimqq/dispatcher.vim",
@@ -128,6 +232,14 @@
             "approx_tokens": 141,
             "processing_result": "This file contains a Vim script that defines a utility function for translating tool definition schemas. The function `vimqq#tools#schema#to_claude` takes a tool definition schema as input and returns a translated schema in the format used by the Claude AI model."
         },
+        "autoload/vimqq/ui.vim": {
+            "path": "autoload/vimqq/ui.vim",
+            "size": 8753,
+            "checksum": "3ae5a022ac85c05a452fe54639758626",
+            "processing_timestamp": "2024-12-29T09:32:44.603478",
+            "approx_tokens": 2196,
+            "processing_result": "This file contains the UI functionality for the VimQQ plugin. It provides functions for creating and managing chat windows, displaying chat history, and handling user input. The file also defines a set of syntax highlighting rules for chat messages. The UI is designed to be flexible and customizable, with options for setting the chat window width and time format. The file also includes a set of functions for handling events, such as updating the status line and appending messages to the chat window."
+        },
         "autoload/vimqq/warmup.vim": {
             "path": "autoload/vimqq/warmup.vim",
             "size": 4058,
@@ -151,286 +263,6 @@
             "processing_timestamp": "2024-12-22T22:28:38.672207",
             "approx_tokens": 476,
             "processing_result": "This file is the entry point for the VimQQ plugin, defining the public commands and interface for the user. It provides several commands for interacting with the plugin, including sending messages, forking chats, and displaying chat lists. The file also initializes the plugin and sets up the internal state. The commands defined in this file are the primary way for users to interact with the VimQQ plugin."
-        },
-        "tests/data/chat_list_one.out": {
-            "path": "tests/data/chat_list_one.out",
-            "size": 12,
-            "checksum": "256177b874ee750cfc366a53d45ced1d",
-            "processing_timestamp": "2024-12-26T17:53:04.374112",
-            "approx_tokens": 8,
-            "processing_result": "This file appears to be a test output file containing a single line of text: \"00:00>l=166\". The purpose of this file is unclear, but it may be used as input or expected output for a test case."
-        },
-        "tests/data/chat_list_one.vim": {
-            "path": "tests/data/chat_list_one.vim",
-            "size": 481,
-            "checksum": "eb3cb6583be16b6c490527c12aa823bd",
-            "processing_timestamp": "2024-12-19T10:04:19.686955",
-            "approx_tokens": 160,
-            "processing_result": "This file appears to be a test case for the Vimqq plugin. It sources a libtest.vim file and defines a function WriteAndQuit that checks the contents of the chat list after sending a message to a bot. The file uses the QQ command to send a message and then compares the resulting chat list with an expected output. The test case uses the cquit command to exit with a status code indicating whether the test passed or failed."
-        },
-        "tests/data/new_chat.out": {
-            "path": "tests/data/new_chat.out",
-            "size": 24,
-            "checksum": "104578cd8a1d31ca2ad8403a1642647b",
-            "processing_timestamp": "2024-12-26T17:53:04.374112",
-            "approx_tokens": 15,
-            "processing_result": "This file appears to be a test output file containing two lines of text: \"00:00>l=130\" and \"00:00 l=129\". The purpose of this file is unclear, but it may be used as input or expected output for a test case. The content of this file is similar to the previous one, but with an additional line."
-        },
-        "tests/data/new_chat.vim": {
-            "path": "tests/data/new_chat.vim",
-            "size": 487,
-            "checksum": "3872d7270ae428161a6fa54d50505ae9",
-            "processing_timestamp": "2024-12-19T10:04:19.686955",
-            "approx_tokens": 154,
-            "processing_result": "This file is another test case for the Vimqq plugin. It sources a libtest.vim file and defines two functions: AskNew and WriteAndQuit. The AskNew function sends a new message to a bot using the QN command, and the WriteAndQuit function checks the contents of the chat list after sending the message. The file uses timers to delay the execution of the test functions and compares the resulting chat list with an expected output. The test case uses the cquit command to exit with a status code indicating whether the test passed or failed."
-        },
-        "tests/data/new_chat_nodelay.out": {
-            "path": "tests/data/new_chat_nodelay.out",
-            "size": 24,
-            "checksum": "104578cd8a1d31ca2ad8403a1642647b",
-            "processing_timestamp": "2024-12-26T17:53:04.374112",
-            "approx_tokens": 15,
-            "processing_result": "This file appears to be a test output file containing the same content as the previous file: \"00:00>l=130\" and \"00:00 l=129\". The purpose of this file is unclear, but it may be used as input or expected output for a test case. The \"_nodelay\" suffix suggests that this file may be related to a test case that involves no delay."
-        },
-        "tests/data/new_chat_nodelay.vim": {
-            "path": "tests/data/new_chat_nodelay.vim",
-            "size": 424,
-            "checksum": "b34dcc2cfb5f718abf249bb48d083236",
-            "processing_timestamp": "2024-12-19T10:05:44.301323",
-            "approx_tokens": 137,
-            "processing_result": "This is a Vim script file used for testing purposes. It sources a library file \"libtest.vim\" and defines a function \"WriteAndQuit\" that compares the content of the current buffer with an expected output file \"new_chat_nodelay.out\". The script then simulates a chat interaction by sending a message \":Q @mock hello\" and waits for 1 second before calling the \"WriteAndQuit\" function. The purpose of this test is to verify that the chat functionality works as expected without any delays."
-        },
-        "tests/data/query.out": {
-            "path": "tests/data/query.out",
-            "size": 52,
-            "checksum": "a27d0c48e39b8a3ca1eb54b873ab6102",
-            "processing_timestamp": "2024-12-26T17:53:04.374112",
-            "approx_tokens": 20,
-            "processing_result": "This file appears to be a test output file containing a simulated conversation between a user and a mock chatbot. The conversation consists of a single query: \"You: @mock hello\" followed by the chatbot's response: \"mock: BEGIN hello END\". The purpose of this file is unclear, but it may be used as input or expected output for a test case."
-        },
-        "tests/data/query.vim": {
-            "path": "tests/data/query.vim",
-            "size": 381,
-            "checksum": "2d89cd91398d0643833a92b9fb0ae349",
-            "processing_timestamp": "2024-12-15T14:25:51.693084",
-            "approx_tokens": 121,
-            "processing_result": "This file is a test script for the chat application. It sources a library file `libtest.vim` and defines a function `WriteAndQuit` which writes the contents of the current buffer to a file and quits the test. The script then simulates a query by executing a command `:Q @mock hello` and starts a timer to call the `WriteAndQuit` function after 200 milliseconds."
-        },
-        "tests/data/query_twice.out": {
-            "path": "tests/data/query_twice.out",
-            "size": 105,
-            "checksum": "b3bfb89018d5ce720b81b41d6acd52b8",
-            "processing_timestamp": "2024-12-26T17:53:04.374112",
-            "approx_tokens": 40,
-            "processing_result": "This file appears to be a test output file containing a simulated conversation between a user and a mock chatbot, similar to the previous file. However, this conversation consists of two queries: \"You: @mock hello\" followed by \"You: @mock world!\". The chatbot responds to each query accordingly. The purpose of this file is unclear, but it may be used as input or expected output for a test case."
-        },
-        "tests/data/query_twice.vim": {
-            "path": "tests/data/query_twice.vim",
-            "size": 477,
-            "checksum": "586c39d207ed98ad0d69e4f21619a371",
-            "processing_timestamp": "2024-12-19T10:05:44.301323",
-            "approx_tokens": 150,
-            "processing_result": "This is another Vim script file used for testing purposes. It also sources the \"libtest.vim\" library and defines a function \"WriteAndQuit\" similar to the previous file. Additionally, it defines a function \"AskNew\" that sends a new message \":Q @mock world!\" and waits for 400 milliseconds before calling \"WriteAndQuit\". The script simulates a chat interaction by sending an initial message \":Q @mock hello\" and then calls the \"AskNew\" function after 400 milliseconds. The purpose of this test is to verify that the chat functionality works as expected when querying twice."
-        },
-        "tests/data/queue.out": {
-            "path": "tests/data/queue.out",
-            "size": 105,
-            "checksum": "b3bfb89018d5ce720b81b41d6acd52b8",
-            "processing_timestamp": "2024-12-26T17:53:04.374112",
-            "approx_tokens": 40,
-            "processing_result": "This file appears to be a test output file containing a simulated conversation between a user and a mock chatbot, similar to the previous file. However, this conversation consists of two queries: \"You: @mock hello\" followed by \"You: @mock world!\". The chatbot responds to each query accordingly. The purpose of this file is unclear, but it may be used as input or expected output for a test case. The content of this file is identical to the previous one, suggesting that the \"_queue\" suffix may not be significant."
-        },
-        "tests/data/queue.vim": {
-            "path": "tests/data/queue.vim",
-            "size": 399,
-            "checksum": "773262d59c516d572b04240cc9a911d2",
-            "processing_timestamp": "2024-12-14T12:40:52.561626",
-            "approx_tokens": 128,
-            "processing_result": "This Vim script file sources the \"libtest.vim\" library and defines the \"WriteAndQuit\" function, which compares the content of the current buffer with an expected output stored in a file named \"queue.out\". The script simulates user interactions by sending two messages and then calls the \"WriteAndQuit\" function after a delay of 1000 milliseconds. The purpose of this script is to test the functionality of a message queue."
-        },
-        "tests/data/selection.out": {
-            "path": "tests/data/selection.out",
-            "size": 138,
-            "checksum": "979a960ad4dc88bd113ece621e30de88",
-            "processing_timestamp": "2024-12-26T17:53:04.374112",
-            "approx_tokens": 58,
-            "processing_result": "This file appears to be a test output file containing a simulated conversation between a user and a mock chatbot. The conversation consists of a query: \"You: @mock Here's a code snippet: ...\" followed by the chatbot's response. The user's query includes a code snippet, which is preserved in the chatbot's response. The purpose of this file is unclear, but it may be used as input or expected output for a test case."
-        },
-        "tests/data/selection.vim": {
-            "path": "tests/data/selection.vim",
-            "size": 448,
-            "checksum": "fe7437c79c460e2ddec477c90f2df5c4",
-            "processing_timestamp": "2024-12-19T10:05:44.301323",
-            "approx_tokens": 147,
-            "processing_result": "This Vim script file is used to test the selection functionality in the chat. It sources the \"libtest.vim\" library and defines a function \"WriteAndQuit\" that compares the content of the current buffer with an expected output file \"selection.out\". The script puts a range of numbers (1-5) into the buffer, selects the text, and then simulates a chat interaction by sending a message \":QQ @mock hello\" with the selected text. The purpose of this test is to verify that the selection functionality works as expected in the chat."
-        },
-        "tests/data/tools_get_files.txt": {
-            "path": "tests/data/tools_get_files.txt",
-            "size": 14,
-            "checksum": "746308829575e17c3331bbcb00c0898b",
-            "processing_timestamp": "2024-12-26T15:19:00.693292",
-            "approx_tokens": 4,
-            "processing_result": "This file contains a test file for the `get_files` tool. The file contains a simple \"Hello, world!\" message."
-        },
-        "tests/data/tools_get_files.vim": {
-            "path": "tests/data/tools_get_files.vim",
-            "size": 446,
-            "checksum": "0883697867529a93ee9f1309831f2f93",
-            "processing_timestamp": "2024-12-26T15:19:00.693292",
-            "approx_tokens": 150,
-            "processing_result": "This file contains a test script for the `get_files` tool. The script sources a test library, creates a `get_files` tool instance, and uses the tool to retrieve the content of the `tools_get_files.txt` file. The script then compares the retrieved content with the expected content and exits with a success or failure code."
-        },
-        "tests/data/tools_schema.vim": {
-            "path": "tests/data/tools_schema.vim",
-            "size": 1566,
-            "checksum": "bd6ba87353080d138a3b3b660c0e7a6a",
-            "processing_timestamp": "2024-12-26T15:19:00.693292",
-            "approx_tokens": 366,
-            "processing_result": "This file contains a test script for the `vimqq#tools#schema#to_claude` function. The script defines two tool definition schemas, `ToolDef` and `ToolDefSonnet`, and uses the `vimqq#tools#schema#to_claude` function to translate the `ToolDef` schema to the Claude format. The script then compares the translated schema with the expected `ToolDefSonnet` schema and exits with a success or failure code."
-        },
-        "tests/data/warmup_open.json": {
-            "path": "tests/data/warmup_open.json",
-            "size": 104,
-            "checksum": "a0f749c197c94a4fbc4d5ada243f1cca",
-            "processing_timestamp": "2024-12-07T23:21:57.055395",
-            "approx_tokens": 42,
-            "processing_result": "This file contains a JSON object that represents a warmup with three chat queries, one stream query, three deltas, one non-stream query, and one warmup, similar to `warmup.json`."
-        },
-        "tests/data/warmup_open.out": {
-            "path": "tests/data/warmup_open.out",
-            "size": 52,
-            "checksum": "a27d0c48e39b8a3ca1eb54b873ab6102",
-            "processing_timestamp": "2024-12-26T17:53:04.374112",
-            "approx_tokens": 20,
-            "processing_result": "This file appears to be a test output file containing a simulated conversation between a user and a mock chatbot, similar to the file \"tests/data/query.out\". The conversation consists of a single query: \"You: @mock hello\" followed by the chatbot's response: \"mock: BEGIN hello END\". The purpose of this file is unclear, but it may be used as input or expected output for a test case. The \"_warmup_open\" suffix suggests that this file may be related to a test case that involves warming up or opening a chat session."
-        },
-        "tests/data/warmup_open.vim": {
-            "path": "tests/data/warmup_open.vim",
-            "size": 433,
-            "checksum": "66f5c255c3274ec3f25ecaef68b964fa",
-            "processing_timestamp": "2024-12-14T12:40:52.561626",
-            "approx_tokens": 140,
-            "processing_result": "This Vim script file sources the \"libtest.vim\" library and defines the \"WriteAndQuit\" function, which compares the content of the current buffer with an expected output stored in a file named \"query.out\". The script sets a global variable to enable autowarmup and then simulates a user interaction by sending a message. The \"WriteAndQuit\" function is called after a delay of 500 milliseconds. The purpose of this script is to test the functionality of warming up a server and opening a query."
-        },
-        "todo.txt": {
-            "path": "todo.txt",
-            "size": 746,
-            "checksum": "70b8899e90bbde5e3c5e97dd6ef8f363",
-            "processing_timestamp": "2024-12-20T15:16:08.793467",
-            "approx_tokens": 184,
-            "processing_result": "This is a todo list file for the vimqq plugin, which contains a list of tasks and ideas for improving the plugin. The tasks include implementing auto-fix functionality, supporting additional AI providers, and improving context generalization and tool use. The file also mentions several other features and improvements that are planned or in progress."
-        },
-        "autoload/vimqq/api/anthropic_api.vim": {
-            "path": "autoload/vimqq/api/anthropic_api.vim",
-            "size": 4270,
-            "checksum": "0a48aff1c23021787f8859fdf64c7e8a",
-            "processing_timestamp": "2024-12-29T09:22:49.121910",
-            "approx_tokens": 1110,
-            "processing_result": "This file contains the implementation of the Anthropic API for the VimQQ plugin. It provides a function `vimqq#api#anthropic_api#new()` that returns an API object with a `chat()` method. The `chat()` method sends a request to the Anthropic API with the provided parameters and handles the response. The API object also has several internal functions for handling errors, streaming output, and closing the connection. The file uses the `vimqq#log` module for logging and the `vimqq#platform#http_client` module for making HTTP requests. The API key is stored in the `g:vqq_claude_api_key` variable."
-        },
-        "autoload/vimqq/api/deepseek_api.vim": {
-            "path": "autoload/vimqq/api/deepseek_api.vim",
-            "size": 4125,
-            "checksum": "edb289333262e7534aba55df38e64ee8",
-            "processing_timestamp": "2024-12-29T09:22:49.121910",
-            "approx_tokens": 1074,
-            "processing_result": "This file contains the implementation of the DeepSeek API for the VimQQ plugin. It provides a function `vimqq#api#deepseek_api#new()` that returns an API object with a `chat()` method. The `chat()` method sends a request to the DeepSeek API with the provided parameters and handles the response. The API object also has several internal functions for handling errors, streaming output, and closing the connection. The file uses the `vimqq#log` module for logging and the `vimqq#platform#http_client` module for making HTTP requests. The API key is stored in the `g:vqq_deepseek_api_key` variable. The API is similar to the Anthropic API, but with some differences in the request and response handling."
-        },
-        "autoload/vimqq/api/groq_api.vim": {
-            "path": "autoload/vimqq/api/groq_api.vim",
-            "size": 4121,
-            "checksum": "50ebc4023f1cee5fd6fa00e4041cfab9",
-            "processing_timestamp": "2024-12-29T09:22:49.121910",
-            "approx_tokens": 1083,
-            "processing_result": "This file contains the implementation of the Groq API for the VimQQ plugin. It provides a function `vimqq#api#groq_api#new()` that returns an API object with a `chat()` method. The `chat()` method sends a request to the Groq API with the provided parameters and handles the response. The API object also has several internal functions for handling errors, streaming output, and closing the connection. The file uses the `vimqq#log` module for logging and the `vimqq#platform#http_client` module for making HTTP requests. The API key is stored in the `g:vqq_groq_api_key` variable. The API is similar to the DeepSeek API, with some differences in the request and response handling."
-        },
-        "autoload/vimqq/api/llama_api.vim": {
-            "path": "autoload/vimqq/api/llama_api.vim",
-            "size": 3915,
-            "checksum": "9fa22865c0ea51ba2f44aeed6100d709",
-            "processing_timestamp": "2024-12-29T09:26:08.603268",
-            "approx_tokens": 1019,
-            "processing_result": "This file contains the implementation of the Llama API in Vimscript. The API provides a single function, `vimqq#api#llama_api#new`, which returns an instance of the Llama API. The API instance has a `chat` method that sends a request to the Llama API and returns the response. The method takes a `params` dictionary as an argument, which can contain options such as `messages`, `max_tokens`, and `stream`. The API also provides several callback functions, including `_on_stream_out`, `_on_stream_close`, `_on_out`, `_on_close`, and `_on_error`, which are used to handle the response from the Llama API. The file also defines a `vimqq#api#llama_api` module, which is used to autoload the Llama API implementation."
-        },
-        "autoload/vimqq/api/mistral_api.vim": {
-            "path": "autoload/vimqq/api/mistral_api.vim",
-            "size": 4149,
-            "checksum": "a746ef3e68f25fae77adae6447d69c48",
-            "processing_timestamp": "2024-12-29T09:26:08.603268",
-            "approx_tokens": 1081,
-            "processing_result": "This file contains the implementation of the Mistral API in Vimscript. The API provides a single function, `vimqq#api#mistral_api#new`, which returns an instance of the Mistral API. The API instance has a `chat` method that sends a request to the Mistral API and returns the response. The method takes a `params` dictionary as an argument, which can contain options such as `messages`, `model`, `max_tokens`, and `stream`. The API also provides several callback functions, including `_on_stream_out`, `_on_stream_close`, `_on_out`, `_on_close`, and `_on_error`, which are used to handle the response from the Mistral API. The file also defines a `vimqq#api#mistral_api` module, which is used to autoload the Mistral API implementation."
-        },
-        "autoload/vimqq/api/readme.txt": {
-            "path": "autoload/vimqq/api/readme.txt",
-            "size": 946,
-            "checksum": "de393027eaf6e91a27b8493483d1cdb4",
-            "processing_timestamp": "2024-12-29T09:26:08.603268",
-            "approx_tokens": 209,
-            "processing_result": "This file contains a README for the API implementation in Vimscript. It describes the purpose of the API, which is to provide a single layer of abstraction for different AI providers, and lists the parameters that can be passed to the `chat` method, including `model`, `messages`, `max_tokens`, `stream`, `on_complete`, and `on_chunk`."
-        },
-        "autoload/vimqq/bots/claude.vim": {
-            "path": "autoload/vimqq/bots/claude.vim",
-            "size": 379,
-            "checksum": "04d0f3d8cec8eeeb0eacbd1a52de7230",
-            "processing_timestamp": "2024-12-29T09:26:08.603268",
-            "approx_tokens": 104,
-            "processing_result": "This file contains the implementation of the Claude bot in Vimscript. The bot uses the `vimqq#api#anthropic_api` module to interact with the Anthropica API. The file defines a `vimqq#bots#claude#new` function, which returns a new instance of the Claude bot. The function takes a `config` dictionary as an argument, which is passed to the `vimqq#client#new` function to create a new client instance."
-        },
-        "autoload/vimqq/bots/deepseek.vim": {
-            "path": "autoload/vimqq/bots/deepseek.vim",
-            "size": 384,
-            "checksum": "aa7f735eb32358f41444dbb1a913b875",
-            "processing_timestamp": "2024-12-29T09:26:08.603268",
-            "approx_tokens": 102,
-            "processing_result": "This file contains the implementation of the Deepseek bot in Vimscript. The bot uses the `vimqq#api#deepseek_api` module to interact with the Deepseek API. The file defines a `vimqq#bots#deepseek#new` function, which returns a new instance of the Deepseek bot. The function takes a `config` dictionary as an argument, which is passed to the `vimqq#client#new` function to create a new client instance."
-        },
-        "autoload/vimqq/bots/groq.vim": {
-            "path": "autoload/vimqq/bots/groq.vim",
-            "size": 368,
-            "checksum": "cbe87b35d8fd569eaaaedf26898a8d38",
-            "processing_timestamp": "2024-12-29T09:26:08.603268",
-            "approx_tokens": 104,
-            "processing_result": "This file contains the implementation of the Groq bot in Vimscript. The bot uses the `vimqq#api#groq_api` module to interact with the Groq API. The file defines a `vimqq#bots#groq#new` function, which returns a new instance of the Groq bot. The function takes a `config` dictionary as an argument, which is passed to the `vimqq#client#new` function to create a new client instance."
-        },
-        "autoload/vimqq/bots/llama.vim": {
-            "path": "autoload/vimqq/bots/llama.vim",
-            "size": 816,
-            "checksum": "275a95ebc1f4f02ccc7d26f253d02534",
-            "processing_timestamp": "2024-12-29T09:26:08.603268",
-            "approx_tokens": 246,
-            "processing_result": "This file contains the implementation of the Llama bot in Vimscript. The bot uses the `vimqq#api#llama_api` module to interact with the Llama API. The file defines a `vimqq#bots#llama#new` function, which returns a new instance of the Llama bot. The function takes a `config` dictionary as an argument, which is used to configure the bot. The function also defines a default configuration for the bot, which can be overridden by the user."
-        },
-        "autoload/vimqq/bots/mistral.vim": {
-            "path": "autoload/vimqq/bots/mistral.vim",
-            "size": 380,
-            "checksum": "c14c415f03fddb849510b122e147bdee",
-            "processing_timestamp": "2024-12-29T09:26:08.603268",
-            "approx_tokens": 104,
-            "processing_result": "This file contains the implementation of the Mistral bot in Vimscript. The bot uses the `vimqq#api#mistral_api` module to interact with the Mistral API. The file defines a `vimqq#bots#mistral#new` function, which returns a new instance of the Mistral bot. The function takes a `config` dictionary as an argument, which is passed to the `vimqq#client#new` function to create a new client instance."
-        },
-        "autoload/vimqq/chatsdb.vim": {
-            "path": "autoload/vimqq/chatsdb.vim",
-            "size": 7549,
-            "checksum": "f59394ed09fdb0b68bd8e00549d813b5",
-            "processing_timestamp": "2024-12-29T09:27:46.549474",
-            "approx_tokens": 2024,
-            "processing_result": "This file contains the implementation of the chat database module for the Vimqq plugin. It provides functions for managing chats, including creating new chats, appending messages, and saving chat data to a file. The module also handles events such as chunk completion and reply completion. The chat data is stored in a JSON file, and the module provides functions for reading and writing this data. The module uses a seq_id to keep track of the order of messages and chats.\n\nKey functions include:\n- `vimqq#chatsdb#new()`: Creates a new chat database object.\n- `l:db.append_message(chat_id, message)`: Appends a message to a chat.\n- `l:db.get_ordered_chats()`: Returns a list of chats in order of most recent activity.\n- `l:db.handle_event(event, args)`: Handles events such as chunk completion and reply completion.\n\nThe module also provides several other functions for managing chats and messages, including `l:db.get_title(chat_id)`, `l:db.set_title(chat_id, title)`, and `l:db.delete_chat(chat_id)`."
-        },
-        "autoload/vimqq/client.vim": {
-            "path": "autoload/vimqq/client.vim",
-            "size": 3020,
-            "checksum": "e76bcabd8421623a645b09dcfcd9c407",
-            "processing_timestamp": "2024-12-29T09:27:46.549474",
-            "approx_tokens": 848,
-            "processing_result": "This file contains the implementation of the client module for the Vimqq plugin. It provides functions for sending messages to a chat model, including generating titles and sending chat messages. The module uses a configuration object to store settings such as the bot name, system prompt, and maximum tokens.\n\nKey functions include:\n- `vimqq#client#new(impl, config = {})`: Creates a new client object.\n- `l:client.send_gen_title(chat_id, message)`: Sends a request to generate a title for a chat.\n- `l:client.send_chat(chat_id, messages, stream=v:true)`: Sends a chat message to the model.\n\nThe module also provides several other functions for managing the client, including `l:client.name()`, `l:client.do_autowarm()`, and `l:client.send_warmup(messages)`.\n\nThe client module is closely related to the chat database module, as it uses the chat database to store and retrieve chat data. The client module also uses the `vimqq#model#notify()` function to notify the model of events such as chunk completion and reply completion."
-        },
-        "autoload/vimqq/ui.vim": {
-            "path": "autoload/vimqq/ui.vim",
-            "size": 8753,
-            "checksum": "3ae5a022ac85c05a452fe54639758626",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 2196,
-            "processing_result": "This file contains the UI functionality for the VimQQ plugin. It provides functions for creating and managing chat windows, displaying chat history, and handling user input. The file also defines a set of syntax highlighting rules for chat messages. The UI is designed to be flexible and customizable, with options for setting the chat window width and time format. The file also includes a set of functions for handling events, such as updating the status line and appending messages to the chat window."
         },
         "tests/api_chat_test.vim": {
             "path": "tests/api_chat_test.vim",
@@ -456,142 +288,6 @@
             "approx_tokens": 292,
             "processing_result": "This file contains a test suite for the bot functionality. It defines a set of test functions that simulate user interactions with the bot, including sending messages and verifying the responses. The test suite uses the VimQQ API to send bot requests and checks the output to ensure that it matches the expected results. The file also includes a set of helper functions for setting up and tearing down the test environment."
         },
-        "tests/data/api_anthropic_bot.vim": {
-            "path": "tests/data/api_anthropic_bot.vim",
-            "size": 247,
-            "checksum": "41f5ba89dc9c3b1f2b8639ab3b8b8f66",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 89,
-            "processing_result": "This file contains a test configuration for the Anthropic bot API. It defines a set of settings and parameters for testing the Anthropic bot, including the API endpoint and authentication credentials. The file is used by the bot test suite to configure the test environment and send requests to the Anthropic bot API."
-        },
-        "tests/data/api_anthropic_chat.vim": {
-            "path": "tests/data/api_anthropic_chat.vim",
-            "size": 330,
-            "checksum": "d764db2cf9e2f87e190cbbfeb38b269d",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 119,
-            "processing_result": "This file contains a test configuration for the Anthropic chat API. It defines a set of settings and parameters for testing the Anthropic chat, including the API endpoint and authentication credentials. The file is used by the chat test suite to configure the test environment and send requests to the Anthropic chat API."
-        },
-        "tests/data/api_deepseek_bot.vim": {
-            "path": "tests/data/api_deepseek_bot.vim",
-            "size": 236,
-            "checksum": "80db578258dcdc5123a7d529e8e3bea1",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 81,
-            "processing_result": "This file contains a test configuration for the DeepSeek bot API. It defines a set of settings and parameters for testing the DeepSeek bot, including the API endpoint and authentication credentials. The file is used by the bot test suite to configure the test environment and send requests to the DeepSeek bot API."
-        },
-        "tests/data/api_deepseek_chat.vim": {
-            "path": "tests/data/api_deepseek_chat.vim",
-            "size": 309,
-            "checksum": "c95a4095f96f8fceee76505cc99ee4b2",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 103,
-            "processing_result": "This file contains a test configuration for the DeepSeek chat API. It defines a set of settings and parameters for testing the DeepSeek chat, including the API endpoint and authentication credentials. The file is used by the chat test suite to configure the test environment and send requests to the DeepSeek chat API."
-        },
-        "tests/data/api_groq_bot.vim": {
-            "path": "tests/data/api_groq_bot.vim",
-            "size": 238,
-            "checksum": "3a3ad06f6bc42065cd55de8bf3626373",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 89,
-            "processing_result": "This file contains a test configuration for the Groq bot API. It defines a set of settings and parameters for testing the Groq bot, including the API endpoint and authentication credentials. The file is used by the bot test suite to configure the test environment and send requests to the Groq bot API."
-        },
-        "tests/data/api_groq_chat.vim": {
-            "path": "tests/data/api_groq_chat.vim",
-            "size": 322,
-            "checksum": "f9e0e1fdc0544376ef95f219cd33a8c7",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 118,
-            "processing_result": "This file contains a test configuration for the Groq chat API. It defines a set of settings and parameters for testing the Groq chat, including the API endpoint and authentication credentials. The file is used by the chat test suite to configure the test environment and send requests to the Groq chat API."
-        },
-        "tests/data/api_llama_bot.vim": {
-            "path": "tests/data/api_llama_bot.vim",
-            "size": 312,
-            "checksum": "49dabc54eeb074674085b6298a74d384",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 110,
-            "processing_result": "This file contains a test configuration for the LLaMA bot API. It defines a set of settings and parameters for testing the LLaMA bot, including the API endpoint and authentication credentials. The file is used by the bot test suite to configure the test environment and send requests to the LLaMA bot API."
-        },
-        "tests/data/api_llama_chat.vim": {
-            "path": "tests/data/api_llama_chat.vim",
-            "size": 316,
-            "checksum": "e055d3c2733c35e293c8eace4d9f62ff",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 106,
-            "processing_result": "This file contains a test configuration for the LLaMA chat API. It defines a set of settings and parameters for testing the LLaMA chat, including the API endpoint and authentication credentials. The file is used by the chat test suite to configure the test environment and send requests to the LLaMA chat API."
-        },
-        "tests/data/api_mistral_bot.vim": {
-            "path": "tests/data/api_mistral_bot.vim",
-            "size": 242,
-            "checksum": "e4f0139fdcb13359446ad89c2f3b632b",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 83,
-            "processing_result": "This file contains a test configuration for the Mistral bot API. It defines a set of settings and parameters for testing the Mistral bot, including the API endpoint and authentication credentials. The file is used by the bot test suite to configure the test environment and send requests to the Mistral bot API."
-        },
-        "tests/data/api_mistral_chat.vim": {
-            "path": "tests/data/api_mistral_chat.vim",
-            "size": 323,
-            "checksum": "fb0e8d80de81c89ed0b17943598a9318",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 107,
-            "processing_result": "This file contains a test configuration for the Mistral chat API. It defines a set of settings and parameters for testing the Mistral chat, including the API endpoint and authentication credentials. The file is used by the chat test suite to configure the test environment and send requests to the Mistral chat API."
-        },
-        "tests/data/chat_list_one.json": {
-            "path": "tests/data/chat_list_one.json",
-            "size": 103,
-            "checksum": "afa63f15c0db4693ef942f1b24e881bb",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 42,
-            "processing_result": "This file contains a sample chat list data in JSON format. It defines a set of chat queries, stream queries, deltas, non-stream queries, and warmups. The file is used by the test suite to simulate a chat list scenario and test the chat functionality."
-        },
-        "tests/data/new_chat.json": {
-            "path": "tests/data/new_chat.json",
-            "size": 104,
-            "checksum": "19d2937ab9972971b92f4385c3d7c06a",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 42,
-            "processing_result": "This file contains a sample new chat data in JSON format. It defines a set of chat queries, stream queries, deltas, non-stream queries, and warmups. The file is used by the test suite to simulate a new chat scenario and test the chat functionality."
-        },
-        "tests/data/new_chat_nodelay.json": {
-            "path": "tests/data/new_chat_nodelay.json",
-            "size": 103,
-            "checksum": "e745922b0250bb6630b98c1ca3a6e9c1",
-            "processing_timestamp": "2024-12-29T09:32:44.603478",
-            "approx_tokens": 42,
-            "processing_result": "This file contains a sample new chat data with no delay in JSON format. It defines a set of chat queries, stream queries, deltas, non-stream queries, and warmups. The file is used by the test suite to simulate a new chat scenario with no delay and test the chat functionality."
-        },
-        "tests/data/query.json": {
-            "path": "tests/data/query.json",
-            "size": 103,
-            "checksum": "afa63f15c0db4693ef942f1b24e881bb",
-            "processing_timestamp": "2024-12-29T09:34:15.786678",
-            "approx_tokens": 42,
-            "processing_result": "This is a JSON file containing test data for queries. It has several key-value pairs, including \"n_chat_queries\", \"n_stream_queries\", \"n_deltas\", \"n_non_stream_queries\", and \"n_warmups\", which are all set to specific integer values. The purpose of this file is to provide input data for testing the functionality of the vimqq plugin."
-        },
-        "tests/data/query_twice.json": {
-            "path": "tests/data/query_twice.json",
-            "size": 103,
-            "checksum": "0d55e35b057abf1c608e09037fa035ef",
-            "processing_timestamp": "2024-12-29T09:34:15.786678",
-            "approx_tokens": 42,
-            "processing_result": "This is another JSON file containing test data for queries. It has the same key-value pairs as the query.json file, but with different integer values. The purpose of this file is to provide additional input data for testing the functionality of the vimqq plugin, possibly with a focus on testing the handling of multiple queries."
-        },
-        "tests/data/queue.json": {
-            "path": "tests/data/queue.json",
-            "size": 103,
-            "checksum": "0d55e35b057abf1c608e09037fa035ef",
-            "processing_timestamp": "2024-12-29T09:34:15.786678",
-            "approx_tokens": 42,
-            "processing_result": "This is a JSON file containing test data for a queue. It has the same key-value pairs as the query_twice.json file, suggesting that it may be used to test the handling of a queue of queries. The purpose of this file is to provide input data for testing the functionality of the vimqq plugin, possibly with a focus on testing the handling of queued queries."
-        },
-        "tests/data/selection.json": {
-            "path": "tests/data/selection.json",
-            "size": 103,
-            "checksum": "afa63f15c0db4693ef942f1b24e881bb",
-            "processing_timestamp": "2024-12-29T09:34:15.786678",
-            "approx_tokens": 42,
-            "processing_result": "This is a JSON file containing test data for a selection. It has the same key-value pairs as the query.json file, suggesting that it may be used to test the handling of a selection of queries. The purpose of this file is to provide input data for testing the functionality of the vimqq plugin, possibly with a focus on testing the handling of selected queries."
-        },
         "tests/libtest.vim": {
             "path": "tests/libtest.vim",
             "size": 1860,
@@ -600,23 +296,335 @@
             "approx_tokens": 506,
             "processing_result": "This is a Vimscript file containing functions for testing the vimqq plugin. It defines three functions: VQQCompareChats, DeepDictCompare, and ArrayCompare. These functions are used to compare the output of the vimqq plugin with expected results, and to compare dictionaries and arrays. The purpose of this file is to provide a set of utility functions for testing the functionality of the vimqq plugin."
         },
+        "todo.txt": {
+            "path": "todo.txt",
+            "size": 746,
+            "checksum": "70b8899e90bbde5e3c5e97dd6ef8f363",
+            "processing_timestamp": "2024-12-20T15:16:08.793467",
+            "approx_tokens": 184,
+            "processing_result": "This is a todo list file for the vimqq plugin, which contains a list of tasks and ideas for improving the plugin. The tasks include implementing auto-fix functionality, supporting additional AI providers, and improving context generalization and tool use. The file also mentions several other features and improvements that are planned or in progress."
+        },
+        "autoload/vimqq/bots/readme.txt": {
+            "path": "autoload/vimqq/bots/readme.txt",
+            "size": 119,
+            "checksum": "cdacb823ff03ba15a1e464e5b78ce778",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 19,
+            "processing_result": "This file appears to be a README for the vimqq bots. It mentions the possibility of eliminating different bots and instead relying on creating client instances with appropriate implementations."
+        },
+        "tests/integration/auto/chat_list_one.out": {
+            "path": "tests/integration/auto/chat_list_one.out",
+            "size": 12,
+            "checksum": "256177b874ee750cfc366a53d45ced1d",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 8,
+            "processing_result": "This file contains the expected output for the chat list one test. It shows a single line with a timestamp and a line number."
+        },
+        "tests/integration/auto/new_chat.out": {
+            "path": "tests/integration/auto/new_chat.out",
+            "size": 24,
+            "checksum": "104578cd8a1d31ca2ad8403a1642647b",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 15,
+            "processing_result": "This file contains the expected output for the new chat test. It shows two lines with timestamps and line numbers."
+        },
+        "tests/integration/auto/new_chat_nodelay.out": {
+            "path": "tests/integration/auto/new_chat_nodelay.out",
+            "size": 24,
+            "checksum": "104578cd8a1d31ca2ad8403a1642647b",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 15,
+            "processing_result": "This file contains the expected output for the new chat nodelay test. It shows two lines with timestamps and line numbers, similar to the new chat test."
+        },
+        "tests/integration/auto/query.out": {
+            "path": "tests/integration/auto/query.out",
+            "size": 52,
+            "checksum": "a27d0c48e39b8a3ca1eb54b873ab6102",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 20,
+            "processing_result": "This file contains the expected output for the query test. It shows a conversation between the user and the mock bot, with the bot responding to the user's query."
+        },
+        "tests/integration/auto/query_twice.out": {
+            "path": "tests/integration/auto/query_twice.out",
+            "size": 105,
+            "checksum": "b3bfb89018d5ce720b81b41d6acd52b8",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 40,
+            "processing_result": "This file contains the expected output for the query twice test. It shows a conversation between the user and the mock bot, with the bot responding to two separate queries from the user."
+        },
+        "tests/integration/auto/queue.out": {
+            "path": "tests/integration/auto/queue.out",
+            "size": 105,
+            "checksum": "b3bfb89018d5ce720b81b41d6acd52b8",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 40,
+            "processing_result": "This file contains the expected output for the queue test. It shows a conversation between the user and the mock bot, with the bot responding to two separate queries from the user, similar to the query twice test."
+        },
+        "tests/integration/auto/selection.out": {
+            "path": "tests/integration/auto/selection.out",
+            "size": 138,
+            "checksum": "979a960ad4dc88bd113ece621e30de88",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 58,
+            "processing_result": "This file contains the expected output for the selection test. It shows a conversation between the user and the mock bot, with the bot responding to a query that includes a code snippet."
+        },
+        "tests/integration/auto/test_chat_list_one.json": {
+            "path": "tests/integration/auto/test_chat_list_one.json",
+            "size": 103,
+            "checksum": "afa63f15c0db4693ef942f1b24e881bb",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 42,
+            "processing_result": "This file contains configuration data for the chat list one test. It specifies the number of chat queries, stream queries, deltas, non-stream queries, and warmups."
+        },
+        "tests/integration/auto/test_chat_list_one.vim": {
+            "path": "tests/integration/auto/test_chat_list_one.vim",
+            "size": 484,
+            "checksum": "eb075a1fbc09e51f45c268e30590c7ec",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 160,
+            "processing_result": "This file contains a Vim script that tests the chat list one functionality. It sources a library file, defines a function to write and quit, and then executes a series of commands to test the chat list."
+        },
+        "tests/integration/auto/test_new_chat.json": {
+            "path": "tests/integration/auto/test_new_chat.json",
+            "size": 104,
+            "checksum": "19d2937ab9972971b92f4385c3d7c06a",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 42,
+            "processing_result": "This file contains configuration data for the new chat test. It specifies the number of chat queries, stream queries, deltas, non-stream queries, and warmups."
+        },
+        "tests/integration/auto/test_new_chat.vim": {
+            "path": "tests/integration/auto/test_new_chat.vim",
+            "size": 490,
+            "checksum": "a3accfd9b39af0521ebc329bc3b140af",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 154,
+            "processing_result": "This file contains a Vim script that tests the new chat functionality. It sources a library file, defines functions to write and quit, and then executes a series of commands to test the new chat."
+        },
+        "tests/integration/auto/test_new_chat_nodelay.json": {
+            "path": "tests/integration/auto/test_new_chat_nodelay.json",
+            "size": 103,
+            "checksum": "e745922b0250bb6630b98c1ca3a6e9c1",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 42,
+            "processing_result": "This file contains configuration data for the new chat nodelay test. It specifies the number of chat queries, stream queries, deltas, non-stream queries, and warmups, similar to the new chat test."
+        },
+        "tests/integration/auto/test_new_chat_nodelay.vim": {
+            "path": "tests/integration/auto/test_new_chat_nodelay.vim",
+            "size": 427,
+            "checksum": "2a78e33a8f65c72569477671c87bb030",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 137,
+            "processing_result": "This file contains a Vim script that tests the new chat nodelay functionality. It sources a library file, defines a function to write and quit, and then executes a series of commands to test the new chat nodelay."
+        },
+        "tests/integration/auto/test_query.json": {
+            "path": "tests/integration/auto/test_query.json",
+            "size": 103,
+            "checksum": "afa63f15c0db4693ef942f1b24e881bb",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 42,
+            "processing_result": "This file contains configuration data for the query test. It specifies the number of chat queries, stream queries, deltas, non-stream queries, and warmups."
+        },
+        "tests/integration/auto/test_query.vim": {
+            "path": "tests/integration/auto/test_query.vim",
+            "size": 384,
+            "checksum": "672144cfccecf9a7add6d0ffdbb2fbd6",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 121,
+            "processing_result": "This file contains a Vim script that tests the query functionality. It sources a library file, defines a function to write and quit, and then executes a series of commands to test the query."
+        },
+        "tests/integration/auto/test_query_twice.json": {
+            "path": "tests/integration/auto/test_query_twice.json",
+            "size": 103,
+            "checksum": "0d55e35b057abf1c608e09037fa035ef",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 42,
+            "processing_result": "This file contains configuration data for the query twice test. It specifies the number of chat queries, stream queries, deltas, non-stream queries, and warmups."
+        },
+        "tests/integration/auto/test_query_twice.vim": {
+            "path": "tests/integration/auto/test_query_twice.vim",
+            "size": 480,
+            "checksum": "1f627a8212c24312608bbc4ea990efa0",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 150,
+            "processing_result": "This file contains a Vim script that tests the query twice functionality. It sources a library file, defines functions to write and quit, and then executes a series of commands to test the query twice."
+        },
+        "tests/integration/auto/test_queue.json": {
+            "path": "tests/integration/auto/test_queue.json",
+            "size": 103,
+            "checksum": "0d55e35b057abf1c608e09037fa035ef",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 42,
+            "processing_result": "This file contains configuration data for the queue test. It specifies the number of chat queries, stream queries, deltas, non-stream queries, and warmups, similar to the query twice test."
+        },
+        "tests/integration/auto/test_queue.vim": {
+            "path": "tests/integration/auto/test_queue.vim",
+            "size": 402,
+            "checksum": "4d4cd8bb14b7e3d594e8378abb6a0f0b",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 128,
+            "processing_result": "This file contains a Vim script that tests the queue functionality. It sources a library file, defines a function to write and quit, and then executes a series of commands to test the queue."
+        },
+        "tests/integration/auto/test_selection.json": {
+            "path": "tests/integration/auto/test_selection.json",
+            "size": 103,
+            "checksum": "afa63f15c0db4693ef942f1b24e881bb",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 42,
+            "processing_result": "This file contains configuration data for the selection test. It specifies the number of chat queries, stream queries, deltas, non-stream queries, and warmups."
+        },
+        "tests/integration/auto/test_selection.vim": {
+            "path": "tests/integration/auto/test_selection.vim",
+            "size": 451,
+            "checksum": "c46708f1f222581ef91d03e7a55574b0",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 147,
+            "processing_result": "This file contains a Vim script that tests the selection functionality. It sources a library file, defines a function to write and quit, and then executes a series of commands to test the selection."
+        },
+        "tests/integration/auto/test_warmup_open.json": {
+            "path": "tests/integration/auto/test_warmup_open.json",
+            "size": 104,
+            "checksum": "a0f749c197c94a4fbc4d5ada243f1cca",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 42,
+            "processing_result": "This file contains configuration data for the warmup open test. It specifies the number of chat queries, stream queries, deltas, non-stream queries, and warmups."
+        },
+        "tests/integration/auto/test_warmup_open.vim": {
+            "path": "tests/integration/auto/test_warmup_open.vim",
+            "size": 436,
+            "checksum": "15a0f2865a6a08e0234c551ee6c34658",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 140,
+            "processing_result": "This file contains a Vim script that tests the warmup open functionality. It sources a library file, defines a function to write and quit, and then executes a series of commands to test the warmup open."
+        },
+        "tests/integration/auto/warmup_open.out": {
+            "path": "tests/integration/auto/warmup_open.out",
+            "size": 52,
+            "checksum": "a27d0c48e39b8a3ca1eb54b873ab6102",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 20,
+            "processing_result": "This file contains the expected output for the warmup open test. It shows a conversation between the user and the mock bot, with the bot responding to a query."
+        },
+        "tests/integration/manual/test_anthropic_bot.vim": {
+            "path": "tests/integration/manual/test_anthropic_bot.vim",
+            "size": 250,
+            "checksum": "9882590dd642bcd214d21e1a45948eef",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 89,
+            "processing_result": "This file contains a Vim script that tests the Anthropic bot functionality. It sources a library file and then executes a series of commands to test the bot."
+        },
+        "tests/integration/manual/test_anthropic_chat.vim": {
+            "path": "tests/integration/manual/test_anthropic_chat.vim",
+            "size": 336,
+            "checksum": "0406d4ea6babf6270b3229cdaf74f343",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 119,
+            "processing_result": "This file contains a Vim script that tests the Anthropic chat functionality. It sources library files and then executes a series of commands to test the chat."
+        },
+        "tests/integration/manual/test_deepseek_bot.vim": {
+            "path": "tests/integration/manual/test_deepseek_bot.vim",
+            "size": 239,
+            "checksum": "785b55ceca4508017927df861761c2b6",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 81,
+            "processing_result": "This file contains a Vim script that tests the DeepSeek bot functionality. It sources a library file and then executes a series of commands to test the bot."
+        },
+        "tests/integration/manual/test_deepseek_chat.vim": {
+            "path": "tests/integration/manual/test_deepseek_chat.vim",
+            "size": 315,
+            "checksum": "3a38f6278396d3c688c1328e4a11cff3",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 103,
+            "processing_result": "This file contains a Vim script that tests the DeepSeek chat functionality. It sources library files and then executes a series of commands to test the chat."
+        },
+        "tests/integration/manual/test_groq_bot.vim": {
+            "path": "tests/integration/manual/test_groq_bot.vim",
+            "size": 241,
+            "checksum": "aad28aafeacd8578156ad6efe3c1b9a9",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 89,
+            "processing_result": "This file contains a Vim script that tests the Groq bot functionality. It sources a library file and then executes a series of commands to test the bot."
+        },
+        "tests/integration/manual/test_groq_chat.vim": {
+            "path": "tests/integration/manual/test_groq_chat.vim",
+            "size": 328,
+            "checksum": "8cb8511a1c2a56b2f2624e0c96538f0f",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 118,
+            "processing_result": "This file contains a Vim script that tests the Groq chat functionality. It sources library files and then executes a series of commands to test the chat."
+        },
+        "tests/integration/manual/test_llama_bot.vim": {
+            "path": "tests/integration/manual/test_llama_bot.vim",
+            "size": 315,
+            "checksum": "ce958c074bfa58880e983eaca05178a8",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 110,
+            "processing_result": "This file contains a Vim script that tests the Llama bot functionality. It sources a library file and then executes a series of commands to test the bot."
+        },
+        "tests/integration/manual/test_llama_chat.vim": {
+            "path": "tests/integration/manual/test_llama_chat.vim",
+            "size": 322,
+            "checksum": "3b8fae22b0031900648b56c254cac5bd",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 106,
+            "processing_result": "This file contains a Vim script that tests the Llama chat functionality. It sources library files and then executes a series of commands to test the chat."
+        },
+        "tests/integration/manual/test_mistral_bot.vim": {
+            "path": "tests/integration/manual/test_mistral_bot.vim",
+            "size": 245,
+            "checksum": "9d78417e133d2f28028b0dd3f3f63136",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 83,
+            "processing_result": "This file contains a Vim script that tests the Mistral bot functionality. It sources a library file and then executes a series of commands to test the bot."
+        },
+        "tests/integration/manual/test_mistral_chat.vim": {
+            "path": "tests/integration/manual/test_mistral_chat.vim",
+            "size": 329,
+            "checksum": "fa36d13c9e5593cd9d9558d7f3794911",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 107,
+            "processing_result": "This file contains a Vim script that tests the Mistral chat functionality. It sources library files and then executes a series of commands to test the chat."
+        },
         "tests/readme.txt": {
             "path": "tests/readme.txt",
-            "size": 1227,
-            "checksum": "8a38b00c6fcda49955ea204e6da7c1d2",
-            "processing_timestamp": "2024-12-29T09:34:15.786678",
-            "approx_tokens": 309,
-            "processing_result": "This is a text file containing information about the tests for the vimqq plugin. It describes how to run the tests, the requirements for running the tests, and the configuration options available. It also lists some ideas for additional tests that could be written, and some improvements that could be made to the tests themselves. The purpose of this file is to provide documentation and guidance for running and maintaining the tests for the vimqq plugin."
+            "size": 956,
+            "checksum": "32b731647d1a4b67f73aab2fb07607cf",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 237,
+            "processing_result": "This file contains a README for the tests directory. It explains the organization of the tests, the requirements for running the tests, and the configuration options available."
+        },
+        "tests/unit/test_tools_get_files.vim": {
+            "path": "tests/unit/test_tools_get_files.vim",
+            "size": 446,
+            "checksum": "0883697867529a93ee9f1309831f2f93",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 150,
+            "processing_result": "This file contains a Vim script that tests the get files tool. It sources a library file, defines a tool instance, and then executes a series of commands to test the tool."
+        },
+        "tests/unit/test_tools_schema.vim": {
+            "path": "tests/unit/test_tools_schema.vim",
+            "size": 1566,
+            "checksum": "bd6ba87353080d138a3b3b660c0e7a6a",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 366,
+            "processing_result": "This file contains a Vim script that tests the schema tool. It sources a library file, defines two functions to compare expected and observed schema definitions, and then executes a series of commands to test the schema."
+        },
+        "tests/unit/tools_get_files.txt": {
+            "path": "tests/unit/tools_get_files.txt",
+            "size": 14,
+            "checksum": "746308829575e17c3331bbcb00c0898b",
+            "processing_timestamp": "2024-12-30T11:36:29.371869",
+            "approx_tokens": 4,
+            "processing_result": "This file contains a test file for the get files tool. It contains a simple text message."
         }
     },
     "dirs": {
-        "autoload/vimqq/bots": {
-            "processing_result": "This directory contains the implementation of various bots for the VimQQ plugin. The bots are implemented in Vimscript and use different API modules to interact with their respective services. The directory includes files for the following bots: Claude, Deepseek, Groq, Llama, and Mistral. Each bot file defines a function that returns a new instance of the bot, taking a configuration dictionary as an argument. The configuration is used to create a new client instance using the `vimqq#client#new` function. The bots are managed by the bot manager, which is implemented in the `bots.vim` file. The bot manager is responsible for creating and managing a list of bot instances based on the configuration defined in the file. It provides methods for selecting a bot instance based on a given question and for getting the list of available bot instances. The bot manager uses the `vimqq#api` modules to interact with the different AI services. The relationships between the files in this directory are as follows: each bot file depends on the `vimqq#api` module corresponding to its service, and the `bots.vim` file depends on all the bot files to manage the bot instances.",
-            "checksum": "4b743458acb05c2aa0e6d6f162ff6a73"
-        },
         "autoload/vimqq/api": {
             "processing_result": "This directory contains the implementation of various AI APIs for the VimQQ plugin. It includes API implementations for Anthropic, DeepSeek, Groq, Llama, and Mistral. Each API implementation provides a function to create an API object with a `chat()` method, which sends a request to the corresponding AI provider and handles the response. The API objects also have internal functions for handling errors, streaming output, and closing the connection. The implementations use the `vimqq#log` module for logging and the `vimqq#platform#http_client` module for making HTTP requests. API keys are stored in global variables, such as `g:vqq_claude_api_key`, `g:vqq_deepseek_api_key`, and `g:vqq_groq_api_key`. The APIs have similar structures, with some differences in request and response handling. A README file is also provided, describing the purpose of the API and the parameters that can be passed to the `chat` method. The directory provides a unified interface for interacting with different AI providers, making it easier to switch between them or add new ones.",
             "checksum": "6dc5b98e19686c8cacf6cb1a1c60e640"
+        },
+        "autoload/vimqq/bots": {
+            "processing_result": "This directory contains the implementation of various bots for the VimQQ plugin. The bots are implemented as separate Vimscript files, each providing a specific bot's functionality. The directory includes implementations for Claude, Deepseek, Groq, Llama, and Mistral bots. Each bot file defines a function that returns a new instance of the bot, taking a configuration dictionary as an argument. The bots use respective API modules, such as `vimqq#api#anthropic_api` for Claude, to interact with their corresponding APIs. The `bots.vim` file contains the bot manager implementation, which is responsible for creating and managing a list of bot instances based on the configuration defined in the file. The bot manager provides methods for selecting a bot instance based on a given question and for getting the list of available bot instances. A README file is also included, suggesting the possibility of simplifying the bot implementation by relying on client instances with appropriate implementations. Overall, this directory provides a modular and extensible framework for integrating various bots with the VimQQ plugin.",
+            "checksum": "f160b8fe29becc175351d33bb7435204"
         },
         "autoload/vimqq/platform": {
             "processing_result": "This directory contains platform-specific modules for the VimQQ plugin. It includes an HTTP client module (http_client.vim) that provides functions for sending POST and GET requests, a job management module (jobs.vim) that handles asynchronous job execution, and a path utility module (path.vim) that provides functions for getting log and data paths.\n\nThe HTTP client module is designed to be autoloaded and uses the `curl` command to send requests. It is likely used by the chat database module to interact with a server. The job management module provides functions for starting jobs, tracking active jobs, and cleaning up dead jobs. It uses functions from the path utility module to get the data path.\n\nThe path utility module provides functions for getting log and data paths, taking into account differences between Vim and Neovim. It is used by the job management module and other parts of the plugin, such as the chat database module. The modules in this directory are designed to be autoloaded and work together to provide platform-specific functionality for the VimQQ plugin.\n\nThe relationships between the files in this directory are as follows: the HTTP client module (http_client.vim) is likely used by the chat database module, the job management module (jobs.vim) uses functions from the path utility module (path.vim), and the path utility module is used by the job management module and other parts of the plugin.",
@@ -631,12 +639,12 @@
             "checksum": "01da4d0c79cf3ea60a86105276815216"
         },
         "autoload/vimqq": {
-            "processing_result": "This directory contains the implementation of the VimQQ plugin. It includes various modules and files that provide functionality for interacting with AI chat models, managing chats, and displaying chat interfaces.\n\nThe directory is organized into several subdirectories, each containing related functionality. The `api` directory contains implementations of various AI APIs, including Anthropic, DeepSeek, Groq, Llama, and Mistral. The `bots` directory contains implementations of various bots that interact with these AI APIs. The `platform` directory contains platform-specific modules, including an HTTP client and job management modules. The `prompts` directory contains functions for generating prompts for use with the Vimqq bots. The `tools` directory contains various tools, including a file retrieval tool and a schema translation tool.\n\nThe directory also contains several files that provide core functionality for the plugin. The `chatsdb.vim` file contains the implementation of the chat database module, which manages chat data and provides functions for creating new chats, appending messages, and saving chat data to a file. The `client.vim` file contains the implementation of the client module, which provides functions for sending messages to chat models and managing client state. The `dispatcher.vim` file contains the implementation of the dispatcher, which manages the queue of queries to be sent to chat bots. The `fmt.vim` file contains functions for formatting messages and contexts for display in the chat interface. The `fzf.vim` file contains the implementation of the FuzzyFinder integration, which provides a way to display and select chats using FuzzyFinder. The `log.vim` file contains the logging functionality for the plugin, which provides functions for logging messages at different levels and allows for customization of the log file and log format. The `main.vim` file is the core of the plugin, providing the main functionality and API for interacting with the plugin. The `metrics.vim` file contains a metrics system for the plugin, which allows for tracking various metrics and saving them to a JSON file. The `model.vim` file provides a model for the plugin, which manages the state of the plugin and notifies observers of events. The `prompts.vim` file contains functions for generating prompts for use with the Vimqq bots. The `state.vim` file manages the internal state of the plugin, including the current chat ID and database. The `ui.vim` file contains the UI functionality for the plugin, which provides functions for creating and managing chat windows, displaying chat history, and handling user input. The `warmup.vim` file provides functionality for warming up chat sessions, which involves sending a set of messages to the chat to prepare it for user interaction.\n\nOverall, this directory provides a comprehensive implementation of the VimQQ plugin, including functionality for interacting with AI chat models, managing chats, and displaying chat interfaces. The various modules and files work together to provide a unified interface for interacting with different AI providers, making it easier to switch between them or add new ones.",
-            "checksum": "d74dff26492fc7fc1469d686e849cfd2"
+            "processing_result": "This directory is the root of the VimQQ plugin, a comprehensive chat and AI integration for Vim. It contains various subdirectories and files that provide the core functionality, tools, and APIs for the plugin.\n\nThe directory structure includes subdirectories for API implementations, bots, platform-specific modules, prompts, and tools. The API implementations provide interfaces to different AI providers, such as Anthropic, DeepSeek, and Llama. The bots directory contains implementations for various chatbots, including Claude, Deepseek, and Mistral, which use the respective API modules to interact with their corresponding APIs.\n\nThe platform directory contains modules for HTTP client functionality, job management, and path utilities, which provide platform-specific functionality for the plugin. The prompts directory contains a single file with a prompt for summarizing the content of a directory in the repository. The tools directory includes scripts for retrieving file contents and translating tool definition schemas for use with the Claude AI model.\n\nThe directory also contains several key files, including chatsdb.vim, which manages chat data and provides functions for creating new chats, appending messages, and saving chat data to a file. The client.vim file contains the implementation of the client module, which provides functions for sending messages to a chat model and generating titles. The dispatcher.vim file manages the queue of queries to be sent to the chat bots, while the fmt.vim file contains formatting functions for messages and contexts.\n\nOther important files include log.vim, which provides logging functionality, main.vim, which sets up the plugin's internal state and observers, and model.vim, which manages the state of the plugin and notifies observers of events. The metrics.vim file tracks various metrics, such as latency and counter values, and saves them to a JSON file. The prompts.vim file generates prompts for use with the Vimqq bots, and the state.vim file manages the internal state of the plugin.\n\nThe ui.vim file contains the UI functionality for the plugin, including creating and managing chat windows, displaying chat history, and handling user input. The warmup.vim file provides functionality for warming up chat sessions, involving sending a set of messages to the chat to prepare it for user interaction.\n\nOverall, this directory provides a comprehensive framework for integrating chat and AI functionality into Vim, with a modular and extensible design that allows for easy addition of new features and providers.",
+            "checksum": "38fd1bb75aba9f78603ed68d580a18be"
         },
         "autoload": {
-            "processing_result": "This directory contains the implementation of the VimQQ plugin. It includes various modules and files that provide functionality for interacting with AI chat models, managing chats, and displaying chat interfaces.\n\nThe directory is organized into several subdirectories, each containing related functionality. The `api` directory contains implementations of various AI APIs, including Anthropic, DeepSeek, Groq, Llama, and Mistral. The `bots` directory contains implementations of various bots that interact with these AI APIs. The `platform` directory contains platform-specific modules, including an HTTP client and job management modules. The `prompts` directory contains functions for generating prompts for use with the Vimqq bots. The `tools` directory contains various tools, including a file retrieval tool and a schema translation tool.\n\nThe directory also contains several files that provide core functionality for the plugin. The `chatsdb.vim` file contains the implementation of the chat database module, which manages chat data and provides functions for creating new chats, appending messages, and saving chat data to a file. The `client.vim` file contains the implementation of the client module, which provides functions for sending messages to chat models and managing client state. The `dispatcher.vim` file contains the implementation of the dispatcher, which manages the queue of queries to be sent to chat bots. The `fmt.vim` file contains functions for formatting messages and contexts for display in the chat interface. The `fzf.vim` file contains the implementation of the FuzzyFinder integration, which provides a way to display and select chats using FuzzyFinder. The `log.vim` file contains the logging functionality for the plugin, which provides functions for logging messages at different levels and allows for customization of the log file and log format. The `main.vim` file is the core of the plugin, providing the main functionality and API for interacting with the plugin. The `metrics.vim` file contains a metrics system for the plugin, which allows for tracking various metrics and saving them to a JSON file. The `model.vim` file provides a model for the plugin, which manages the state of the plugin and notifies observers of events. The `prompts.vim` file contains functions for generating prompts for use with the Vimqq bots. The `state.vim` file manages the internal state of the plugin, including the current chat ID and database. The `ui.vim` file contains the UI functionality for the plugin, which provides functions for creating and managing chat windows, displaying chat history, and handling user input. The `warmup.vim` file provides functionality for warming up chat sessions, which involves sending a set of messages to the chat to prepare it for user interaction.\n\nOverall, this directory provides a comprehensive implementation of the VimQQ plugin, including functionality for interacting with AI chat models, managing chats, and displaying chat interfaces. The various modules and files work together to provide a unified interface for interacting with different AI providers, making it easier to switch between them or add new ones.",
-            "checksum": "6f09c17dcca19cabb74bf33c652271d8"
+            "processing_result": "This directory is the root of the VimQQ plugin, a comprehensive chat and AI integration for Vim. It contains various subdirectories and files that provide the core functionality, tools, and APIs for the plugin.\n\nThe directory structure includes subdirectories for API implementations, bots, platform-specific modules, prompts, and tools. The API implementations provide interfaces to different AI providers, such as Anthropic, DeepSeek, and Llama. The bots directory contains implementations for various chatbots, including Claude, Deepseek, and Mistral, which use the respective API modules to interact with their corresponding APIs.\n\nThe platform directory contains modules for HTTP client functionality, job management, and path utilities, which provide platform-specific functionality for the plugin. The prompts directory contains a single file with a prompt for summarizing the content of a directory in the repository. The tools directory includes scripts for retrieving file contents and translating tool definition schemas for use with the Claude AI model.\n\nThe directory also contains several key files, including chatsdb.vim, which manages chat data and provides functions for creating new chats, appending messages, and saving chat data to a file. The client.vim file contains the implementation of the client module, which provides functions for sending messages to a chat model and generating titles. The dispatcher.vim file manages the queue of queries to be sent to the chat bots, while the fmt.vim file contains formatting functions for messages and contexts.\n\nOther important files include log.vim, which provides logging functionality, main.vim, which sets up the plugin's internal state and observers, and model.vim, which manages the state of the plugin and notifies observers of events. The metrics.vim file tracks various metrics, such as latency and counter values, and saves them to a JSON file. The prompts.vim file generates prompts for use with the Vimqq bots, and the state.vim file manages the internal state of the plugin.\n\nThe ui.vim file contains the UI functionality for the plugin, including creating and managing chat windows, displaying chat history, and handling user input. The warmup.vim file provides functionality for warming up chat sessions, involving sending a set of messages to the chat to prepare it for user interaction.\n\nOverall, this directory provides a comprehensive framework for integrating chat and AI functionality into Vim, with a modular and extensible design that allows for easy addition of new features and providers.",
+            "checksum": "dece1f9e9ee561330385f4dff119d41c"
         },
         "doc": {
             "processing_result": "The doc directory contains a single file, vimqq.txt, which serves as a comprehensive help documentation for the vimqq plugin. This plugin is designed for Vim/NeoVim and boasts features such as local evaluation, flexible context, and aggressive cache warmup to mitigate latency. The documentation file provides an in-depth look at the plugin's capabilities, including its installation process, usage guidelines, available commands, custom mappings, and configuration options. Additionally, it includes a changelog to track updates and an example basic configuration to help users get started. As the sole contents of the doc directory, vimqq.txt is a crucial resource for understanding and effectively utilizing the vimqq plugin.",
@@ -646,17 +654,29 @@
             "processing_result": "This directory contains the VimQQ plugin, with the entry point being the vimqq.vim file. The vimqq.vim file defines the public commands and interface for the user, providing several commands for interacting with the plugin, including sending messages, forking chats, and displaying chat lists. It initializes the plugin and sets up the internal state, making it the primary way for users to interact with the VimQQ plugin.",
             "checksum": "9b4e2f7a638c162f5c9bfa16b3e59f49"
         },
-        "tests/data": {
-            "processing_result": "This directory contains test data and configurations for the Vimqq plugin. It includes a variety of test files in JSON and Vim script formats, which are used to simulate different scenarios and test the functionality of the plugin. \n\nThe JSON files, such as `query.json`, `query_twice.json`, and `selection.json`, contain test data for queries, including chat queries, stream queries, deltas, non-stream queries, and warmups. These files are used to provide input data for testing the plugin's functionality.\n\nThe Vim script files, such as `query.vim`, `query_twice.vim`, and `selection.vim`, define test cases for the plugin. They source a library file `libtest.vim` and define functions to simulate user interactions, send messages to a mock chatbot, and compare the resulting chat list with expected outputs. These scripts test the plugin's functionality in different scenarios, including querying, selecting text, and warming up a server.\n\nThe directory also includes files with `.out` extensions, such as `query.out` and `selection.out`, which appear to be test output files containing simulated conversations between a user and a mock chatbot. These files are used as expected outputs for the test cases.\n\nAdditionally, the directory contains files related to testing specific tools, such as `tools_get_files.txt` and `tools_get_files.vim`, which test the `get_files` tool, and `tools_schema.vim`, which tests the `vimqq#tools#schema#to_claude` function.\n\nThe `warmup_open.json`, `warmup_open.out`, and `warmup_open.vim` files are related to testing the warmup functionality of the plugin, including opening a chat session and sending a query.\n\nOverall, this directory provides a comprehensive set of test data and configurations for the Vimqq plugin, allowing developers to thoroughly test its functionality and ensure its reliability.",
-            "checksum": "6e6a33d30e00899a76c7ffe3989d9d92"
+        "tests/integration/auto": {
+            "processing_result": "This directory contains a set of integration tests for various chat functionalities. The tests are written in Vim script and are accompanied by configuration files in JSON format. Each test has a corresponding expected output file.\n\nThe tests cover different scenarios such as chat list, new chat, query, queue, and selection. Each test sources a library file and defines functions to write and quit, and then executes a series of commands to test the specific functionality.\n\nThe configuration files specify the number of chat queries, stream queries, deltas, non-stream queries, and warmups for each test. The expected output files contain the expected conversation between the user and the mock bot for each test.\n\nThe tests are organized into pairs, with each pair consisting of a Vim script and a corresponding configuration file. For example, the \"test_chat_list_one.vim\" script is accompanied by the \"test_chat_list_one.json\" configuration file.\n\nThe directory also contains output files for each test, which contain the expected output for that test. These output files are used to verify that the test is working as expected.\n\nOverall, this directory provides a comprehensive set of integration tests for the chat functionality, covering various scenarios and ensuring that the system behaves as expected.",
+            "checksum": "69e3c125dfed734228964f18e68495da"
+        },
+        "tests/integration/manual": {
+            "processing_result": "This directory contains a collection of Vim scripts that test various bot and chat functionalities, including Anthropic, DeepSeek, Groq, Llama, and Mistral. Each script sources library files and executes a series of commands to test the corresponding bot or chat functionality. The scripts are organized in pairs, with one script testing the bot functionality and another testing the chat functionality for each respective module. The directory provides a comprehensive set of tests for ensuring the correctness and reliability of the integrated bot and chat systems.",
+            "checksum": "d71ee8f932266b1a0c7e1e456b65af10"
+        },
+        "tests/integration": {
+            "processing_result": "This directory contains a comprehensive set of integration tests for various chat and bot functionalities. It is divided into two subdirectories: \"auto\" and \"manual\". \n\nThe \"auto\" directory contains a set of automated integration tests for chat functionalities, including chat list, new chat, query, queue, and selection. These tests are written in Vim script and are accompanied by configuration files in JSON format, as well as expected output files. Each test sources a library file and defines functions to write and quit, and then executes a series of commands to test the specific functionality. The configuration files specify various parameters such as the number of chat queries, stream queries, deltas, non-stream queries, and warmups for each test.\n\nThe \"manual\" directory contains a collection of Vim scripts that test various bot and chat functionalities, including Anthropic, DeepSeek, Groq, Llama, and Mistral. Each script sources library files and executes a series of commands to test the corresponding bot or chat functionality. The scripts are organized in pairs, with one script testing the bot functionality and another testing the chat functionality for each respective module.\n\nOverall, this directory provides a thorough set of integration tests for ensuring the correctness and reliability of the integrated chat and bot systems. The tests cover various scenarios, including different chat functionalities and bot modules, and are organized in a logical and maintainable manner.",
+            "checksum": "5fa4bf1907f9e063614facc07f64d1bd"
+        },
+        "tests/unit": {
+            "processing_result": "This directory contains unit tests for various tools. It includes two Vim script files, test_tools_get_files.vim and test_tools_schema.vim, which test the get files tool and schema tool respectively. The directory also contains a test file, tools_get_files.txt, used by the get files tool test. The Vim scripts source library files and define functions and tool instances to execute test commands, indicating a structured approach to testing. The presence of a separate test file suggests that the tools being tested interact with external files, and the tests are designed to verify their functionality in different scenarios.",
+            "checksum": "32a0590e0c708b64d3da2f9f76122479"
         },
         "tests": {
-            "processing_result": "This directory contains a comprehensive set of tests for the Vimqq plugin, including test suites for API chat functionality, API chat streaming functionality, and bot functionality. The tests are written in Vimscript and are designed to simulate user interactions with the plugin, verifying that the output matches the expected results.\n\nThe directory includes several test files, such as `api_chat_test.vim`, `api_chat_test_stream.vim`, and `bot_test.vim`, which define test functions that use the VimQQ API to send chat requests and check the output. These files also include helper functions for setting up and tearing down the test environment.\n\nThe `libtest.vim` file provides a set of utility functions for testing the plugin, including functions for comparing chats, dictionaries, and arrays. These functions are used throughout the test suites to verify that the output of the plugin matches the expected results.\n\nThe `readme.txt` file provides documentation and guidance for running and maintaining the tests, including information on how to run the tests, configuration options, and ideas for additional tests.\n\nThe `data` subdirectory contains test data and configurations for the plugin, including JSON files with test data for queries, Vim script files that define test cases, and output files with simulated conversations between a user and a mock chatbot. The test data covers a range of scenarios, including querying, selecting text, and warming up a server.\n\nOverall, this directory provides a thorough and well-organized set of tests for the Vimqq plugin, allowing developers to ensure the reliability and functionality of the plugin. The tests are designed to be comprehensive and robust, covering a wide range of scenarios and edge cases, and are an essential part of the plugin's development and maintenance process.",
-            "checksum": "e40c1de7e06c8c3633d8b40d89abaffa"
+            "processing_result": "This directory serves as a comprehensive repository for testing various aspects of the vimqq plugin, including chat and bot functionalities. It is organized into several subdirectories and files, each with a specific purpose. The \"integration\" subdirectory contains a set of automated and manual integration tests for chat and bot functionalities, covering scenarios such as chat list, new chat, query, queue, and selection, as well as tests for specific bot modules like Anthropic, DeepSeek, Groq, Llama, and Mistral. The \"unit\" subdirectory contains unit tests for tools, including tests for the get files tool and schema tool, indicating a structured approach to testing individual components. \n\nSeveral files within the tests directory provide test suites for specific functionalities: \"api_chat_test.vim\" and \"api_chat_test_stream.vim\" test the API chat functionality and its streaming capability, respectively; \"bot_test.vim\" tests the bot functionality. These test suites simulate user interactions and verify the output against expected results, utilizing the VimQQ API. The \"libtest.vim\" file offers utility functions for comparing outputs, dictionaries, and arrays, which are essential for testing the vimqq plugin's functionality. A \"readme.txt\" file provides documentation on the tests' organization, requirements, and configuration options.\n\nThe tests directory is designed to ensure the correctness and reliability of the vimqq plugin's integrated chat and bot systems. It covers a wide range of scenarios, from individual tool functionalities to complex interactions between chat and bot modules. The organization of the tests into integration and unit tests, along with specific test suites for API and bot functionalities, demonstrates a thorough and maintainable approach to testing. The inclusion of utility functions and documentation further supports the development and maintenance of the vimqq plugin, highlighting the importance of comprehensive testing in ensuring the plugin's overall quality and performance.",
+            "checksum": "ed476084e9055dc3d43090f0b07895be"
         },
         "": {
-            "processing_result": "This directory is the root of the VimQQ plugin repository, containing a comprehensive implementation of the plugin, documentation, tests, and a todo list. The `autoload` directory provides the core functionality of the plugin, including modules for interacting with AI chat models, managing chats, and displaying chat interfaces. The `doc` directory contains a single file, `vimqq.txt`, which serves as a comprehensive help documentation for the plugin. The `plugin` directory contains the VimQQ plugin entry point, `vimqq.vim`, which defines the public commands and interface for the user. The `tests` directory contains a comprehensive set of tests for the plugin, covering API chat functionality, API chat streaming functionality, and bot functionality. The `todo.txt` file contains a list of tasks and ideas for improving the plugin, including implementing auto-fix functionality, supporting additional AI providers, and improving context generalization and tool use. Overall, this directory provides a unified and well-organized structure for the VimQQ plugin, making it easier to develop, test, and maintain the plugin.",
-            "checksum": "89af720d1c737b03ce6428667c5f1a62"
+            "processing_result": "This directory is the root of the VimQQ plugin, a comprehensive chat and AI integration for Vim. It contains several key directories, including autoload, doc, plugin, and tests, which provide the core functionality, documentation, and testing framework for the plugin.\n\nThe autoload directory is the core of the plugin, containing various subdirectories and files that provide the core functionality, tools, and APIs for the plugin. The doc directory contains a single file, vimqq.txt, which serves as a comprehensive help documentation for the vimqq plugin. The plugin directory contains the VimQQ plugin, with the entry point being the vimqq.vim file, which defines the public commands and interface for the user. The tests directory is a comprehensive repository for testing various aspects of the vimqq plugin, including chat and bot functionalities.\n\nThe directory also contains a todo list file, todo.txt, which contains a list of tasks and ideas for improving the plugin. The tasks include implementing auto-fix functionality, supporting additional AI providers, and improving context generalization and tool use.\n\nThe VimQQ plugin is designed to provide a modular and extensible framework for integrating chat and AI functionality into Vim. The plugin's architecture is organized around several key components, including API implementations, bots, platform-specific modules, prompts, and tools. The API implementations provide interfaces to different AI providers, while the bots directory contains implementations for various chatbots. The platform directory contains modules for HTTP client functionality, job management, and path utilities, which provide platform-specific functionality for the plugin.\n\nThe plugin's functionality is extensively tested through a comprehensive set of integration and unit tests, which cover a wide range of scenarios, from individual tool functionalities to complex interactions between chat and bot modules. The tests directory is designed to ensure the correctness and reliability of the vimqq plugin's integrated chat and bot systems.\n\nOverall, this directory provides a comprehensive framework for integrating chat and AI functionality into Vim, with a modular and extensible design that allows for easy addition of new features and providers. The plugin's documentation, testing framework, and todo list provide a solid foundation for ongoing development and maintenance.",
+            "checksum": "bbcb142bd256b021f539826fa0a74bc3"
         }
     }
 }
