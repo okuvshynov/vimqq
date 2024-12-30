@@ -1,13 +1,22 @@
+Tests are organized into directores (suites).
+
+unit/               -- unit tests
+integration/auto/   -- automated integration tests, running with mock API server
+integration/manual/ -- integrated tests running on real llama.cpp server and real API calls to Anthropic, DeepSeek, Groq, etc.
+
 These tests are launching vim with minimal vimrc config and simulate queries to vimqq using mock server.
 
 To run tests:
 
 ```
-# default 'vim'
-./tests/run_all.sh
+# all tests, default 'vim'
+./tests/run.sh .
 
-# use nvim or other specific binary/version
-VIMQQ_VIM_BINARY=nvim ./tests/run_all.sh
+# unit tests, default 'vim'
+./tests/run.sh unit
+
+# auto integration tests, nvim
+VIMQQ_VIM_BINARY=nvim ./tests/run.sh integration/auto
 ```
 
 Requirements for tests:
@@ -21,20 +30,3 @@ Configuration/env vars:
 2. VIMQQ_KEEP_DIR - do not delete temp working directory
 3. VIMQQ_VIM_BINARY - path/name for vim to use. default is 'vim'. Can be useful to test specific version or nvim.
 
-api_ tests are using real API (local or remote) and require extra setup. They are not free to run and require API tokens for remote providers. run_all will skip running them by default.
-
-
-What tests should we write:
-1. multi-bot
-2. testing errors/timeouts
-3. testing warmup on demand
-4. testing auto warmup 
-5. testing other context types - file, project, blame
-6. testing navigation in chat list
-7. testing forking
-
-Improvements for tests themselves:
-1. Run faster
-2. detect if vim is present and avoid installing if yes
-3. coverage?
-4. test in vim himself. wait for N seconds for content to be equal to expectations.
