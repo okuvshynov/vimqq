@@ -1,10 +1,10 @@
 let s:path = expand('<sfile>:p:h')
-let s:lib = s:path . "/../libtest.vim"
+let s:lib = s:path . "/../../libtest.vim"
 execute "source " . s:lib
 
 function! WriteAndQuit(t)
     let content = getline(1, '$')
-    let expected = readfile(s:path . '/' . 'selection.out')
+    let expected = readfile(s:path . '/' . 'query.out')
     if VQQCompareChats(content, expected) == 0
         cquit 0
     else
@@ -12,8 +12,5 @@ function! WriteAndQuit(t)
     endif
 endfunction
 
-:put!=range(1,5)
-:normal ggV5j
-:execute "normal! \<Esc>"
-:'<,'>QQ @mock hello
+:Q @mock hello
 call timer_start(200, "WriteAndQuit")

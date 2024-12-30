@@ -26,4 +26,4 @@ jobs:
       run: pip install flask
     
     - name: Run all integration tests
-      run: VIMQQ_VERBOSE=1 ./tests/run_all.sh ${{ github.workspace }}
+      run: VIMQQ_VERBOSE=1 ./tests/run.sh integration/auto ${{ github.workspace }}

@@ -45,8 +45,8 @@ fi
 serv_pid=$(setup_mock_serv "$working_dir" "$port")
 echo "Mock llama server started, pid=$serv_pid"
 
-test_script="$script_dir/data/$testname.vim"
-expected_server_stats="$script_dir/data/$testname.json"
+test_script="$script_dir/$testname.vim"
+expected_server_stats="$script_dir/$testname.json"
 
 echo ""
 echo "== Running =="

@@ -1,5 +1,5 @@
 let s:path = expand('<sfile>:p:h')
-let s:lib = s:path . "/../libtest.vim"
+let s:lib = s:path . "/../../libtest.vim"
 execute "source " . s:lib
 
 function! WriteAndQuit(t)

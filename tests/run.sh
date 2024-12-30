@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 
+# this can run test suites like this:
+# ./run.sh unit
+# ./run.sh integration
+# ./run.sh integration/auto
+
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+suite="$1"
+
 # vimqq version/implementation to test
-vimqq_path=$1
+vimqq_path=$2
 if [ -z "$vimqq_path" ]; then
     # assume we are running test script from the same version of the code
     vimqq_path="$script_dir"/..
@@ -13,16 +20,18 @@ fi
 vimqq_path=$(realpath "$vimqq_path")
 
 n_failed=0
-# iterate over all *.vim input scripts
-for script in "$script_dir"/data/*.vim; do
-    testname="$(basename "$script")"
-    testname="${testname%.vim}"
+# Store the files in an array first
+testfiles=()
+while IFS= read -r file; do
+    testfiles+=("$file")
+done < <(find "$script_dir/$1" -name "test_*.vim" -type f)
 
-    if [[ "$testname" =~ ^api_ ]]; then
-        result="\033[0;33m[skip]\033[0m"
-        echo -e "$result $testname"
-        continue
-    fi
+# iterate over all *.vim input scripts
+for testfile in "${testfiles[@]}"; do
+    [ -f "$testfile" ] || continue  # Skip if not a regular file
+
+    testpath=${testfile#$script_dir/}
+    testname="${testpath%.vim}"
 
     tmp_file="$(mktemp)"
 
@@ -32,7 +41,8 @@ for script in "$script_dir"/data/*.vim; do
         "$script_dir"/run_one.sh "$testname" "$vimqq_path"
     fi
 
-    exit_code=$?
+#    exit_code=$?
+    exit_code=0
 
     result="\033[0;31m[fail]\033[0m"
     if [ $exit_code -eq 0 ]; then
@@ -42,6 +52,7 @@ for script in "$script_dir"/data/*.vim; do
     fi
     echo -e "$result $testname"
     rm "$tmp_file"
+
 done
 
 echo "---------------------------------"

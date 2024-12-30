@@ -1,12 +1,10 @@
-let g:vqq_llama_servers[0]['do_autowarm'] = v:true
-
 let s:path = expand('<sfile>:p:h')
-let s:lib = s:path . "/../libtest.vim"
+let s:lib = s:path . "/../../libtest.vim"
 execute "source " . s:lib
 
 function! WriteAndQuit(t)
     let content = getline(1, '$')
-    let expected = readfile(s:path . '/' . 'query.out')
+    let expected = readfile(s:path . '/' . 'queue.out')
     if VQQCompareChats(content, expected) == 0
         cquit 0
     else
@@ -15,4 +13,6 @@ function! WriteAndQuit(t)
 endfunction
 
 :Q @mock hello
-call timer_start(500, "WriteAndQuit")
+:Q @mock world!
+call timer_start(1000, "WriteAndQuit")
+
