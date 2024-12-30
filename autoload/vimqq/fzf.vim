@@ -52,7 +52,7 @@ function! vimqq#fzf#show(db) abort
 
     function! OpenChat(selected_chat)
         let chat = vimqq#fzf#parse(a:selected_chat)
-        call vimqq#main#show_chat(chat.id)
+        call vimqq#model#notify('chat_selected', {'chat_id': chat.id})
     endfunction
     
     " FZF options
