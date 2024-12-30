@@ -74,7 +74,7 @@ function! vimqq#api#anthropic_api#new() abort
 
     function! l:api.chat(params) dict
         let l:messages = a:params.messages
-        let l:system = v:none
+        let l:system = v:null
         if l:messages[0].role == 'system'
             let l:system = l:messages[0].content
             call remove(l:messages, 0)
@@ -87,7 +87,7 @@ function! vimqq#api#anthropic_api#new() abort
         \   'stream': get(a:params, 'stream', v:false)
         \}
 
-        if l:system != v:none
+        if l:system != v:null
             let req['system'] = l:system
         endif
 
