@@ -123,7 +123,6 @@ function! vimqq#warmup#new(bots, db) abort
             endif
             let messages = self._db.get_messages(chat_id)
             for bot in self._bots
-                call vimqq#metrics#inc(bot.name() . ".chat_warmups" )
                 call bot.send_warmup(messages)
             endfor
         endif

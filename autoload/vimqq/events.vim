@@ -16,7 +16,6 @@ endfunction
 
 function! vimqq#events#notify(event, context) abort
     call vimqq#log#debug('event: ' . a:event)
-    call vimqq#metrics#inc('event_notify.' . a:event)
     let a:context['state'] = s:state
     for observer in s:observers
         call observer.handle_event(a:event, a:context)
