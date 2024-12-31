@@ -41,8 +41,7 @@ for testfile in "${testfiles[@]}"; do
         "$script_dir"/run_one.sh "$testname" "$vimqq_path"
     fi
 
-#    exit_code=$?
-    exit_code=0
+    exit_code=$?
 
     result="\033[0;31m[fail]\033[0m"
     if [ $exit_code -eq 0 ]; then

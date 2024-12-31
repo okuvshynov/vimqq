@@ -16,7 +16,7 @@ function! VQQCompareChats(content, expected)
     return 0
 endfunction
 
-function! DeepDictCompare(dict1, dict2)
+function! DeepDictCompareImpl(dict1, dict2)
     " Check if both inputs are dictionaries
     if type(a:dict1) != type({}) || type(a:dict2) != type({})
         return 1
@@ -56,6 +56,16 @@ function! DeepDictCompare(dict1, dict2)
     endfor
 
     return 0
+endfunction
+
+function! DeepDictCompare(dict1, dict2)
+    let result = DeepDictCompareImpl(a:dict1, a:dict2)
+    if result != 0
+        echoe 'ERROR: dictionaries are not equal'
+        echoe a:dict1
+        echoe a:dict2
+    endif
+    return result
 endfunction
 
 function! ArrayCompare(a, b)
