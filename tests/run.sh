@@ -35,6 +35,8 @@ for testfile in "${testfiles[@]}"; do
 
     tmp_file="$(mktemp)"
 
+    echo -en "\033[0;34m[ .. ]\033[0m $testname\r"
+
     if [ -z "$VIMQQ_VERBOSE" ]; then
         "$script_dir"/run_one.sh "$testname" "$vimqq_path" > "$tmp_file" 2>&1
     else
