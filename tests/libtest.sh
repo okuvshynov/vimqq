@@ -20,8 +20,8 @@ setup_vimqq_env() {
     # Create a temporary directory for the test
     test_dir=$(mktemp -d)
     cd "$test_dir"
-    mkdir -p rtp/pack/plugins/start/vimqq/
-    cp -r "$vimqq_path"/. rtp/pack/plugins/start/vimqq/
+    mkdir -p rtp/pack/plugins/start/
+    ln -s "$vimqq_path" rtp/pack/plugins/start/vimqq
 
     cat > vimrc <<EOF
 set nocompatible
