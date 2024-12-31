@@ -65,11 +65,11 @@ endfunction
 
 let s:controller = s:new()
 
-call vimqq#model#set_state(s:state)
-call vimqq#model#add_observer(s:chatsdb)
-call vimqq#model#add_observer(s:ui)
-call vimqq#model#add_observer(s:warmup)
-call vimqq#model#add_observer(s:controller)
+call vimqq#events#set_state(s:state)
+call vimqq#events#add_observer(s:chatsdb)
+call vimqq#events#add_observer(s:ui)
+call vimqq#events#add_observer(s:warmup)
+call vimqq#events#add_observer(s:controller)
 
 " -----------------------------------------------------------------------------
 " This is 'internal API' - functions called by defined public commands
