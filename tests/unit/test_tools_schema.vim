@@ -49,8 +49,5 @@ let s:expected = ToolDefSonnet()
 
 let s:observed = vimqq#tools#schema#to_claude(ToolDef())
 
-if DeepDictCompare(s:expected, s:observed) == 1
-    cquit 1
-else
-    cquit 0
-endif
+call ASSERT_EQ_DICT(s:expected, s:observed)
+cquit 0

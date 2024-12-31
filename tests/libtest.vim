@@ -1,19 +1,15 @@
-function! VQQCompareChats(content, expected)
-    call vimqq#log#info(len(a:content))
-    call vimqq#log#info(len(a:expected))
-    if len(a:expected) != len(a:content)
-        return 1
+function! ASSERT_EQ_CHATS(observed, expected)
+    if len(a:expected) != len(a:observed)
+        cquit 1
     endif
     for i in range(len(a:expected))
-        let curr = substitute(a:content[i], '^\d\{2}:\d\{2}', '00:00', '')
+        let curr = substitute(a:observed[i], '^\d\{2}:\d\{2}', '00:00', '')
         call vimqq#log#info(curr)
         call vimqq#log#info(a:expected[i])
         if a:expected[i] != curr
-            return 1
+            cquit 1
         endif
     endfor
-
-    return 0
 endfunction
 
 function! DeepDictCompareImpl(dict1, dict2)
@@ -58,24 +54,48 @@ function! DeepDictCompareImpl(dict1, dict2)
     return 0
 endfunction
 
-function! DeepDictCompare(dict1, dict2)
+function! ASSERT_EQ_DICT(dict1, dict2)
     let result = DeepDictCompareImpl(a:dict1, a:dict2)
     if result != 0
         echoe 'ERROR: dictionaries are not equal'
         echoe a:dict1
         echoe a:dict2
+        cquit 1
     endif
-    return result
 endfunction
 
-function! ArrayCompare(a, b)
+function! ASSERT_TRUE(a)
+    if !a:a
+        cquit 1
+    endif
+endfunction
+
+function! ASSERT_EQ(a, b)
+    if a:a != a:b
+        cquit 1
+    endif
+endfunction
+
+function! ASSERT_GT(a, b)
+    if a:a <= a:b
+        cquit 1
+    endif
+endfunction
+
+function! ASSERT_EQ_ARRAY(a, b)
     if len(a:a) != len(a:b)
-        return 1
+        cquit 1
     endif
     for i in range(len(a:a))
         if a:a[i] != a:b[i]
-            return 1
+            cquit 1
         endif
     endfor
-    return 0
+endfunction
+
+function! DELAYED_VERIFY(timeout, fn)
+    call timer_start(a:timeout, {t -> [
+        \ a:fn(),
+        \ execute('cquit 0')
+    \ ]})
 endfunction

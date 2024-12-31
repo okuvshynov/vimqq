@@ -2,13 +2,9 @@ let s:chunks = []
 let s:completed = v:false
 
 function! VerifyStream(t)
-    "if !s:completed
-    "    cquit 1
-    "endif
-    "if len(s:chunks) != 1
-    "    cquit 1
-    "endif
-    "cquit 0
+    call ASSERT_TRUE(s:completed)
+    call ASSERT_GT(len(s:chunks), 1)
+    cquit 0
 endfunction
 
 function! s:on_chunk(params, chunk)

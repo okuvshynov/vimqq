@@ -12,8 +12,6 @@ let s:expected = join(s:expected, '\n')
 call vimqq#log#info(s:expected)
 call vimqq#log#info(s:content)
 
-if s:expected == s:content
-    cquit 0
-else
-    cquit 1
-endif
+ASSERT_EQ(s:expected, s:content)
+
+cquit 0

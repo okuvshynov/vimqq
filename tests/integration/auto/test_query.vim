@@ -2,15 +2,11 @@ let s:path = expand('<sfile>:p:h')
 let s:lib = s:path . "/../../libtest.vim"
 execute "source " . s:lib
 
-function! WriteAndQuit(t)
+function! s:verify()
     let content = getline(1, '$')
     let expected = readfile(s:path . '/' . 'query.out')
-    if VQQCompareChats(content, expected) == 0
-        cquit 0
-    else
-        cquit 1
-    endif
+    call ASSERT_EQ_CHATS(content, expected)
 endfunction
 
 :Q @mock hello
-call timer_start(200, "WriteAndQuit")
+call DELAYED_VERIFY(200, function("s:verify"))
