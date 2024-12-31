@@ -1,12 +1,15 @@
 function! ASSERT_EQ_CHATS(observed, expected)
     if len(a:expected) != len(a:observed)
+        call vimqq#log#info('Chat length does not match:')
+        call vimqq#log#info(len(a:expected))
+        call vimqq#log#info(len(a:observed))
         cquit 1
     endif
     for i in range(len(a:expected))
         let curr = substitute(a:observed[i], '^\d\{2}:\d\{2}', '00:00', '')
-        call vimqq#log#info(curr)
-        call vimqq#log#info(a:expected[i])
         if a:expected[i] != curr
+            call vimqq#log#info(a:expected[i])
+            call vimqq#log#info(curr)
             cquit 1
         endif
     endfor
@@ -72,6 +75,9 @@ endfunction
 
 function! ASSERT_EQ(a, b)
     if a:a != a:b
+        echom "ASSERT_EQ failed:"
+        echom a:a
+        echom a:b
         cquit 1
     endif
 endfunction

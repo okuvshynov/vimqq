@@ -12,6 +12,6 @@ let s:expected = join(s:expected, '\n')
 call vimqq#log#info(s:expected)
 call vimqq#log#info(s:content)
 
-ASSERT_EQ(s:expected, s:content)
+call ASSERT_EQ(s:expected, s:content)
 
 cquit 0
