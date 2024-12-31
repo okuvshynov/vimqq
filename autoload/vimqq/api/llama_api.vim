@@ -100,7 +100,7 @@ function! vimqq#api#llama_api#new(endpoint) abort
         let l:headers = {
             \ 'Content-Type': 'application/json'
         \ }
-        return vimqq#platform#http_client#post(
+        return vimqq#platform#http#post(
             \ self._endpoint,
             \ l:headers,
             \ l:json_req,

@@ -115,7 +115,7 @@ function! vimqq#api#anthropic_api#new() abort
             \ 'x-api-key': self._api_key,
             \ 'anthropic-version': '2023-06-01'
         \ }
-        return vimqq#platform#http_client#post(
+        return vimqq#platform#http#post(
             \ 'https://api.anthropic.com/v1/messages',
             \ l:headers,
             \ l:json_req,

@@ -104,7 +104,7 @@ function! vimqq#api#groq_api#new() abort
             \ 'Accept': 'application/json',
             \ 'Authorization': 'Bearer ' . self._api_key
         \ }
-        return vimqq#platform#http_client#post(
+        return vimqq#platform#http#post(
             \ 'https://api.groq.com/openai/v1/chat/completions',
             \ l:headers,
             \ l:json_req,
