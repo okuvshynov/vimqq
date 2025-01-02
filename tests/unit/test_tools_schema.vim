@@ -45,9 +45,12 @@ function! ToolDefSonnet()
     \ }
 endfunction
 
-let s:expected = ToolDefSonnet()
+function! Test_to_claude()
+    let s:expected = ToolDefSonnet()
 
-let s:observed = vimqq#tools#schema#to_claude(ToolDef())
+    let s:observed = vimqq#tools#schema#to_claude(ToolDef())
 
-call ASSERT_EQ_DICT(s:expected, s:observed)
-cquit 0
+    call ASSERT_EQ_DICT(s:expected, s:observed)
+endfunction
+
+call RunAllTests()

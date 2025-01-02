@@ -105,3 +105,20 @@ function! DELAYED_VERIFY(timeout, fn)
         \ execute('cquit 0')
     \ ]})
 endfunction
+
+function! RunAllTests()
+    let functions = execute('function')
+    
+    " Split into lines and filter for Test_ functions
+    let func_list = split(functions, "\n")
+    let test_funcs = filter(func_list, 'v:val =~ "^function Test_"')
+    
+    " Extract just the function names and call each one
+    for func in test_funcs
+        " Extract function name (between 'function' and '(')
+        let func_name = matchstr(func, 'function \zs\k*\ze(')
+        execute 'call ' . func_name . '()'
+    endfor
+    cquit 0
+endfunction
+

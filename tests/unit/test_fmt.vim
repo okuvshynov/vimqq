@@ -2,7 +2,7 @@ let s:path = expand('<sfile>:p:h')
 let s:lib = s:path . "/../libtest.vim"
 execute "source " . s:lib
 
-function! s:test_context()
+function! Test_context()
     let s:message = {'context' : 'CONTEXT', 'message': 'MESSAGE'}
 
     let s:formatted = vimqq#fmt#content(s:message)
@@ -11,7 +11,7 @@ function! s:test_context()
 
 endfunction
 
-function! s:test_escape()
+function! Test_escape()
     let s:message = {'context' : 'CON&TEXT', 'message': 'MESSAGE'}
 
     let s:formatted = vimqq#fmt#content(s:message)
@@ -20,7 +20,7 @@ function! s:test_escape()
 
 endfunction
 
-function! s:test_no_context()
+function! Test_no_context()
     let s:message = {'message': 'MESSAGE'}
 
     let s:formatted = vimqq#fmt#content(s:message)
@@ -28,8 +28,5 @@ function! s:test_no_context()
     call ASSERT_EQ("MESSAGE", s:formatted)
 endfunction
 
-call s:test_context()
-call s:test_escape()
-call s:test_no_context()
-
-cquit 0
+" This runs all the functions defined with name Test_
+call RunAllTests()
