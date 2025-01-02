@@ -27,7 +27,6 @@ endfunction
 
 function! vimqq#log#error(message)
     call s:_log_impl('ERROR', a:message)
-    echoe a:message
 endfunction
 
 function! vimqq#log#info(message)
@@ -40,5 +39,4 @@ endfunction
 
 function! vimqq#log#warning(message)
     call s:_log_impl('WARNING', a:message)
-    echohl WarningMsg | echo a:message | echohl None
 endfunction
