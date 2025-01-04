@@ -52,7 +52,10 @@ function! vimqq#api#llama_api#new(endpoint) abort
         endif
         let l:response = join(self._replies[a:req_id], '\n')
         let l:response = json_decode(l:response)
-        if has_key(l:response, 'choices') && !empty(l:response.choices) && has_key(l:response.choices[0], 'message')
+        if type(l:response) == type({}) &&
+                \ has_key(l:response, 'choices') && 
+                \ !empty(l:response.choices) && 
+                \ has_key(l:response.choices[0], 'message')
             let l:message  = l:response.choices[0].message.content
             if has_key(a:params, 'on_chunk')
                 call a:params.on_chunk(a:params, l:message)
@@ -61,6 +64,7 @@ function! vimqq#api#llama_api#new(endpoint) abort
                 call a:params.on_complete(a:params)
             endif
         else
+            " TODO: still need to close/complete
             call vimqq#log#error('llama_api: Unable to process response')
             call vimqq#log#error(json_encode(l:response))
         endif
