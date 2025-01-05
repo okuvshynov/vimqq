@@ -11,10 +11,12 @@
 "     :QQ [bot_tag] message
 "  example:
 "     :%QQ @llama How would you refactor this file?
-command! -range -nargs=+ QQ <line1>,<line2>call vimqq#main#qq(<q-args>)
-command!        -nargs=+ Q  call vimqq#main#q(<q-args>)
+"command! -range -nargs=+ QQ <line1>,<line2>call vimqq#main#qq(<q-args>)
+"command!        -nargs=+ Q  call vimqq#main#q(<q-args>)
 command! -range -nargs=+ QQN <line1>,<line2>call vimqq#main#qqn(<q-args>)
 command!        -nargs=+ QN  call vimqq#main#qn(<q-args>)
+
+command! -range -nargs=+ QQ call vimqq#main#dispatch(<count>, <line1>, <line2>, <q-args>)
 
 " Fork the current chat reusing the context from the first message.
 " It is useful in cases of long context, but when you want to start a new

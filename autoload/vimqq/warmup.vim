@@ -30,7 +30,7 @@ endfunction
 
 function! s:parse_command_line(cmd)
     " Q doesn't receive range. This is the only way to invoke it.
-    if a:cmd =~# '^Q\s'
+    if a:cmd =~# '^QQ\s'
         let message = a:cmd[2:]
         call vimqq#main#send_warmup(v:false, message)
         return v:true
@@ -42,7 +42,7 @@ function! s:parse_command_line(cmd)
         return v:true
     endif
 
-    let l:qq_pattern = '\v^(.+)QQ\s+(.+)$'
+    let l:qq_pattern = '\v^(.+)QQ\s+(.*)$'
     let l:matches = matchlist(a:cmd, l:qq_pattern)
     if len(l:matches) > 0
         let l:range = l:matches[1]

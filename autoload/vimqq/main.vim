@@ -173,6 +173,17 @@ function! vimqq#main#qn(message) abort
     call vimqq#main#send_message(v:true, a:message)
 endfunction
 
+function! vimqq#main#dispatch(count, line1, line2, args) abort
+    call vimqq#log#info('dispatching')
+    if a:count == -1
+        " No range was provided
+        call vimqq#main#q(a:args)
+    else
+        " Range was provided, pass the line numbers
+        execute a:line1 . ',' . a:line2 . 'call vimqq#main#qq(a:args)'
+    endif
+endfunction
+
 " TODO: forking will become particularly important if we use lucas index
 function! vimqq#main#fork_chat(args) abort
     let args = split(a:args, ' ')
