@@ -2,12 +2,18 @@ let s:path = expand('<sfile>:p:h')
 let s:lib = s:path . "/../../libtest.vim"
 execute "source " . s:lib
 
-:put!=range(1,5)
-:normal ggV5j
-:execute "normal! \<Esc>"
-:'<,'>QQ @mock hello
+function! Test_chat_list_one()
+    " 5 lines with 1, 2, 3, 4, 5
+    :put!=range(1,5)
+    " visual select them
+    :normal ggV5j
+    " Call mock bot with the selection
+    :execute "normal! \<Esc>"
+    :'<,'>QQ @mock hello
 
-function! s:verify()
+    " sleep to get the reply
+    :sleep 1
+
     " go to list
     :QQList
     let content = getline(1, '$')
@@ -15,4 +21,4 @@ function! s:verify()
     call ASSERT_EQ_CHATS(content, expected)
 endfunction
 
-call DELAYED_VERIFY(500, function('s:verify'))
+call RunAllTests()

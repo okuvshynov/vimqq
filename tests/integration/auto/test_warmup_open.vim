@@ -4,11 +4,14 @@ let s:path = expand('<sfile>:p:h')
 let s:lib = s:path . "/../../libtest.vim"
 execute "source " . s:lib
 
-function! s:verify()
+" TODO: This test is not testing much...
+function! Test_warmup_open()
+    :Q @mock hello
+    :sleep 500m
+
     let content = getline(1, '$')
     let expected = readfile(s:path . '/' . 'query.out')
     call ASSERT_EQ_CHATS(content, expected)
 endfunction
 
-:Q @mock hello
-call DELAYED_VERIFY(500, function("s:verify"))
+call RunAllTests()
