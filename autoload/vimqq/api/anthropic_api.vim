@@ -35,7 +35,8 @@ function! vimqq#api#anthropic_api#new() abort
                 continue
             endif
             if response['type'] == 'message_stop'
-                call a:params.on_complete(a:params)
+                " First param is 'error'
+                call a:params.on_complete(v:null, a:params)
                 continue
             endif
             if response['type'] == 'message_delta'
@@ -64,7 +65,7 @@ function! vimqq#api#anthropic_api#new() abort
                 call a:params.on_chunk(a:params, l:message)
             endif
             if has_key(a:params, 'on_complete')
-                call a:params.on_complete(a:params)
+                call a:params.on_complete(v:null, a:params)
             endif
         else
             call vimqq#log#error('Unable to process response')

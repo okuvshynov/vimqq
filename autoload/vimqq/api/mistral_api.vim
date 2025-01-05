@@ -22,7 +22,7 @@ function! vimqq#api#mistral_api#new() abort
                 continue
             endif
             if message == 'data: [DONE]'
-                call a:params.on_complete(a:params)
+                call a:params.on_complete(v:null, a:params)
                 return
             endif
             let json_string = substitute(message, '^data: ', '', '')
@@ -60,7 +60,7 @@ function! vimqq#api#mistral_api#new() abort
                 call a:params.on_chunk(a:params, l:message)
             endif
             if has_key(a:params, 'on_complete')
-                call a:params.on_complete(a:params)
+                call a:params.on_complete(v:null, a:params)
             endif
         else
             call vimqq#log#error('mistral_api: Unable to process response')

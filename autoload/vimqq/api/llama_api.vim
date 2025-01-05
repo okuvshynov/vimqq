@@ -20,7 +20,7 @@ function! vimqq#api#llama_api#new(endpoint) abort
               continue
           endif
           if message == 'data: [DONE]'
-              call a:params.on_complete(a:params)
+              call a:params.on_complete(v:null, a:params)
               return
           endif
           let json_string = substitute(message, '^data: ', '', '')
@@ -33,6 +33,7 @@ function! vimqq#api#llama_api#new(endpoint) abort
     endfunction
 
     " Not calling any callback as we expect to act on data: [DONE]
+    " However, we might need to do that to handle any errors?
     function! l:api._on_stream_close(params) dict
         call vimqq#log#info('llama stream closed.')
     endfunction
@@ -51,7 +52,18 @@ function! vimqq#api#llama_api#new(endpoint) abort
             return
         endif
         let l:response = join(self._replies[a:req_id], '\n')
-        let l:response = json_decode(l:response)
+        " if l:response is empty, vim would decode it to v:none,
+        " while neovim would error.
+        try
+            let l:response = json_decode(l:response)
+        catch
+            call vimqq#log#error('llama_api: Unable to process response')
+            " TODO: still need to mark query as done
+            if has_key(a:params, 'on_complete')
+                call a:params.on_complete("Unable to process response", a:params)
+            endif
+            return
+        endtry
         if type(l:response) == type({}) &&
                 \ has_key(l:response, 'choices') && 
                 \ !empty(l:response.choices) && 
@@ -61,17 +73,20 @@ function! vimqq#api#llama_api#new(endpoint) abort
                 call a:params.on_chunk(a:params, l:message)
             endif
             if has_key(a:params, 'on_complete')
-                call a:params.on_complete(a:params)
+                call a:params.on_complete(v:null, a:params)
             endif
         else
             " TODO: still need to close/complete
             call vimqq#log#error('llama_api: Unable to process response')
             call vimqq#log#error(json_encode(l:response))
+            if has_key(a:params, 'on_complete')
+                call a:params.on_complete("Unable to process response", a:params)
+            endif
         endif
     endfunction
 
     function! l:api._on_error(msg, params) dict
-        call vimqq#log#error('API error')
+        call vimqq#log#error('llama_api: error')
     endfunction
 
     function! l:api.chat(params) dict

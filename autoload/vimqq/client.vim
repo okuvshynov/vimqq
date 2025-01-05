@@ -29,13 +29,21 @@ function! vimqq#client#new(impl, config = {}) abort
         return self._conf.do_autowarm
     endfunction
 
+    function! l:client._on_warmup_complete(error, params) dict
+        if a;error != v:null
+            call vimqq#log#error('warmup call failed')
+        endif
+        call vimqq#events#notify('warmup_done', {'bot' : self})
+    endfunction
+
+
     function! l:client.send_warmup(messages) dict
         if self._conf.send_warmup
             let req = {
             \   'messages' : self._format(a:messages),
             \   'max_tokens' : 0,
             \   'model' : self._conf.model,
-            \   'on_complete' : {p -> vimqq#events#notify('warmup_done', {'bot' : self})}
+            \   'on_complete' : {err, p -> self._on_warmup_complete(err, p)}
             \ }
             return self._impl.chat(req)
         endif
@@ -54,7 +62,8 @@ function! vimqq#client#new(impl, config = {}) abort
         \   'messages' : messages,
         \   'max_tokens' : self._conf.title_tokens,
         \   'model' : self._conf.model,
-        \   'on_chunk' : {p, m -> vimqq#events#notify('title_done', {'chat_id' : a:chat_id, 'title': m})}
+        \   'on_chunk' : {p, m -> vimqq#events#notify('title_done', {'chat_id' : a:chat_id, 'title': m})},
+        \   'on_complete': {err, p -> vimqq#log#info('title complete')}
         \ }
         return self._impl.chat(req)
     endfunction
@@ -68,7 +77,7 @@ function! vimqq#client#new(impl, config = {}) abort
         \   'model' : self._conf.model,
         \   'stream' : a:stream,
         \   'on_chunk' : {p, m -> vimqq#events#notify('chunk_done', {'chat_id': a:chat_id, 'chunk': m})},
-        \   'on_complete' : {p -> vimqq#events#notify('reply_done', {'chat_id': a:chat_id, 'bot' : self})}
+        \   'on_complete' : {err, p -> vimqq#events#notify('reply_done', {'chat_id': a:chat_id, 'bot' : self})}
         \ }
         return self._impl.chat(req)
 
