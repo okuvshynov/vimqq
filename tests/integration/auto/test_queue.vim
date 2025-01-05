@@ -8,7 +8,7 @@ function! s:verify()
     call ASSERT_EQ_CHATS(content, expected)
 endfunction
 
-:Q @mock hello
-:Q @mock world!
+:QQ @mock hello
+:QQ @mock world!
 call DELAYED_VERIFY(1000, function("s:verify"))
 

@@ -6,7 +6,7 @@ execute "source " . s:lib
 
 " TODO: This test is not testing much...
 function! Test_warmup_open()
-    :Q @mock hello
+    :QQ @mock hello
     :sleep 500m
 
     let content = getline(1, '$')

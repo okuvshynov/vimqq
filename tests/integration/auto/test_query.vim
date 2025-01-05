@@ -3,7 +3,7 @@ let s:lib = s:path . "/../../libtest.vim"
 execute "source " . s:lib
 
 function! Test_query()
-    :Q @mock hello
+    :QQ @mock hello
     :sleep 500m
     let content = getline(1, '$')
     let expected = readfile(s:path . '/' . 'query.out')

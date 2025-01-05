@@ -3,9 +3,9 @@ let s:lib = s:path . "/../../libtest.vim"
 execute "source " . s:lib
 
 function! Test_query_twice()
-    :Q @mock hello
+    :QQ @mock hello
     :sleep 500m
-    :Q @mock world!
+    :QQ @mock world!
     :sleep 500m
 
     let content = getline(1, '$')

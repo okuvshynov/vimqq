@@ -36,7 +36,7 @@ function! s:parse_command_line(cmd)
         return v:true
     endif
 
-    if a:cmd =~# '^QN\s'
+    if a:cmd =~# '^QQN\s'
         let message = a:cmd[3:]
         call vimqq#main#send_warmup(v:true, message)
         return v:true
@@ -55,7 +55,7 @@ function! s:parse_command_line(cmd)
         endtry
     endif
 
-    let l:qq_pattern = '\v^(.+)QQN\s+(.+)$'
+    let l:qq_pattern = '\v^(.+)QQN\s+(.*)$'
     let l:matches = matchlist(a:cmd, l:qq_pattern)
     if len(l:matches) > 0
         let l:range = l:matches[1]

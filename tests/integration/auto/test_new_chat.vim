@@ -3,9 +3,9 @@ let s:lib = s:path . "/../../libtest.vim"
 execute "source " . s:lib
 
 function! Test_new_chat()
-    :Q @mock hello
+    :QQ @mock hello
     :sleep 500m
-    :QN @mock world!
+    :QQN @mock world!
     :sleep 500m
     :QQList
     let content = getline(1, '$')
