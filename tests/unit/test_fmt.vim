@@ -7,7 +7,7 @@ function! Test_context()
 
     let s:formatted = vimqq#fmt#content(s:message)
 
-    call ASSERT_EQ("Here's a code snippet: \n\nCONTEXT\n\nMESSAGE", s:formatted)
+    call ASSERT_EQ("Here's a code snippet:\n\nCONTEXT\n\nMESSAGE", s:formatted)
 
 endfunction
 
@@ -16,7 +16,7 @@ function! Test_escape()
 
     let s:formatted = vimqq#fmt#content(s:message)
 
-    call ASSERT_EQ("Here's a code snippet: \n\nCON&TEXT\n\nMESSAGE", s:formatted)
+    call ASSERT_EQ("Here's a code snippet:\n\nCON&TEXT\n\nMESSAGE", s:formatted)
 
 endfunction
 
