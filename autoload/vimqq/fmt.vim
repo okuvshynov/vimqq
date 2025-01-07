@@ -4,52 +4,77 @@ endif
 
 let g:autoloaded_vimqq_fmt = 1
 
-" Fill context into message object
-function! vimqq#fmt#fill_context(message, context)
-    let l:message = deepcopy(a:message)
-
-    if a:context is v:null
-        return l:message
-    endif
-    let l:message.context = a:context
-    return l:message
-endfunction
-
 let s:template_context = 
       \  "Here's a code snippet: \n\n{vqq_context}\n\n{vqq_message}"
 
 let g:vqq_template_context =
       \ get(g:, 'vqq_template_context', s:template_context)
 
+
+function! s:load_index_prompt(context)
+    let l:current_dir = expand('<script>:p:h:h:h')
+    echom l:current_dir
+    if a:context == v:null
+        let l:prompt_file = l:current_dir . '/prompts/index_query.txt'
+    else
+        let l:prompt_file = l:current_dir . '/prompts/index_query_context.txt'
+    endif
+    return readfile(l:prompt_file)
+endfunction
+
+function! s:load_index_lines()
+    let l:current_dir = expand('%:p:h')
+    let l:prev_dir = ''
+
+    while l:current_dir != l:prev_dir
+      " Check if lucas.idx file exists in current dir
+      let l:file_path = l:current_dir . '/lucas.idx'
+      if filereadable(l:file_path)
+          return readfile(l:file_path)
+      endif
+
+      let l:prev_dir = l:current_dir
+      let l:current_dir = fnamemodify(l:current_dir, ':h')
+    endwhile
+    return v:null
+endfunction
+
+" Fill context into message object
+function! vimqq#fmt#fill_context(message, context, use_index)
+    let l:message = deepcopy(a:message)
+
+    if a:context != v:null
+        let l:message.context = a:context
+    endif
+    if a:use_index
+        " TODO: Do we save index snapshot here?
+        let l:index_lines = s:load_index_lines()
+        if l:index_lines != v:null
+            let l:message.index = join(l:index_lines, '\n')
+        else
+            call vimqq#log#error('Unable to locate lucas.idx file')
+        endif
+    endif
+    return l:message
+endfunction
+
 " receives message object. Picks the format based on selection/context
 " We try to keep the message itself in the very end to allow for more
 " effective warmup. 
 "
 " returns formatted content
-function! vimqq#fmt#content(message, folding_context=v:false)
+function! vimqq#fmt#content(message, for_ui=v:false)
+    let l:res = vimqq#prompts#pick(a:message, a:for_ui)
     let l:replacements = {
-        \ "message"  : "{vqq_message}",
-        \ "context"  : "{vqq_context}"
-    \ }
+        \ "{vqq_message}": {msg -> has_key(msg, 'message') ? msg.message : ''},
+        \ "{vqq_context}": {msg -> has_key(msg, 'context') ? msg.context : ''},
+        \ "{vqq_lucas_index}": {msg -> has_key(msg, 'index') ? msg.index : ''},
+        \ "{vqq_lucas_index_size}": {msg -> has_key(msg, 'index') ? len(msg.index) : 0}
+        \ }
 
-    let l:res = "{vqq_message}"
-
-    if has_key(a:message, "context")
-        let l:res = g:vqq_template_context
-    endif
-
-    if a:folding_context
-        let l:res = substitute(
-              \ l:res,
-              \ '{vqq_context}',
-              \ '{{{ ...\n{vqq_context}\n}}}', 'g')
-    endif
-
-    for [key, pattern] in items(l:replacements)
-        if has_key(a:message, key)
-            let l:escaped = escape(a:message[key], (&magic ? '&~' : ''))
-            let l:res = substitute(l:res, pattern, l:escaped, 'g')
-        endif
+    for [pattern, ContextFn] in items(l:replacements)
+        let l:escaped = escape(ContextFn(a:message), (&magic ? '&~' : ''))
+        let l:res = substitute(l:res, pattern, l:escaped, 'g')
     endfor
 
     return l:res

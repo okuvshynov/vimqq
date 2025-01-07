@@ -1,4 +1,7 @@
-You are given a summary of a code repository in the following xml-like format:
+You will be given your task in <task></task> tags.
+
+To help you resolve the task, you are given an index summary of a code repository in the following xml-like format:
+
 <dir>
     <path>...</path>
     <summary>Description of this directory</summary>
@@ -15,9 +18,12 @@ You are given a summary of a code repository in the following xml-like format:
 
 Each directory will have a summary, all files will be listed.
 
-You will be given your task in <task></task> tags.
 
 You will have access to several tools:
 - get_files: tool to get content of the files you might need to accomplish that task;
 
 Use the summaries provided to identify the files you need. Feel free to use tools more than once if you discovered that you need more information.
+
+{vqq_lucas_index}
+
+<task>{vqq_message}</task>

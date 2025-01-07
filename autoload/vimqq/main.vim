@@ -75,7 +75,7 @@ call vimqq#events#add_observer(s:controller)
 " This is 'internal API' - functions called by defined public commands
 
 " Sends new message to the server
-function! vimqq#main#send_message(force_new_chat, question, context=v:null)
+function! vimqq#main#send_message(force_new_chat, question, context=v:null, use_index=v:false)
     " pick the bot. we modify message and remove bot tag
     let [l:bot, l:question] = s:bots.select(a:question)
 
@@ -87,7 +87,7 @@ function! vimqq#main#send_message(force_new_chat, question, context=v:null)
           \ "bot_name" : l:bot.name()
     \ }
 
-    let l:message = vimqq#fmt#fill_context(l:message, a:context)
+    let l:message = vimqq#fmt#fill_context(l:message, a:context, a:use_index)
 
     let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
     call vimqq#metrics#user_started_waiting(l:chat_id)
@@ -157,10 +157,22 @@ function! vimqq#main#qq(message) abort range
 endfunction
 
 function! vimqq#main#qqn(message) abort range
-    call vimqq#log#debug('qq: sending message')
+    call vimqq#log#debug('qqn: sending message')
     let l:lines = getline(a:firstline, a:lastline)
     let l:context = join(l:lines, '\n')
     call vimqq#main#send_message(v:true, a:message, l:context)
+endfunction
+
+function! vimqq#main#qqi(message) abort range
+    call vimqq#log#debug('qqi: sending message')
+    let l:lines = getline(a:firstline, a:lastline)
+    let l:context = join(l:lines, '\n')
+    call vimqq#main#send_message(v:true, a:message, l:context, v:true)
+endfunction
+
+function! vimqq#main#qi(message) abort
+    call vimqq#log#debug('qi: sending message')
+    call vimqq#main#send_message(v:true, a:message, v:null, v:true)
 endfunction
 
 function! vimqq#main#q(message) abort
@@ -192,6 +204,17 @@ function! vimqq#main#dispatch(count, line1, line2, args) abort
     else
         " Range was provided, pass the line numbers
         execute a:line1 . ',' . a:line2 . 'call vimqq#main#qq(a:args)'
+    endif
+endfunction
+
+function! vimqq#main#dispatch_index(count, line1, line2, args) abort
+    call vimqq#log#info('dispatching')
+    if a:count == -1
+        " No range was provided
+        call vimqq#main#qi(a:args)
+    else
+        " Range was provided, pass the line numbers
+        execute a:line1 . ',' . a:line2 . 'call vimqq#main#qqi(a:args)'
     endif
 endfunction
 

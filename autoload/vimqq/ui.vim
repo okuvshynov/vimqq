@@ -253,6 +253,7 @@ function! s:setup_syntax()
     syntax match userPrompt "You:"            contained nextgroup=taggedBot skipwhite
     syntax match botPrompt  "\%(You\)\@![A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
     syntax match taggedBot  "@[A-Za-z0-9_]\+" contained nextgroup=restOfLine
+    syntax match indexSize  "\[index (\d\+ bytes)\]"
 
     syntax match restOfLine ".*$" contained
 
@@ -260,6 +261,7 @@ function! s:setup_syntax()
     highlight link botPrompt Identifier
     highlight link timestr Constant
     highlight link taggedBot Comment
+    highlight link indexSize Todo
 endfunction
 
 augroup VQQSyntax

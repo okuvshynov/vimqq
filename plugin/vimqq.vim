@@ -14,6 +14,7 @@
 
 command! -range -nargs=+ QQ call vimqq#main#dispatch(<count>, <line1>, <line2>, <q-args>)
 command! -range -nargs=+ QQN call vimqq#main#dispatch_new(<count>, <line1>, <line2>, <q-args>)
+command! -range -nargs=+ QQI call vimqq#main#dispatch_index(<count>, <line1>, <line2>, <q-args>)
 
 " Fork the current chat reusing the context from the first message.
 " It is useful in cases of long context, but when you want to start a new
