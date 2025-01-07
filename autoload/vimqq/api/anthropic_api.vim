@@ -11,6 +11,7 @@ function! vimqq#api#anthropic_api#new() abort
 
     let l:api._req_id = 0
     let l:api._replies = {}
+    let l:api._tool_uses = {}
     let l:api._api_key = g:vqq_claude_api_key
 
     function! l:api._on_error(msg, params) dict
@@ -22,7 +23,8 @@ function! vimqq#api#anthropic_api#new() abort
         call vimqq#log#info('anthropic stream closed.')
     endfunction
 
-    function! l:api._on_stream_out(msg, params) dict
+    function! l:api._on_stream_out(msg, params, req_id) dict
+        call vimqq#log#debug(a:msg)
         let l:messages = split(a:msg, '\n')
         for message in l:messages
             if message !~# '^data: '
@@ -30,6 +32,15 @@ function! vimqq#api#anthropic_api#new() abort
             endif
             let json_string = substitute(message, '^data: ', '', '')
             let response = json_decode(json_string)
+
+            if response['type'] == 'content_block_start'
+                if response['content_block']['type'] == 'tool_use'
+                    let tool_name = response['content_block']['name']
+                    let self._tool_uses[a:req_id] = {'name': tool_name, 'input': ''}
+
+                    call a:params.on_chunk(a:params, "\n\n[tool_call: " . tool_name . "(...")
+                endif
+            endif
 
             if response['type'] == 'message_start'
                 continue
@@ -40,11 +51,21 @@ function! vimqq#api#anthropic_api#new() abort
                 continue
             endif
             if response['type'] == 'message_delta'
+                if response['delta']['stop_reason'] == 'tool_use'
+                    call a:params.on_chunk(a:params, ')]')
+                endif
                 continue
             endif
             if response['type'] == 'content_block_delta'
-                let chunk = response.delta.text
-                call a:params.on_chunk(a:params, chunk)
+                if response['delta']['type'] == 'text_delta'
+                    let chunk = response.delta.text
+                    call a:params.on_chunk(a:params, chunk)
+                endif
+                if response['delta']['type'] == 'input_json_delta'
+                    let chunk = response.delta.partial_json
+                    let self._tool_uses[a:req_id]['input'] = self._tool_uses[a:req_id]['input'] . chunk
+                    "call a:params.on_chunk(a:params, chunk)
+                endif
             endif
         endfor
     endfunction
@@ -85,8 +106,11 @@ function! vimqq#api#anthropic_api#new() abort
         \   'messages' : l:messages,
         \   'model': a:params.model,
         \   'max_tokens' : get(a:params, 'max_tokens', 1024),
-        \   'stream': get(a:params, 'stream', v:false)
+        \   'stream': get(a:params, 'stream', v:false),
+        \   'tools': get(a:params, 'tools', [])
         \}
+
+        call vimqq#log#debug(string(req['tools']))
 
         if l:system != v:null
             let req['system'] = l:system
@@ -95,10 +119,11 @@ function! vimqq#api#anthropic_api#new() abort
         let req_id = self._req_id
         let self._req_id = self._req_id + 1
         let self._replies[req_id] = []
+        let self._tool_uses[req_id] = []
 
         if req.stream
             let l:job_conf = {
-            \   'out_cb': {channel, msg -> self._on_stream_out(msg, a:params)},
+            \   'out_cb': {channel, msg -> self._on_stream_out(msg, a:params, req_id)},
             \   'err_cb': {channel, msg -> self._on_error(msg, a:params)},
             \   'close_cb': {channel -> self._on_stream_close(a:params)},
             \ }

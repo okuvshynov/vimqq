@@ -2,22 +2,9 @@ You will be given your task in <task></task> tags.
 
 You will be also given a relevant code selection in <context></context> tags. This is something user selected to ask a question about.
 
-To help you resolve the task, you are given an index summary of a code repository in the following xml-like format:
-<dir>
-    <path>...</path>
-    <summary>Description of this directory</summary>
-    <dirs>
-        <dir>...</dir>
-        <dir>...</dir>
-    </dirs>
-    <files>
-        <file>file/path/here</file>
-        <file>file/path/here</file>
-        ...
-    </files>
-</dir>
+To help you resolve the task, you are given an index summary of a code repository in the following json-like format:
 
-Each directory will have a summary, all files will be listed.
+Each directory and file will have a summary.
 
 You will have access to several tools:
 - get_files: tool to get content of the files you might need to accomplish that task;

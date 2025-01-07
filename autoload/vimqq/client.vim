@@ -19,6 +19,7 @@ function! vimqq#client#new(impl, config = {}) abort
     let l:client._conf = deepcopy(s:default_conf)
     call extend(l:client._conf, a:config)
     
+    let l:client.toolset = v:null
     let l:client._impl = a:impl
 
     function! l:client.name() dict
@@ -79,6 +80,11 @@ function! vimqq#client#new(impl, config = {}) abort
         \   'on_chunk' : {p, m -> vimqq#events#notify('chunk_done', {'chat_id': a:chat_id, 'chunk': m})},
         \   'on_complete' : {err, p -> vimqq#events#notify('reply_done', {'chat_id': a:chat_id, 'bot' : self})}
         \ }
+
+        if self.toolset != v:null
+            let req['tools'] = self.toolset.def(v:true)
+        endif
+
         return self._impl.chat(req)
 
     endfunction

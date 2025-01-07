@@ -254,6 +254,7 @@ function! s:setup_syntax()
     syntax match botPrompt  "\%(You\)\@![A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
     syntax match taggedBot  "@[A-Za-z0-9_]\+" contained nextgroup=restOfLine
     syntax match indexSize  "\[index (\d\+ bytes)\]"
+    syntax match toolCall "\[tool_call: get_files(...)\]"
 
     syntax match restOfLine ".*$" contained
 
@@ -262,6 +263,7 @@ function! s:setup_syntax()
     highlight link timestr Constant
     highlight link taggedBot Comment
     highlight link indexSize Todo
+    highlight link toolCall Todo
 endfunction
 
 augroup VQQSyntax

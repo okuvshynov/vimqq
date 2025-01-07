@@ -11,17 +11,6 @@ let g:vqq_template_context =
       \ get(g:, 'vqq_template_context', s:template_context)
 
 
-function! s:load_index_prompt(context)
-    let l:current_dir = expand('<script>:p:h:h:h')
-    echom l:current_dir
-    if a:context == v:null
-        let l:prompt_file = l:current_dir . '/prompts/index_query.txt'
-    else
-        let l:prompt_file = l:current_dir . '/prompts/index_query_context.txt'
-    endif
-    return readfile(l:prompt_file)
-endfunction
-
 function! s:load_index_lines()
     let l:current_dir = expand('%:p:h')
     let l:prev_dir = ''
