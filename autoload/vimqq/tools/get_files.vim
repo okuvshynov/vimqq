@@ -9,7 +9,11 @@ function! vimqq#tools#get_files#new(root) abort
 
     let l:tool._root = a:root
 
-    function! l:tool.schema() abort
+    function! l:tool.name() dict
+        return 'get_files'
+    endfunction
+
+    function! l:tool.schema() dict
         let definition = {
         \ 'type': 'function',
         \ 'function': {

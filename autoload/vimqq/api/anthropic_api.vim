@@ -13,6 +13,7 @@ function! vimqq#api#anthropic_api#new() abort
     let l:api._replies = {}
     let l:api._tool_uses = {}
     let l:api._api_key = g:vqq_claude_api_key
+    let l:api._toolset = vimqq#tools#toolset#new()
 
     function! l:api._on_error(msg, params) dict
         call vimqq#log#error('API error')
@@ -36,7 +37,7 @@ function! vimqq#api#anthropic_api#new() abort
             if response['type'] == 'content_block_start'
                 if response['content_block']['type'] == 'tool_use'
                     let tool_name = response['content_block']['name']
-                    let self._tool_uses[a:req_id] = {'name': tool_name, 'input': ''}
+                    let self._tool_uses[a:req_id] = {'name': tool_name, 'input': '', 'id': response['content_block']['id']}
 
                     call a:params.on_chunk(a:params, "\n\n[tool_call: " . tool_name . "(...")
                 endif
@@ -53,6 +54,9 @@ function! vimqq#api#anthropic_api#new() abort
             if response['type'] == 'message_delta'
                 if response['delta']['stop_reason'] == 'tool_use'
                     call a:params.on_chunk(a:params, ')]')
+                    " TODO: somewhere here we call the tool
+                    let self._tool_uses[a:req_id]['input'] = json_decode(self._tool_uses[a:req_id]['input'])
+                    call a:params.on_tool_use(self._tool_uses[a:req_id])
                 endif
                 continue
             endif

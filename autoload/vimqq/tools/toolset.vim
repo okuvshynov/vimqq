@@ -34,5 +34,18 @@ function! vimqq#tools#toolset#new()
         return [tool]
     endfunction
 
+    function! res.run(tool_call) dict
+        call vimqq#log#info('Calling tool: ' . string(a:tool_call))
+        for tool in self.tools
+            if tool.name() == a:tool_call['name']
+                let res = tool.run(a:tool_call['input'])
+                call vimqq#log#info(res)
+                return res
+            endif
+        endfor
+        return v:null
+    endfunction
+
     return res
 endfunction
+

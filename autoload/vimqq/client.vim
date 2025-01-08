@@ -19,7 +19,6 @@ function! vimqq#client#new(impl, config = {}) abort
     let l:client._conf = deepcopy(s:default_conf)
     call extend(l:client._conf, a:config)
     
-    let l:client.toolset = v:null
     let l:client._impl = a:impl
 
     function! l:client.name() dict
@@ -69,7 +68,13 @@ function! vimqq#client#new(impl, config = {}) abort
         return self._impl.chat(req)
     endfunction
 
-    function! l:client.send_chat(chat_id, messages, stream=v:true) dict
+    function! l:client._tool_run(chat_id, messages, tool_call) dict
+        let tool_result = self._impl._toolset.run(a:tool_call)
+        let tool_reply = {"role": "user", "content" : [{"type": "tool_result", "tool_use_id": a:tool_call['id'], "content": tool_result}]}
+        call self.send_chat(a:chat_id, a:messages, v:true, tool_reply)
+    endfunction
+
+    function! l:client.send_chat(chat_id, messages, stream=v:true, tool_reply=v:null) dict
         " here we attemt to do streaming. If API implementation
         " doesn't support it, it would 'stream' everything in single chunk
         let req = {
@@ -81,8 +86,13 @@ function! vimqq#client#new(impl, config = {}) abort
         \   'on_complete' : {err, p -> vimqq#events#notify('reply_done', {'chat_id': a:chat_id, 'bot' : self})}
         \ }
 
-        if self.toolset != v:null
-            let req['tools'] = self.toolset.def(v:true)
+        if a:tool_reply != v:null
+            let req['messages'] = req['messages'] + [a:tool_reply]
+        endif
+
+        if has_key(self._impl, '_toolset')
+            let req['tools'] = self._impl._toolset.def(v:true)
+            let req['on_tool_use'] = {tool_call -> self._tool_run(a:chat_id, a:messages, tool_call)}
         endif
 
         return self._impl.chat(req)
