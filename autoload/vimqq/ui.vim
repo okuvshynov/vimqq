@@ -99,6 +99,8 @@ function vimqq#ui#new() abort
             call self._open_chat_window()
         endif
 
+        call vimqq#log#info('append_message: ' . string(a:message))
+
         setlocal modifiable
         let l:tstamp = "        "
         if has_key(a:message, 'timestamp')
@@ -109,8 +111,8 @@ function vimqq#ui#new() abort
         else
             let prompt = l:tstamp . a:message['bot_name'] . ": "
         endif
-        let l:content = a:message
-        let lines = split(prompt . a:message['content'], '\n')
+        " TODO: what if there's more than 1 piece of content?
+        let lines = split(prompt . a:message['content'][0]['text'], '\n')
         for l in lines
             if line('$') == 1 && getline(1) == ''
                 call setline(1, l)
@@ -125,13 +127,6 @@ function vimqq#ui#new() abort
 
     " }}}
     " {{{ public:
-
-    function! l:ui.update_statusline(status, bot_name) dict
-        if !has_key(self._bot_status, a:bot_name) || self._bot_status[a:bot_name] != a:status
-            let self._bot_status[a:bot_name] = a:status
-            redrawstatus!
-        endif
-    endfunction
 
     function! l:ui.update_queue_size(queue_size) dict
         if self._queue_size != a:queue_size
@@ -214,7 +209,7 @@ function vimqq#ui#new() abort
 
         " display streamed partial response
         if has_key(a:partial, 'bot_name') && !empty(a:partial.bot_name)
-            call self._append_message(v:false, a:partial)
+            call self._append_message(v:false, vimqq#fmt#one(a:partial, v:true))
         endif
     endfunction
 
@@ -233,9 +228,6 @@ function vimqq#ui#new() abort
             if a:args['chat_id'] == a:args['state'].get_chat_id()
                 call self.append_partial(a:args['chunk'])
             endif
-        endif
-        if a:event == 'bot_status'
-            call self.update_statusline(a:args['status'], a:args['bot'].name())
         endif
     endfunction
 

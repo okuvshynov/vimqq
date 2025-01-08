@@ -33,13 +33,13 @@ function! vimqq#fmt#fill_context(message, context, use_index)
     let l:message = deepcopy(a:message)
 
     if a:context != v:null
-        let l:message.context = a:context
+        let l:message.sources.context = a:context
     endif
     if a:use_index
         " TODO: Do we save index snapshot here?
         let l:index_lines = s:load_index_lines()
         if l:index_lines != v:null
-            let l:message.index = join(l:index_lines, '\n')
+            let l:message.sources.index = join(l:index_lines, '\n')
         else
             call vimqq#log#error('Unable to locate lucas.idx file')
         endif
@@ -55,10 +55,10 @@ endfunction
 function! vimqq#fmt#content(message, for_ui=v:false)
     let l:res = vimqq#prompts#pick(a:message, a:for_ui)
     let l:replacements = {
-        \ "{vqq_message}": {msg -> has_key(msg, 'message') ? msg.message : ''},
-        \ "{vqq_context}": {msg -> has_key(msg, 'context') ? msg.context : ''},
-        \ "{vqq_lucas_index}": {msg -> has_key(msg, 'index') ? msg.index : ''},
-        \ "{vqq_lucas_index_size}": {msg -> has_key(msg, 'index') ? len(msg.index) : 0}
+        \ "{vqq_message}": {msg -> has_key(msg.sources, 'text') ? msg.sources.text : ''},
+        \ "{vqq_context}": {msg -> has_key(msg.sources, 'context') ? msg.sources.context : ''},
+        \ "{vqq_lucas_index}": {msg -> has_key(msg.sources, 'index') ? msg.sources.index : ''},
+        \ "{vqq_lucas_index_size}": {msg -> has_key(msg.sources, 'index') ? len(msg.sources.index) : 0}
         \ }
 
     for [pattern, ContextFn] in items(l:replacements)
@@ -71,7 +71,7 @@ endfunction
 
 function! vimqq#fmt#one(message, folding_context=v:false)
     let new_msg = deepcopy(a:message)
-    let new_msg.content = vimqq#fmt#content(a:message, a:folding_context)
+    let new_msg.content = [{'type': 'text', 'text': vimqq#fmt#content(a:message, a:folding_context)}]
     return new_msg
 endfunction
 

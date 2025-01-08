@@ -57,6 +57,7 @@ function! vimqq#api#llama_api#new(endpoint) abort
         try
             let l:response = json_decode(l:response)
         catch
+            call vimqq#log#error(string(l:response))
             call vimqq#log#error('llama_api: Unable to process response')
             " TODO: still need to mark query as done
             if has_key(a:params, 'on_complete')

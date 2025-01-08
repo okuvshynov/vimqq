@@ -18,10 +18,10 @@ endfunction
 
 function! vimqq#prompts#pick(message, for_ui=v:false)
     let filename = 'prompt'
-    if has_key(a:message, 'context')
+    if has_key(a:message.sources, 'context')
         let filename = filename . '_context'
     endif
-    if has_key(a:message, 'index')
+    if has_key(a:message.sources, 'index')
         let filename = filename . '_index'
     endif
     if a:for_ui

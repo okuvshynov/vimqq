@@ -48,7 +48,7 @@ def chat():
         if n_predict == 0:
             is_warmup = True
 
-    question = input_data['messages'][-1]['content']
+    question = input_data['messages'][-1]['content'][0]['text']
     logging.info(f'QUERY: {question}')
     logging.info(f'is_warmup: {is_warmup}')
 

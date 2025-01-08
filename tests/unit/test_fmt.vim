@@ -3,7 +3,7 @@ let s:lib = s:path . "/../libtest.vim"
 execute "source " . s:lib
 
 function! Test_context()
-    let s:message = {'context' : 'CONTEXT', 'message': 'MESSAGE'}
+    let s:message = {'sources': {'context' : 'CONTEXT', 'text': 'MESSAGE'}}
 
     let s:formatted = vimqq#fmt#content(s:message)
 
@@ -12,7 +12,7 @@ function! Test_context()
 endfunction
 
 function! Test_escape()
-    let s:message = {'context' : 'CON&TEXT', 'message': 'MESSAGE'}
+    let s:message = {'sources': {'context' : 'CON&TEXT', 'text': 'MESSAGE'}}
 
     let s:formatted = vimqq#fmt#content(s:message)
 
@@ -21,7 +21,7 @@ function! Test_escape()
 endfunction
 
 function! Test_no_context()
-    let s:message = {'message': 'MESSAGE'}
+    let s:message = {'sources': {'text': 'MESSAGE'}}
 
     let s:formatted = vimqq#fmt#content(s:message)
 

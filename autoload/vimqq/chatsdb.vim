@@ -68,7 +68,7 @@ function! vimqq#chatsdb#new() abort
     endfunction
 
     function! l:db.append_partial(chat_id, part) dict
-        let self._chats[a:chat_id].partial_message.content .= a:part
+        let self._chats[a:chat_id].partial_message.sources.text .= a:part
         let self._chats[a:chat_id].partial_message.seq_id = self.seq_id()
         call self._save()
 
@@ -152,20 +152,17 @@ function! vimqq#chatsdb#new() abort
     endfunction
 
     function! l:db.clear_partial(chat_id) dict
-        let self._chats[a:chat_id].partial_message = {"role": "assistant", "content": ""}
+        let self._chats[a:chat_id].partial_message = {"role": "assistant", "sources": { "text": ""}}
         call self._save()
     endfunction
 
     function! l:db.reset_partial(chat_id, bot_name) dict
-        let self._chats[a:chat_id].partial_message = {"role": "assistant", "content": "", "bot_name": a:bot_name, "timestamp": localtime()}
+        let self._chats[a:chat_id].partial_message = {"role": "assistant", "sources": { "text": ""}, "bot_name": a:bot_name, "timestamp": localtime()}
         call self._save()
     endfunction
 
     function! l:db.partial_done(chat_id) dict
         let l:message = deepcopy(self._chats[a:chat_id].partial_message)
-        let l:message.message = l:message.content
-        let l:message.content = ""
-        
         call self.append_message(a:chat_id, l:message)
         call self.clear_partial(a:chat_id)
         call self._save()
@@ -194,7 +191,7 @@ function! vimqq#chatsdb#new() abort
                 call vimqq#log#info("callback on non-existent chat.")
                 return
             endif
-            if empty(self.get_partial(a:args['chat_id']).content)
+            if empty(self.get_partial(a:args['chat_id']).sources.text)
                 call vimqq#metrics#first_token(a:args['chat_id'])
             endif
             call self.append_partial(a:args['chat_id'], a:args['chunk'])

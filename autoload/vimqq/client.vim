@@ -54,7 +54,7 @@ function! vimqq#client#new(impl, config = {}) abort
         let prompt = vimqq#prompts#gen_title_prompt()
         let messages = [
         \   {'role': 'system', 'content' : self._conf.system_prompt},
-        \   {'role': 'user', 'content' : prompt . text}
+        \   {'role': 'user', 'content' : [{'type': 'text', 'text': prompt . text}]}
         \ ]
 
         " for non-streaming there'll be exactly one chunk
@@ -77,6 +77,8 @@ function! vimqq#client#new(impl, config = {}) abort
     function! l:client.send_chat(chat_id, messages, stream=v:true, tool_reply=v:null) dict
         " here we attemt to do streaming. If API implementation
         " doesn't support it, it would 'stream' everything in single chunk
+
+        call vimqq#log#info('send_chat ' . string(a:messages))
         let req = {
         \   'messages' : self._format(a:messages),
         \   'max_tokens' : self._conf.max_tokens,
@@ -91,8 +93,8 @@ function! vimqq#client#new(impl, config = {}) abort
         endif
 
         if has_key(self._impl, '_toolset')
-            let req['tools'] = self._impl._toolset.def(v:true)
-            let req['on_tool_use'] = {tool_call -> self._tool_run(a:chat_id, a:messages, tool_call)}
+            "let req['tools'] = self._impl._toolset.def(v:true)
+            "let req['on_tool_use'] = {tool_call -> self._tool_run(a:chat_id, a:messages, tool_call)}
         endif
 
         return self._impl.chat(req)

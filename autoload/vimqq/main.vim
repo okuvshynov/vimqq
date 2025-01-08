@@ -83,7 +83,7 @@ function! vimqq#main#send_message(force_new_chat, question, context=v:null, use_
     " The author of this message is user. TODO: Rename to 'tagged_bot'
     let l:message = {
           \ "role"     : 'user',
-          \ "message"  : l:question,
+          \ "sources"  : { "text": l:question },
           \ "bot_name" : l:bot.name()
     \ }
 
@@ -104,11 +104,11 @@ function! vimqq#main#send_warmup(force_new_chat, question, context=v:null)
     let [l:bot, l:question] = s:bots.select(a:question)
     let l:message = {
           \ "role"     : 'user',
-          \ "message"  : l:question,
+          \ "sources"  : { "text": l:question },
           \ "bot_name" : l:bot.name()
     \ }
 
-    let l:message = vimqq#fmt#fill_context(l:message, a:context)
+    let l:message = vimqq#fmt#fill_context(l:message, a:context, v:false)
 
     let l:chat_id = s:state.get_chat_id()
 
@@ -149,6 +149,7 @@ function! vimqq#main#show_current_chat()
 endfunction
 
 " -----------------------------------------------------------------------------
+" Here 'message' is just a string
 function! vimqq#main#qq(message) abort range
     call vimqq#log#debug('qq: sending message')
     let l:lines = getline(a:firstline, a:lastline)

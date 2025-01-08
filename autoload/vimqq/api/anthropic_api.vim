@@ -55,6 +55,7 @@ function! vimqq#api#anthropic_api#new() abort
                 if response['delta']['stop_reason'] == 'tool_use'
                     call a:params.on_chunk(a:params, ')]')
                     " TODO: somewhere here we call the tool
+                    " TODO: we need to save a message with tool call as well
                     let self._tool_uses[a:req_id]['input'] = json_decode(self._tool_uses[a:req_id]['input'])
                     call a:params.on_tool_use(self._tool_uses[a:req_id])
                 endif
