@@ -247,6 +247,7 @@ function! s:setup_syntax()
     syntax match taggedBot  "@[A-Za-z0-9_]\+" contained nextgroup=restOfLine
     syntax match indexSize  "\[index (\d\+ bytes)\]"
     syntax match toolCall "\[tool_call: .\+(...)\]"
+    syntax match toolCallRes "\[tool_call_result\]"
 
     syntax match restOfLine ".*$" contained
 
@@ -256,6 +257,7 @@ function! s:setup_syntax()
     highlight link taggedBot Comment
     highlight link indexSize Todo
     highlight link toolCall Todo
+    highlight link toolCallRes Todo
 endfunction
 
 augroup VQQSyntax

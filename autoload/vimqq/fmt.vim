@@ -59,7 +59,7 @@ function! vimqq#fmt#content(message, for_ui=v:false)
         \ "{vqq_context}": {msg -> has_key(msg.sources, 'context') ? msg.sources.context : ''},
         \ "{vqq_lucas_index}": {msg -> has_key(msg.sources, 'index') ? msg.sources.index : ''},
         \ "{vqq_lucas_index_size}": {msg -> has_key(msg.sources, 'index') ? len(msg.sources.index) : 0},
-        \ "{vqq_tool_call}" : {msg -> has_key(msg, 'tool_use') ? "[tool_call: " . msg.tool_use.name . "(...)]": ""}
+        \ "{vqq_tool_call}" : {msg -> has_key(msg, 'tool_use') ? "\n\n[tool_call: " . msg.tool_use.name . "(...)]": ""}
         \ }
 
     for [pattern, ContextFn] in items(l:replacements)
@@ -78,7 +78,7 @@ function! vimqq#fmt#one(message, folding_context=v:false)
         if a:message.content[0].type == 'tool_result'
             " if for UI:
             if a:folding_context
-                let new_msg.content = [{'type': 'text', 'text': '[tool_call_result]'}]
+                let new_msg.content = [{'type': 'text', 'text': "\n\n[tool_call_result]"}]
                 return new_msg
             else
                 return new_msg
