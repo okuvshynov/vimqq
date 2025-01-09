@@ -58,7 +58,8 @@ function! vimqq#fmt#content(message, for_ui=v:false)
         \ "{vqq_message}": {msg -> has_key(msg.sources, 'text') ? msg.sources.text : ''},
         \ "{vqq_context}": {msg -> has_key(msg.sources, 'context') ? msg.sources.context : ''},
         \ "{vqq_lucas_index}": {msg -> has_key(msg.sources, 'index') ? msg.sources.index : ''},
-        \ "{vqq_lucas_index_size}": {msg -> has_key(msg.sources, 'index') ? len(msg.sources.index) : 0}
+        \ "{vqq_lucas_index_size}": {msg -> has_key(msg.sources, 'index') ? len(msg.sources.index) : 0},
+        \ "{vqq_tool_call}" : {msg -> has_key(msg, 'tool_use') ? "[tool_call: " . msg.tool_use.name . "(...)]": ""}
         \ }
 
     for [pattern, ContextFn] in items(l:replacements)
@@ -71,6 +72,31 @@ endfunction
 
 function! vimqq#fmt#one(message, folding_context=v:false)
     let new_msg = deepcopy(a:message)
+
+    " check if this is tool response
+    if has_key(a:message, 'content')
+        if a:message.content[0].type == 'tool_result'
+            " if for UI:
+            if a:folding_context
+                let new_msg.content = [{'type': 'text', 'text': '[tool_call_result]'}]
+                return new_msg
+            else
+                return new_msg
+            endif
+        endif
+    endif
+
+    if has_key(a:message, 'tool_use')
+        let tool_use = {
+            \ 'type': 'tool_use',
+            \ 'id': a:message.tool_use.id,
+            \ 'name': a:message.tool_use.name,
+            \ 'input': a:message.tool_use.input
+        \}
+        let new_msg.content = [{'type': 'text', 'text': vimqq#fmt#content(a:message, a:folding_context)}, tool_use]
+        return new_msg
+    endif
+
     let new_msg.content = [{'type': 'text', 'text': vimqq#fmt#content(a:message, a:folding_context)}]
     return new_msg
 endfunction

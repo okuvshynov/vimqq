@@ -71,7 +71,27 @@ function! vimqq#chatsdb#new() abort
         let self._chats[a:chat_id].partial_message.sources.text .= a:part
         let self._chats[a:chat_id].partial_message.seq_id = self.seq_id()
         call self._save()
+    endfunction
 
+
+    function! l:db.append_partial_tool_use(chat_id, tool_use) dict
+        let self._chats[a:chat_id].partial_message.tool_use = a:tool_use
+        let self._chats[a:chat_id].partial_message.seq_id = self.seq_id()
+        call self._save()
+
+    endfunction
+
+    function! l:db.set_tools(chat_id, toolset) dict
+        let self._chats[a:chat_id].tools_allowed = v:true
+        let self._chats[a:chat_id].toolset = a:toolset
+        call self._save()
+    endfunction
+
+    function! l:db.get_tools(chat_id) dict
+        if has_key(self._chats, a:chat_id) && has_key(self._chats[a:chat_id], 'tools_allowed')
+            return v:true
+        endif
+        return v:false
     endfunction
 
     function! l:db.delete_chat(chat_id) dict
@@ -91,6 +111,10 @@ function! vimqq#chatsdb#new() abort
 
     function! l:db.get_title(chat_id) dict
         return self._chats[a:chat_id].title
+    endfunction
+
+    function! l:db.get_chat(chat_id) dict
+        return self._chats[a:chat_id]
     endfunction
 
     function! l:db.set_title(chat_id, title) dict
@@ -186,6 +210,14 @@ function! vimqq#chatsdb#new() abort
     endfunction
 
     function! l:db.handle_event(event, args) dict
+        if a:event == 'tool_use_recv'
+            if !self.chat_exists(a:args['chat_id'])
+                call vimqq#log#info("callback on non-existent chat.")
+                return
+            endif
+            call self.append_partial_tool_use(a:args['chat_id'], a:args['tool_use'])
+            return
+        endif
         if a:event == 'chunk_done'
             if !self.chat_exists(a:args['chat_id'])
                 call vimqq#log#info("callback on non-existent chat.")

@@ -11,6 +11,7 @@ let s:bots    = vimqq#bots#bots#new()
 let s:state   = vimqq#state#new(s:chatsdb)
 let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
 let s:dispatcher = vimqq#dispatcher#new(s:chatsdb)  
+let s:toolset = vimqq#tools#toolset#new()
 
 function! s:new() abort
     let l:controller = {}
@@ -23,6 +24,28 @@ function! s:new() abort
         if a:event == 'reply_saved'
             let chat_id = a:args['chat_id']
             let bot = a:args['bot']
+            
+            call vimqq#main#show_chat(chat_id)
+            " TODO: here we check if reply has tool call
+            
+            call vimqq#log#info('checking if message has tool calls')
+            let messages = s:chatsdb.get_messages(chat_id)
+            if len(messages) > 0 
+                let last_message = messages[len(messages) - 1]
+                if has_key(last_message, 'tool_use') 
+                    let tool_result = s:toolset.run(last_message.tool_use)
+                    let tool_reply = {"role": "user", "content" : [{"type": "tool_result", "tool_use_id": last_message.tool_use['id'], "content": tool_result}], "bot_name": bot.name()}
+
+                    call vimqq#metrics#user_started_waiting(chat_id)
+                    if s:dispatcher.enqueue_query(chat_id, bot, tool_reply)
+                        call vimqq#main#show_chat(chat_id)
+                    endif
+
+                    call s:ui.update_queue_size(s:dispatcher.queue_size())
+                endif
+            endif
+    
+
             " TODO: modify this with event/observer based 
             if s:chatsdb.chat_len(chat_id) <= 2
                 call bot.send_gen_title(chat_id, s:chatsdb.get_first_message(chat_id))
@@ -36,6 +59,15 @@ function! s:new() abort
                 call vimqq#main#show_chat(chat_id)
             endif
             call s:ui.update_queue_size(s:dispatcher.queue_size())
+            return
+        endif
+        if a:event == 'tool_result'
+            let chat_id = a:args['chat_id']
+            let tool_reply = a:args['result']
+            let bot = a:args['bot']
+            if s:dispatcher.enqueue_query(chat_id, bot, tool_reply)
+                call vimqq#main#show_chat(chat_id)
+            endif
             return
         endif
         if a:event == 'delete_chat'
@@ -90,6 +122,13 @@ function! vimqq#main#send_message(force_new_chat, question, context=v:null, use_
     let l:message = vimqq#fmt#fill_context(l:message, a:context, a:use_index)
 
     let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
+
+    " TODO: when do we allow tools? Currently, if index is allowed.
+    " Do we save tools themselves?
+    if a:use_index
+        " TODO: Assumes everything is anthropic
+        call s:chatsdb.set_tools(l:chat_id, s:toolset.def(v:true))
+    endif
     call vimqq#metrics#user_started_waiting(l:chat_id)
     call vimqq#log#debug('user started waiting')
     if s:dispatcher.enqueue_query(l:chat_id, l:bot, l:message)

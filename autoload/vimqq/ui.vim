@@ -99,7 +99,7 @@ function vimqq#ui#new() abort
             call self._open_chat_window()
         endif
 
-        call vimqq#log#info('append_message: ' . string(a:message))
+        call vimqq#log#info('UI: append_message: ' . strcharpart(string(a:message), 0, 300))
 
         setlocal modifiable
         let l:tstamp = "        "
@@ -246,7 +246,7 @@ function! s:setup_syntax()
     syntax match botPrompt  "\%(You\)\@![A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
     syntax match taggedBot  "@[A-Za-z0-9_]\+" contained nextgroup=restOfLine
     syntax match indexSize  "\[index (\d\+ bytes)\]"
-    syntax match toolCall "\[tool_call: get_files(...)\]"
+    syntax match toolCall "\[tool_call: .\+(...)\]"
 
     syntax match restOfLine ".*$" contained
 

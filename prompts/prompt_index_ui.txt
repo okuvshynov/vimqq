@@ -1,4 +1,3 @@
 {vqq_message}
 
 [index ({vqq_lucas_index_size} bytes)]
-

@@ -68,33 +68,25 @@ function! vimqq#client#new(impl, config = {}) abort
         return self._impl.chat(req)
     endfunction
 
-    function! l:client._tool_run(chat_id, messages, tool_call) dict
-        let tool_result = self._impl._toolset.run(a:tool_call)
-        let tool_reply = {"role": "user", "content" : [{"type": "tool_result", "tool_use_id": a:tool_call['id'], "content": tool_result}]}
-        call self.send_chat(a:chat_id, a:messages, v:true, tool_reply)
-    endfunction
-
-    function! l:client.send_chat(chat_id, messages, stream=v:true, tool_reply=v:null) dict
+    function! l:client.send_chat(chat, stream=v:true) dict
+        let chat_id = a:chat.id
+        let messages = a:chat.messages
         " here we attemt to do streaming. If API implementation
         " doesn't support it, it would 'stream' everything in single chunk
 
-        call vimqq#log#info('send_chat ' . string(a:messages))
+        call vimqq#log#info('send_chat ' . string(messages))
         let req = {
-        \   'messages' : self._format(a:messages),
+        \   'messages' : self._format(messages),
         \   'max_tokens' : self._conf.max_tokens,
         \   'model' : self._conf.model,
         \   'stream' : a:stream,
-        \   'on_chunk' : {p, m -> vimqq#events#notify('chunk_done', {'chat_id': a:chat_id, 'chunk': m})},
-        \   'on_complete' : {err, p -> vimqq#events#notify('reply_done', {'chat_id': a:chat_id, 'bot' : self})}
+        \   'on_chunk' : {p, m -> vimqq#events#notify('chunk_done', {'chat_id': chat_id, 'chunk': m})},
+        \   'on_complete' : {err, p -> vimqq#events#notify('reply_done', {'chat_id': chat_id, 'bot' : self})}
         \ }
 
-        if a:tool_reply != v:null
-            let req['messages'] = req['messages'] + [a:tool_reply]
-        endif
-
-        if has_key(self._impl, '_toolset')
-            "let req['tools'] = self._impl._toolset.def(v:true)
-            "let req['on_tool_use'] = {tool_call -> self._tool_run(a:chat_id, a:messages, tool_call)}
+        if has_key(a:chat, 'tools_allowed')
+            let req['tools'] = a:chat.toolset
+            let req['on_tool_use'] = {tool_call -> vimqq#events#notify('tool_use_recv', {'chat_id': chat_id, 'tool_use': tool_call})}
         endif
 
         return self._impl.chat(req)

@@ -7,4 +7,3 @@ Here's a code snippet:
 }}}
 
 {vqq_message}
-

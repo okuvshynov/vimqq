@@ -33,7 +33,8 @@ function! vimqq#dispatcher#new(db) abort
             " timestamp and other metadata might get appended here
             call self._db.append_message(a:chat_id, a:message)
             call self._db.reset_partial(a:chat_id, a:bot.name())
-            if a:bot.send_chat(a:chat_id, self._db.get_messages(a:chat_id))
+            let l:chat = self._db.get_chat(a:chat_id)
+            if a:bot.send_chat(l:chat)
                 call add(l:queue, [a:message, a:bot])
                 let l:sent = v:true
             else
@@ -65,7 +66,8 @@ function! vimqq#dispatcher#new(db) abort
             let [l:message, l:bot] = remove(l:queue, 0)
             call self._db.append_message(a:chat_id, l:message)
             call self._db.reset_partial(a:chat_id, l:bot.name())
-            if l:bot.send_chat(a:chat_id, self._db.get_messages(a:chat_id))
+            let l:chat = self._db.get_chat(a:chat_id)
+            if l:bot.send_chat(l:chat)
                 let l:queue = [[l:message, l:bot]] + l:queue
                 let l:sent = v:true
             else

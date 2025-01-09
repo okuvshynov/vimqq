@@ -23,7 +23,7 @@ endfunction
 
 function! VQQBotTest(client)
     let s:message = {
-        \ 'message' : 'What is the capital of poland?',
+        \ 'sources': {'text' : 'What is the capital of poland?'},
         \ 'role' : 'user'
     \ }
 
@@ -32,8 +32,9 @@ function! VQQBotTest(client)
     call vimqq#events#set_state({})
     call vimqq#events#add_observer(s:observer)
 
+    let chat = {'id': 1, 'messages': [s:message]}
     call s:client.send_warmup([s:message])
-    call s:client.send_chat(1, [s:message], v:false)
+    call s:client.send_chat(chat, v:false)
 
     call timer_start(10000, 'Verify')
 endfunction
