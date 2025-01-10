@@ -36,9 +36,12 @@ function! vimqq#api#anthropic_api#new() abort
             if response['type'] == 'content_block_start'
                 if response['content_block']['type'] == 'tool_use'
                     let tool_name = response['content_block']['name']
-                    let self._tool_uses[a:req_id] = {'name': tool_name, 'input': '', 'id': response['content_block']['id']}
-
-                    "call a:params.on_chunk(a:params, "\n\n[tool_call: " . tool_name . "(...")
+                    let tool_id = response['content_block']['id']
+                    let self._tool_uses[a:req_id] = {
+                        \ 'name': tool_name,
+                        \ 'input': '',
+                        \ 'id': tool_id 
+                    \ }
                 endif
             endif
 
@@ -52,9 +55,6 @@ function! vimqq#api#anthropic_api#new() abort
             endif
             if response['type'] == 'message_delta'
                 if response['delta']['stop_reason'] == 'tool_use'
-                    "call a:params.on_chunk(a:params, ')]')
-                    " TODO: somewhere here we call the tool
-                    " TODO: we need to save a message with tool call as well
                     let self._tool_uses[a:req_id]['input'] = json_decode(self._tool_uses[a:req_id]['input'])
                     call a:params.on_tool_use(self._tool_uses[a:req_id])
                 endif
@@ -67,8 +67,7 @@ function! vimqq#api#anthropic_api#new() abort
                 endif
                 if response['delta']['type'] == 'input_json_delta'
                     let chunk = response.delta.partial_json
-                    let self._tool_uses[a:req_id]['input'] = self._tool_uses[a:req_id]['input'] . chunk
-                    "call a:params.on_chunk(a:params, chunk)
+                    let self._tool_uses[a:req_id]['input'] .= chunk
                 endif
             endif
         endfor
