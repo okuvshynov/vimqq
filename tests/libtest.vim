@@ -39,7 +39,7 @@ function! DeepDictCompareImpl(dict1, dict2)
 
         " If both values are dictionaries, recurse
         if type(value) == type({}) && type(value2) == type({})
-            if !DeepDictCompare(value, value2)
+            if !DeepDictCompareImpl(value, value2)
                 return 1
             endif
         " If both values are lists, compare them
@@ -120,6 +120,12 @@ function! RunAllTests()
         let func_name = matchstr(func, 'function \zs\k*\ze(')
         execute 'call ' . func_name . '()'
     endfor
+
+    if len(v:errmsg) > 0
+        " Handle error condition
+        call vimqq#log#error(v:errmsg)
+        cquit 1
+    endif
     
     cquit 0
 endfunction
