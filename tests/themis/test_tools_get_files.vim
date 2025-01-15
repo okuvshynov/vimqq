@@ -1,15 +1,13 @@
-let s:path = expand('<sfile>:p:h')
-let s:lib = s:path . "/../libtest.vim"
-execute "source " . s:lib
+let s:suite = themis#suite('Tools')
+let s:assert = themis#helper('assert')
 
-function! Test_get_files()
+function s:suite.test_get_files()
+    let s:path = expand('<script>:p:h')
     let s:tool = vimqq#tools#get_files#new(s:path)
 
     let s:content = s:tool.run({'filepaths': ['tools_get_files.txt']})
 
     let s:expected = ['', 'tools_get_files.txt', 'Hello, world!']
     let s:expected = join(s:expected, '\n')
-    call ASSERT_EQ(s:expected, s:content)
+    call s:assert.equals(s:expected, s:content)
 endfunction
-
-call RunAllTests()
