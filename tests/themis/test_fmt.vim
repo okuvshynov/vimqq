@@ -1,4 +1,4 @@
-let s:suite = themis#suite('Unit tests for prompt formatting')
+let s:suite = themis#suite('Prompt formatting')
 let s:assert = themis#helper('assert')
 
 function s:suite.test_context()

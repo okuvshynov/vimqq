@@ -1,8 +1,7 @@
-let s:path = expand('<sfile>:p:h')
-let s:lib = s:path . "/../libtest.vim"
-execute "source " . s:lib
+let s:suite = themis#suite('Tool formatting tests')
+let s:assert = themis#helper('assert')
 
-function! ToolDef()
+function ToolDef()
     return {
         \ 'type': 'function',
         \ 'function': {
@@ -25,7 +24,7 @@ function! ToolDef()
     \ }
 endfunction
 
-function! ToolDefSonnet()
+function ToolDefSonnet()
     return {
         \ 'name': 'get_files',
         \ 'description': 'Gets content of one or more files.',
@@ -45,12 +44,11 @@ function! ToolDefSonnet()
     \ }
 endfunction
 
-function! Test_to_claude()
+function s:suite.test_to_claude()
     let s:expected = ToolDefSonnet()
 
     let s:observed = vimqq#tools#schema#to_claude(ToolDef())
 
-    call ASSERT_EQ_DICT(s:expected, s:observed)
+    call s:assert.equals(s:expected, s:observed)
 endfunction
 
-call RunAllTests()
