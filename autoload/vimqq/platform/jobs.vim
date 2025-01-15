@@ -43,7 +43,17 @@ function! vimqq#platform#jobs#start(command, config)
     if has('nvim')
         return s:_start_nvim(a:command, a:config)
     endif
+    let OnJob = v:null
+    if has_key(a:config, 'on_job')
+        let OnJob = a:config['on_job']
+        call remove(a:config, 'on_job')
+    endif
+
     let l:job = job_start(a:command, a:config)
+
+    if OnJob != v:null
+        call OnJob(l:job)
+    endif
     if job_status(l:job) == 'fail'
         call vimqq#log#error('Job ' . a:command . 'failed to start.')
         return v:false

@@ -1,11 +1,23 @@
-"
-" testing platform/http module
+let s:suite = themis#suite('HTTP client')
+let s:assert = themis#helper('assert')
 
-let s:path = expand('<sfile>:p:h')
-let s:lib = s:path . "/../libtest.vim"
-execute "source " . s:lib
+function OnMock(server_job)
+    let s:server_job = a:server_job
+endfunction
 
-function! Test_http_get()
+function s:suite.before()
+    let l:path = expand('<script>:p:h:h')
+    let l:mock_serv = l:path . '/mock_llama.py'
+    "echoe l:mock_serv
+    let s:success = vimqq#platform#jobs#start(['python', l:mock_serv, '--port', '8888', '--logs', '/tmp/'], {'on_job': {job -> OnMock(job)}})
+    execute 'sleep 5'
+endfunction
+
+function s:suite.after()
+    call job_stop(s:server_job)
+endfunction
+
+function s:suite.test_http_get()
     let reply_received = v:null
     function! OnOut(msg) closure
         let reply_received = a:msg
@@ -16,10 +28,10 @@ function! Test_http_get()
     call vimqq#platform#http#get(addr . '/alive', ["--max-time", "5"], job_conf)
 
     execute 'sleep 1'
-    call ASSERT_EQ(reply_received, 'alive')
+    call s:assert.equals(reply_received, 'alive')
 endfunction
 
-function! Test_http_get_404()
+function s:suite.test_http_get_404()
     let status_code = 0
     function! OnOut(msg) closure
         call vimqq#log#info(a:msg)
@@ -31,10 +43,10 @@ function! Test_http_get_404()
     call vimqq#platform#http#get(addr . '/non_existent', ["--max-time", "5", "-w", "%{http_code}", "-o", "/dev/null"], job_conf)
 
     execute 'sleep 1'
-    call ASSERT_EQ(status_code, '404')
+    call s:assert.equals(status_code, '404')
 endfunction
 
-function! Test_http_get_na()
+function s:suite.test_http_get_na()
     let status_code = 0
     function! OnOut(msg) closure
         call vimqq#log#info(a:msg)
@@ -46,10 +58,10 @@ function! Test_http_get_na()
     call vimqq#platform#http#get(addr . '/non_existent', ["--max-time", "5", "-w", "%{http_code}", "-o", "/dev/null"], job_conf)
 
     execute 'sleep 1'
-    call ASSERT_EQ(status_code, '000')
+    call s:assert.equals(status_code, '000')
 endfunction
 
-function! Test_http_get_na_body()
+function s:suite.test_http_get_na_body()
     let reply_received = []
     function! OnOut(msg) closure
         call vimqq#log#info(a:msg)
@@ -61,7 +73,6 @@ function! Test_http_get_na_body()
     call vimqq#platform#http#get(addr . '/non_existent', ["--max-time", "5"], job_conf)
 
     execute 'sleep 1'
-    call ASSERT_EQ(join(reply_received, '\n'), '')
+    call s:assert.equals(join(reply_received, '\n'), '')
 endfunction
 
-call RunAllTests()
