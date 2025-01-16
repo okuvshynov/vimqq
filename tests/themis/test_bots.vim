@@ -39,6 +39,7 @@ function s:run_bot_test(client, expected_events = ['chunk_done', 'reply_done', '
         endif
         :sleep 500m
     endfor
+    call s:assert.equals(done, v:true)
     call s:assert.equals(events, a:expected_events)
 endfunction
 
