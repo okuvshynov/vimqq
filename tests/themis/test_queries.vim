@@ -9,6 +9,19 @@ function s:normtime(chat)
     return res
 endfunction
 
+function s:server_stats()
+    let addr = g:vqq_llama_servers[0]['addr']
+    let res = v:null
+    function OnOut(msg) closure
+        let res = json_decode(a:msg)
+    endfunction
+
+    let job_conf = {'out_cb': {channel, msg -> OnOut(msg)}}
+    call vimqq#platform#http#get(addr . '/stats', ["--max-time", "1"], job_conf)
+    :sleep 500m
+    return res
+endfunction
+
 function s:on_mock(server_job)
     let s:server_job = a:server_job
 endfunction
@@ -29,6 +42,8 @@ function s:suite.before_each()
     :bufdo! bd! | enew
     call delete(g:vqq_chats_file)
     call vimqq#main#setup()
+    let addr = g:vqq_llama_servers[0]['addr']
+    call vimqq#platform#http#get(addr . '/reset', ["--max-time", "5"], {})
 endfunction
 
 function s:suite.test_list_one()
@@ -48,6 +63,10 @@ function s:suite.test_list_one()
     let content = s:normtime(getline(1, '$'))
     let expected = ["00:00>l=165"]
     call s:assert.equals(content, expected)
+
+    let server_stats = s:server_stats()
+    let expected_stats = {"n_chat_queries": 3, "n_stream_queries": 1, "n_deltas": 3, "n_non_stream_queries": 1, "n_warmups": 1}
+    call s:assert.equals(server_stats, expected_stats)
 endfunction
 
 function s:suite.test_new_chat()

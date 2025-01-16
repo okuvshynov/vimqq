@@ -26,6 +26,12 @@ app = Flask(__name__)
 def alive():
     return Response('alive', content_type='text/plain')
 
+@app.route('/reset', methods=['GET'])
+def reset_stats():
+    global stats
+    stats.clear()
+    return Response('alive', content_type='text/plain')
+
 @app.route('/stats', methods=['GET'])
 def get_stats():
     global stats

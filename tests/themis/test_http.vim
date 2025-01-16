@@ -8,7 +8,6 @@ endfunction
 function s:suite.before()
     let l:path = expand('<script>:p:h:h')
     let l:mock_serv = l:path . '/mock_llama.py'
-    "echoe l:mock_serv
     let s:success = vimqq#platform#jobs#start(['python', l:mock_serv, '--port', '8888', '--logs', '/tmp/'], {'on_job': {job -> OnMock(job)}})
     execute 'sleep 1'
 endfunction
