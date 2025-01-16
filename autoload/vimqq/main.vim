@@ -5,14 +5,6 @@ endif
 let g:autoloaded_vimqq_main = 1
 
 " -----------------------------------------------------------------------------
-let s:ui      = vimqq#ui#new()
-let s:chatsdb = vimqq#chatsdb#new()
-let s:bots    = vimqq#bots#bots#new()
-let s:state   = vimqq#state#new(s:chatsdb)
-let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
-let s:dispatcher = vimqq#dispatcher#new(s:chatsdb)  
-let s:toolset = vimqq#tools#toolset#new()
-
 function! s:new() abort
     let l:controller = {}
 
@@ -95,13 +87,26 @@ function! s:new() abort
     return l:controller
 endfunction
 
-let s:controller = s:new()
+function! vimqq#main#setup()
+    let s:ui      = vimqq#ui#new()
+    let s:chatsdb = vimqq#chatsdb#new()
+    let s:bots    = vimqq#bots#bots#new()
+    let s:state   = vimqq#state#new(s:chatsdb)
+    let s:warmup  = vimqq#warmup#new(s:bots, s:chatsdb)
+    let s:dispatcher = vimqq#dispatcher#new(s:chatsdb)  
+    let s:toolset = vimqq#tools#toolset#new()
 
-call vimqq#events#set_state(s:state)
-call vimqq#events#add_observer(s:chatsdb)
-call vimqq#events#add_observer(s:ui)
-call vimqq#events#add_observer(s:warmup)
-call vimqq#events#add_observer(s:controller)
+    let s:controller = s:new()
+
+    call vimqq#events#set_state(s:state)
+    call vimqq#events#clear_observers()
+    call vimqq#events#add_observer(s:chatsdb)
+    call vimqq#events#add_observer(s:ui)
+    call vimqq#events#add_observer(s:warmup)
+    call vimqq#events#add_observer(s:controller)
+endfunction
+
+call vimqq#main#setup()
 
 " -----------------------------------------------------------------------------
 " This is 'internal API' - functions called by defined public commands

@@ -10,6 +10,10 @@ function! vimqq#events#set_state(state) abort
     let s:state = a:state
 endfunction
 
+function! vimqq#events#clear_observers() abort
+    let s:observers = []
+endfunction
+
 function! vimqq#events#add_observer(observer) abort
     call add(s:observers, a:observer)
 endfunction
@@ -23,4 +27,3 @@ function! vimqq#events#notify(event, context) abort
         call observer.handle_event(a:event, a:context)
     endfor
 endfunction
-
