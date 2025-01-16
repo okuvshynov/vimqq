@@ -1,4 +1,4 @@
-name: Integration Tests
+name: Local Tests
 on:
   push:
     branches: [ main ]
@@ -25,5 +25,11 @@ jobs:
     - name: Install Flask
       run: pip install flask
     
+    - name: Install themis
+      uses: actions/checkout@v2
+      with:
+        repository: thinca/vim-themis
+        path: vim-themis
+    
     - name: Run all integration tests
-      run: VIMQQ_VERBOSE=1 ./tests/run.sh integration/auto ${{ github.workspace }}
+      run: ./vim-themis/bin/themis ./tests/local
