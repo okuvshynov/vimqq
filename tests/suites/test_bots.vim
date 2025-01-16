@@ -2,6 +2,9 @@ let s:suite = themis#suite('Real API bot tests')
 let s:assert = themis#helper('assert')
 
 function s:run_bot_test(client, expected_events = ['chunk_done', 'reply_done', 'title_done'])
+    :bufdo! bd! | enew
+    call delete(g:vqq_chats_file)
+    call vimqq#main#setup()
     let observer = {}
     let client = a:client
     let events = []

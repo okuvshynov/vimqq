@@ -2,6 +2,9 @@ let s:suite = themis#suite('API tests')
 let s:assert = themis#helper('assert')
 
 function s:run_chat_test(impl, model, stream = v:false)
+    :bufdo! bd! | enew
+    call delete(g:vqq_chats_file)
+    call vimqq#main#setup()
     let chunks = []
     let done = v:false
     function! OnChunk(params, chunk) closure
