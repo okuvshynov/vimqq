@@ -9,12 +9,12 @@ let g:autoloaded_vimqq_tools_schema = 1
 " For example, Anthropic is using slightly different format.
 
 function! vimqq#tools#schema#to_claude(schema)
-    let l:fn = a:schema['function']
-    let l:res = {
-    \   'name': l:fn['name'],
-    \   'description' : l:fn['description'],
-    \   'input_schema' : l:fn['parameters']
+    let fn = a:schema['function']
+    let res = {
+    \   'name': fn['name'],
+    \   'description' : fn['description'],
+    \   'input_schema' : fn['parameters']
     \} 
-    return l:res
+    return res
 endfunction
 

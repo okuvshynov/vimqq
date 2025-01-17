@@ -7,6 +7,6 @@ endif
 let g:autoloaded_vimqq_groq_module = 1
 
 function! vimqq#bots#groq#new(config = {}) abort
-    let l:impl = vimqq#api#groq_api#new()
-    return vimqq#client#new(l:impl, a:config)
+    let impl = vimqq#api#groq_api#new()
+    return vimqq#client#new(impl, a:config)
 endfunction

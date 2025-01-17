@@ -5,16 +5,16 @@ endif
 let g:autoloaded_vimqq_api_llama_module = 1
 
 function! vimqq#api#llama_api#new(endpoint) abort
-    let l:api = {}
+    let api = {}
 
-    let l:api._endpoint = a:endpoint
+    let api._endpoint = a:endpoint
     " stores partial responses
-    let l:api._replies = {}
-    let l:api._req_id = 0
+    let api._replies = {}
+    let api._req_id = 0
 
-    function! l:api._on_stream_out(msg, params) dict
-      let l:messages = split(a:msg, '\n')
-      for message in l:messages
+    function! api._on_stream_out(msg, params) dict
+      let messages = split(a:msg, '\n')
+      for message in messages
           if message !~# '^data: '
               call vimqq#log#info('Unexpected reply: ' . message)
               continue
@@ -34,11 +34,11 @@ function! vimqq#api#llama_api#new(endpoint) abort
 
     " Not calling any callback as we expect to act on data: [DONE]
     " However, we might need to do that to handle any errors?
-    function! l:api._on_stream_close(params) dict
+    function! api._on_stream_close(params) dict
         call vimqq#log#info('llama stream closed.')
     endfunction
 
-    function! l:api._on_out(msg, params, req_id) dict
+    function! api._on_out(msg, params, req_id) dict
         if !has_key(self._replies, a:req_id)
             call vimqq#log#error('llama_api: reply for non-existent request: ' . a:req_id)
             return
@@ -46,18 +46,18 @@ function! vimqq#api#llama_api#new(endpoint) abort
         call add(self._replies[a:req_id], a:msg)
     endfunction
 
-    function! l:api._on_close(params, req_id) dict
+    function! api._on_close(params, req_id) dict
         if !has_key(self._replies, a:req_id)
             call vimqq#log#error('llama_api: reply for non-existent request: ' . a:req_id)
             return
         endif
-        let l:response = join(self._replies[a:req_id], '\n')
-        " if l:response is empty, vim would decode it to v:none,
+        let response = join(self._replies[a:req_id], '\n')
+        " if response is empty, vim would decode it to v:none,
         " while neovim would error.
         try
-            let l:response = json_decode(l:response)
+            let response = json_decode(l:response)
         catch
-            call vimqq#log#error(string(l:response))
+            call vimqq#log#error(string(response))
             call vimqq#log#error('llama_api: Unable to process response')
             " TODO: still need to mark query as done
             if has_key(a:params, 'on_complete')
@@ -65,13 +65,13 @@ function! vimqq#api#llama_api#new(endpoint) abort
             endif
             return
         endtry
-        if type(l:response) == type({}) &&
-                \ has_key(l:response, 'choices') && 
-                \ !empty(l:response.choices) && 
-                \ has_key(l:response.choices[0], 'message')
-            let l:message  = l:response.choices[0].message.content
+        if type(response) == type({}) &&
+                \ has_key(response, 'choices') && 
+                \ !empty(response.choices) && 
+                \ has_key(response.choices[0], 'message')
+            let message  = l:response.choices[0].message.content
             if has_key(a:params, 'on_chunk')
-                call a:params.on_chunk(a:params, l:message)
+                call a:params.on_chunk(a:params, message)
             endif
             if has_key(a:params, 'on_complete')
                 call a:params.on_complete(v:null, a:params)
@@ -79,18 +79,18 @@ function! vimqq#api#llama_api#new(endpoint) abort
         else
             " TODO: still need to close/complete
             call vimqq#log#error('llama_api: Unable to process response')
-            call vimqq#log#error(json_encode(l:response))
+            call vimqq#log#error(json_encode(response))
             if has_key(a:params, 'on_complete')
                 call a:params.on_complete("Unable to process response", a:params)
             endif
         endif
     endfunction
 
-    function! l:api._on_error(msg, params) dict
+    function! api._on_error(msg, params) dict
         call vimqq#log#error('llama_api: error')
     endfunction
 
-    function! l:api.chat(params) dict
+    function! api.chat(params) dict
         let req = {
         \   'messages': get(a:params, 'messages', []),
         \   'n_predict': get(a:params, 'max_tokens', 1024),
@@ -103,30 +103,29 @@ function! vimqq#api#llama_api#new(endpoint) abort
         let self._replies[req_id] = []
 
         if req.stream
-            let l:job_conf = {
+            let job_conf = {
             \   'out_cb': {channel, msg -> self._on_stream_out(msg, a:params)},
             \   'err_cb': {channel, msg -> self._on_error(msg, a:params)},
             \   'close_cb': {channel -> self._on_stream_close(a:params)},
             \ }
         else
-            let l:job_conf = {
+            let job_conf = {
             \   'out_cb': {channel, msg -> self._on_out(msg, a:params, req_id)},
             \   'err_cb': {channel, msg -> self._on_error(msg, a:params, req_id)},
             \   'close_cb': {channel -> self._on_close(a:params, req_id)}
             \ }
         endif
 
-        let l:json_req = json_encode(req)
-        let l:headers = {
+        let json_req = json_encode(req)
+        let headers = {
             \ 'Content-Type': 'application/json'
         \ }
         return vimqq#platform#http#post(
             \ self._endpoint,
-            \ l:headers,
-            \ l:json_req,
-            \ l:job_conf)
+            \ headers,
+            \ json_req,
+            \ job_conf)
     endfunction
 
-    return l:api
-
+    return api
 endfunction

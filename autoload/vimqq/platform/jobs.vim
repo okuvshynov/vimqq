@@ -49,22 +49,22 @@ function! vimqq#platform#jobs#start(command, config)
         call remove(a:config, 'on_job')
     endif
 
-    let l:job = job_start(a:command, a:config)
+    let job = job_start(a:command, a:config)
 
     if OnJob isnot v:null
-        call OnJob(l:job)
+        call OnJob(job)
     endif
-    if job_status(l:job) ==# 'fail'
+    if job_status(job) ==# 'fail'
         call vimqq#log#error('Job ' . a:command . 'failed to start.')
         return v:false
     endif
-    call s:_keep_job(l:job)
+    call s:_keep_job(job)
     return v:true
 endfunction
 
 function! s:_start_nvim(command, config)
     " need to transform config
-    let l:conf = {}
+    let conf = {}
     let OnOut = {c,d,n -> {}}
     let OnClose = {c,d,n -> {}}
     if has_key(a:config, "out_cb")
@@ -76,17 +76,17 @@ function! s:_start_nvim(command, config)
         let OnClose = {c, d, n -> CloseCb(c)}
     endif
 
-    let l:conf["on_stdout"] = {c,d,n -> s:_is_empty_list(d) ? OnClose(c,d,n) : OnOut(c,d,n)}
+    let conf["on_stdout"] = {c,d,n -> s:_is_empty_list(d) ? OnClose(c,d,n) : OnOut(c,d,n)}
     if has_key(a:config, "err_cb")
         let StderrCb = a:config["err_cb"]
-        let l:conf["on_stderr"] = {c, d, n -> s:_is_empty_list(d) ? {c,d,n -> {}} : StderrCb(c, join(d, "\n"))}
+        let conf["on_stderr"] = {c, d, n -> s:_is_empty_list(d) ? {c,d,n -> {}} : StderrCb(c, join(d, "\n"))}
     endif
     if has_key(a:config, "exit_cb")
         let ExitCb = a:config["exit_cb"]
-        let l:conf["on_exit"] = {channel, status, name -> ExitCb(channel, status)}
+        let conf["on_exit"] = {channel, status, name -> ExitCb(channel, status)}
     endif
 
-    let job = jobstart(a:command, l:conf)
+    let job = jobstart(a:command, conf)
     if job <= 0
         return v:false
     endif

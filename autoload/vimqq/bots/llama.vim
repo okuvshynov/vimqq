@@ -16,12 +16,12 @@ let s:default_conf = {
 \ }
 
 function vimqq#bots#llama#new(config = {}) abort
-    let l:config = deepcopy(s:default_conf)
-    call extend(l:config, a:config)
-    let l:server = substitute(l:config.addr, '/*$', '', '')
-    let l:endpoint = l:server . '/v1/chat/completions'
+    let config = deepcopy(s:default_conf)
+    call extend(config, a:config)
+    let server = substitute(config.addr, '/*$', '', '')
+    let endpoint = server . '/v1/chat/completions'
 
-    let l:impl = vimqq#api#llama_api#new(l:endpoint)
+    let impl = vimqq#api#llama_api#new(endpoint)
 
-    return vimqq#client#new(l:impl, l:config)
+    return vimqq#client#new(impl, config)
 endfunction

@@ -36,26 +36,26 @@ endfunction
 
 " Create a list of bot instances from configuration lists
 function! s:_create(config_lists)
-    let l:res = []
+    let res = []
     for [config_list, BotFactory] in a:config_lists
         for config in config_list
             if !has_key(config, 'bot_name')
                 call vimqq#log#error("Each bot must have a 'bot_name' field")
                 continue
             endif
-            if s:_validate_name(config.bot_name, l:res)
-                call add(l:res, BotFactory(config))
+            if s:_validate_name(config.bot_name, res)
+                call add(res, BotFactory(config))
             endif
         endfor
     endfor
-    return l:res
+    return res
 endfunction
 
 " Create a new bot manager instance
 function! vimqq#bots#bots#new() abort
-    let l:bots = {}
+    let bots = {}
 
-    let l:config_lists = [
+    let config_lists = [
           \ [g:vqq_llama_servers, {conf -> vimqq#bots#llama#new(conf)}],
           \ [g:vqq_groq_models, {conf -> vimqq#bots#groq#new(conf)}],
           \ [g:vqq_mistral_models, {conf -> vimqq#bots#mistral#new(conf)}],
@@ -63,37 +63,37 @@ function! vimqq#bots#bots#new() abort
           \ [g:vqq_claude_models, {conf -> vimqq#bots#claude#new(conf)}]
     \]
 
-    let l:bots._bots = s:_create(l:config_lists)
-    if empty(l:bots._bots)
+    let bots._bots = s:_create(config_lists)
+    if empty(bots._bots)
         call vimqq#log#error('No bots defined. See :h vimqq-install').
         finish
     endif
-    let l:bots._default_bot = l:bots._bots[0]
-    for bot in l:bots._bots
+    let bots._default_bot = bots._bots[0]
+    for bot in bots._bots
         if bot.name() ==# g:vqq_default_bot
-            let l:bots._default_bot = bot
+            let bots._default_bot = bot
         endif
     endfor
 
-    function! l:bots.bots() dict
+    function! bots.bots() dict
         return self._bots
     endfunction
 
-    function! l:bots.select(question) dict
+    function! bots.select(question) dict
         for bot in self._bots
-            let l:tag = '@' . bot.name()
-            if len(a:question) > len(l:tag)
-                let l:tag .= ' '
+            let bot_tag = '@' . bot.name()
+            if len(a:question) > len(bot_tag)
+                let bot_tag .= ' '
             endif
-            "call vimqq#log#debug(l:tag . "|")
-            if strpart(a:question, 0, len(l:tag)) ==# l:tag
+            "call vimqq#log#debug(bot_tag . "|")
+            if strpart(a:question, 0, len(bot_tag)) ==# bot_tag
                 " removing tag before passing it to backend
-                let i = len(l:tag)
+                let i = len(bot_tag)
                 return [bot, strpart(a:question, i)]
             endif
         endfor
         return [self._default_bot, a:question]
     endfunction
 
-    return l:bots
+    return bots
 endfunction

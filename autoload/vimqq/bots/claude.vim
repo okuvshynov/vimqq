@@ -7,8 +7,8 @@ endif
 let g:autoloaded_vimqq_claude_module = 1
 
 function! vimqq#bots#claude#new(config = {}) abort
-    let l:impl = vimqq#api#anthropic_api#new()
-    let l:client = vimqq#client#new(l:impl, a:config)
+    let impl = vimqq#api#anthropic_api#new()
+    let client = vimqq#client#new(impl, a:config)
 
-    return l:client
+    return client
 endfunction
