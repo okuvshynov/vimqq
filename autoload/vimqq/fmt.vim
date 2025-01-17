@@ -4,13 +4,6 @@ endif
 
 let g:autoloaded_vimqq_fmt = 1
 
-let s:template_context = 
-      \  "Here's a code snippet: \n\n{vqq_context}\n\n{vqq_message}"
-
-let g:vqq_template_context =
-      \ get(g:, 'vqq_template_context', s:template_context)
-
-
 function! s:load_index_lines()
     let l:current_dir = expand('%:p:h')
     let l:prev_dir = ''

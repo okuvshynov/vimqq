@@ -2,8 +2,6 @@ if exists('g:autoloaded_vimqq_metrics')
     finish
 endif
 
-let s:metrics_file = strftime('%Y%m%d_%H%M%S_session_metrics.json')
-
 let g:autoloaded_vimqq_metrics = 1
 
 let s:latencies = {}
