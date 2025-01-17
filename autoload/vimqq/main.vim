@@ -20,7 +20,6 @@ function! s:new() abort
             call vimqq#main#show_chat(chat_id)
             " TODO: here we check if reply has tool call
             
-            call vimqq#log#info('checking if message has tool calls')
             let messages = s:chatsdb.get_messages(chat_id)
             if len(messages) > 0 
                 let last_message = messages[len(messages) - 1]

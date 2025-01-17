@@ -1,4 +1,4 @@
-let s:suite = themis#suite('API tests')
+let s:suite = themis#suite('api')
 let s:assert = themis#helper('assert')
 
 function s:run_chat_test(impl, model, stream = v:false)

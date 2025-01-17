@@ -1,4 +1,4 @@
-let s:suite = themis#suite('Query mock server')
+let s:suite = themis#suite('mock_server_queries')
 let s:assert = themis#helper('assert')
 
 function s:normtime(chat)

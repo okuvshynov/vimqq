@@ -1,8 +1,7 @@
-let s:suite = themis#suite('Tool formatting tests')
+let s:suite = themis#suite('tools_formatting')
 let s:assert = themis#helper('assert')
 
-function ToolDef()
-    return {
+let s:tool_def = {
         \ 'type': 'function',
         \ 'function': {
             \ 'name': 'get_files',
@@ -22,10 +21,8 @@ function ToolDef()
             \ }
         \ }
     \ }
-endfunction
 
-function ToolDefSonnet()
-    return {
+let s:tool_def_claude = {
         \ 'name': 'get_files',
         \ 'description': 'Gets content of one or more files.',
         \ 'input_schema': {
@@ -42,13 +39,10 @@ function ToolDefSonnet()
             \ 'required': ['filepaths']
         \ }
     \ }
-endfunction
 
 function s:suite.test_to_claude()
-    let s:expected = ToolDefSonnet()
+    let s:observed = vimqq#tools#schema#to_claude(s:tool_def)
 
-    let s:observed = vimqq#tools#schema#to_claude(ToolDef())
-
-    call s:assert.equals(s:expected, s:observed)
+    call s:assert.equals(s:observed, s:tool_def_claude)
 endfunction
 

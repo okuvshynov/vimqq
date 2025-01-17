@@ -1,4 +1,4 @@
-let s:suite = themis#suite('Tools')
+let s:suite = themis#suite('tools')
 let s:assert = themis#helper('assert')
 
 function s:suite.test_get_files()

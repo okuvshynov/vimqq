@@ -1,4 +1,4 @@
-let s:suite = themis#suite('Real API bot tests')
+let s:suite = themis#suite('client')
 let s:assert = themis#helper('assert')
 
 function s:run_bot_test(client, expected_events = ['chunk_done', 'reply_done', 'title_done'])

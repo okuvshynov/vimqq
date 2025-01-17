@@ -1,4 +1,4 @@
-let s:suite = themis#suite('HTTP client')
+let s:suite = themis#suite('platform_http_client')
 let s:assert = themis#helper('assert')
 
 function OnMock(server_job)
