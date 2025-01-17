@@ -5,15 +5,15 @@ endif
 let g:autoloaded_vimqq_tools_create_file_module = 1
 
 function! vimqq#tools#create_file#new(root) abort
-    let l:tool = {}
+    let tool = {}
 
-    let l:tool._root = a:root
+    let tool._root = a:root
 
-    function! l:tool.name() dict
+    function! tool.name() dict
         return 'create_file'
     endfunction
 
-    function! l:tool.schema() dict
+    function! tool.schema() dict
         return {
         \ "type": "function",
         \   "function": {
@@ -37,31 +37,31 @@ function! vimqq#tools#create_file#new(root) abort
         \ }
     endfunction
 
-    function! l:tool.run(tool_use_args) abort
-        let l:res = []
-        let l:path = a:tool_use_args['filepath']
-        let l:content = a:tool_use_args['content']
+    function! tool.run(tool_use_args) abort
+        let res = []
+        let path = a:tool_use_args['filepath']
+        let content = a:tool_use_args['content']
 
-        let l:file_path = self._root . '/' . l:path
+        let file_path = self._root . '/' . path
         
         " Check if file already exists
-        if filereadable(l:file_path)
-            call add(l:res, '')
-            call add(l:res, l:path)
-            call add(l:res, 'ERROR: File already exists.')
+        if filereadable(file_path)
+            call add(res, '')
+            call add(res, path)
+            call add(res, 'ERROR: File already exists.')
         else
             " Write content to file
-            let l:lines = split(l:content, "\n", 1)
-            call writefile(l:lines, l:file_path, 'b')
+            let lines = split(content, "\n", 1)
+            call writefile(lines, file_path, 'b')
             
-            call add(l:res, '')
-            call add(l:res, l:path)
-            call add(l:res, 'SUCCESS: File created successfully.')
+            call add(res, '')
+            call add(res, path)
+            call add(res, 'SUCCESS: File created successfully.')
         endif
 
-        return join(l:res, '\n')
+        return join(res, '\n')
     endfunction
 
-    return l:tool
+    return tool
 
 endfunction

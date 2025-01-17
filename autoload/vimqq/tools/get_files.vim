@@ -5,15 +5,15 @@ endif
 let g:autoloaded_vimqq_tools_get_files_module = 1
 
 function! vimqq#tools#get_files#new(root) abort
-    let l:tool = {}
+    let tool = {}
 
-    let l:tool._root = a:root
+    let tool._root = a:root
 
-    function! l:tool.name() dict
+    function! tool.name() dict
         return 'get_files'
     endfunction
 
-    function! l:tool.schema() dict
+    function! tool.schema() dict
         let definition = {
         \ 'type': 'function',
         \ 'function': {
@@ -37,27 +37,27 @@ function! vimqq#tools#get_files#new(root) abort
         return definition
     endfunction
 
-    function! l:tool.run(tool_use_args) abort
-        let l:res = []
-        let l:paths = a:tool_use_args['filepaths']
+    function! tool.run(tool_use_args) abort
+        let res = []
+        let paths = a:tool_use_args['filepaths']
 
-        for l:p in l:paths
-            let l:file_path = self._root . '/' . l:p
-            if filereadable(l:file_path)
-                call add(l:res, '')
-                call add(l:res, l:p)
-                call add(l:res, join(readfile(l:file_path), "\n"))
+        for p in paths
+            let file_path = self._root . '/' . p
+            if filereadable(file_path)
+                call add(res, '')
+                call add(res, p)
+                call add(res, join(readfile(file_path), "\n"))
             else
-                call add(l:res, '')
-                call add(l:res, l:p)
-                call add(l:res, 'ERROR: File not found.')
+                call add(res, '')
+                call add(res, p)
+                call add(res, 'ERROR: File not found.')
             endif
         endfor
 
-        return join(l:res, '\n')
+        return join(res, '\n')
     endfunction
 
-    return l:tool
+    return tool
 
 endfunction
 

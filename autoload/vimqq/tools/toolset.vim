@@ -5,18 +5,18 @@ endif
 let g:autoloaded_vimqq_tools_toolset_module = 1
 
 function! s:find_lucas_root()
-    let l:current_dir = expand('%:p:h')
-    let l:prev_dir = ''
+    let current_dir = expand('%:p:h')
+    let prev_dir = ''
 
-    while l:current_dir !=# l:prev_dir
+    while current_dir !=# prev_dir
         " Check if lucas.idx file exists in current dir
-        let l:file_path = l:current_dir . '/lucas.idx'
-        if filereadable(l:file_path)
-            return l:current_dir
+        let file_path = current_dir . '/lucas.idx'
+        if filereadable(file_path)
+            return current_dir
         endif
 
-        let l:prev_dir = l:current_dir
-        let l:current_dir = fnamemodify(l:current_dir, ':h')
+        let prev_dir = current_dir
+        let current_dir = fnamemodify(current_dir, ':h')
     endwhile
     return v:null
 endfunction
@@ -41,7 +41,7 @@ function! vimqq#tools#toolset#new()
     endfunction
 
     function! res.run(tool_call) dict
-        call vimqq#log#info('Calling tool: ' . string(a:tool_call))
+        call vimqq#log#info('Calling too ' . string(a:tool_call))
         for tool in self.tools
             if tool.name() ==# a:tool_call['name']
                 let res = tool.run(a:tool_call['input'])
@@ -49,7 +49,7 @@ function! vimqq#tools#toolset#new()
                 return res
             endif
         endfor
-        call vimqq#log#error('Unknown tool: ' . a:tool_call['name'])
+        call vimqq#log#error('Unknown too ' . a:tool_call['name'])
         return v:null
     endfunction
 

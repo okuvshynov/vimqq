@@ -5,15 +5,15 @@ endif
 let g:autoloaded_vimqq_tools_edit_file_module = 1
 
 function! vimqq#tools#edit_file#new(root) abort
-    let l:tool = {}
+    let tool = {}
 
-    let l:tool._root = a:root
+    let tool._root = a:root
 
-    function! l:tool.name() dict
+    function! tool.name() dict
         return 'edit_file'
     endfunction
 
-    function! l:tool.schema() dict
+    function! tool.schema() dict
         return {
         \ "type": "function",
         \   "function": {
@@ -41,61 +41,61 @@ function! vimqq#tools#edit_file#new(root) abort
         \ }
     endfunction
 
-    function! l:tool.run(tool_use_args) abort
-        let l:res = []
-        let l:path = a:tool_use_args['filepath']
-        let l:needle = a:tool_use_args['needle']
-        let l:replacement = a:tool_use_args['replacement']
+    function! tool.run(tool_use_args) abort
+        let res = []
+        let path = a:tool_use_args['filepath']
+        let needle = a:tool_use_args['needle']
+        let replacement = a:tool_use_args['replacement']
 
-        let l:file_path = self._root . '/' . l:path
-        if filereadable(l:file_path)
+        let file_path = self._root . '/' . path
+        if filereadable(file_path)
             " Read the entire file content
-            let l:content = join(readfile(l:file_path), "\n")
+            let content = join(readfile(file_path), "\n")
             
             " Count occurrences of the needle
-            let l:count = 0
-            let l:pos = 0
+            let cnt = 0
+            let pos = 0
             while 1
-                let l:pos = stridx(l:content, l:needle, l:pos)
-                if l:pos == -1
+                let pos = stridx(content, needle, pos)
+                if pos == -1
                     break
                 endif
-                let l:count += 1
-                let l:pos += 1
+                let cnt += 1
+                let pos += 1
             endwhile
 
-            if l:count == 0
-                call add(l:res, '')
-                call add(l:res, l:path)
-                call add(l:res, 'ERROR: Pattern not found in file.')
-            elseif l:count > 1
-                call add(l:res, '')
-                call add(l:res, l:path)
-                call add(l:res, 'ERROR: Multiple instances of pattern found.')
+            if cnt == 0
+                call add(res, '')
+                call add(res, path)
+                call add(res, 'ERROR: Pattern not found in file.')
+            elseif cnt > 1
+                call add(res, '')
+                call add(res, path)
+                call add(res, 'ERROR: Multiple instances of pattern found.')
             else
                 " Perform the replacement
                 " TODO: vim is doing some magic with substitute.
-                let l:pos = stridx(l:content, l:needle, 0)
+                let pos = stridx(content, needle, 0)
 
-                let l:new_content = substitute(l:content, '\V' . escape(l:needle, '\'), l:replacement, '')
+                let new_content = substitute(content, '\V' . escape(needle, '\'), replacement, '')
                 
                 " Write back to file
-                let l:lines = split(l:new_content, "\n", 1)
-                call writefile(l:lines, l:file_path)
+                let lines = split(new_content, "\n", 1)
+                call writefile(lines, file_path)
                 
-                call add(l:res, '')
-                call add(l:res, l:path)
-                call add(l:res, 'SUCCESS: File updated successfully.')
+                call add(res, '')
+                call add(res, path)
+                call add(res, 'SUCCESS: File updated successfully.')
             endif
         else
-            call add(l:res, '')
-            call add(l:res, l:path)
-            call add(l:res, 'ERROR: File not found.')
+            call add(res, '')
+            call add(res, path)
+            call add(res, 'ERROR: File not found.')
         endif
 
-        return join(l:res, '\n')
+        return join(res, '\n')
     endfunction
 
-    return l:tool
+    return tool
 
 endfunction
