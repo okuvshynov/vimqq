@@ -107,9 +107,6 @@ function! vimqq#warmup#new(bots, db) abort
     endfor
 
     function! l:w.handle_event(event, args) dict
-    endfunction
-
-    function! l:w.handle_event(event, args)
         if a:event ==# 'warmup_done'
             " TODO: we might be able to notify and immediately kick off the
             " next one
