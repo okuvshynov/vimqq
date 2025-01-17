@@ -15,7 +15,7 @@ function! s:load_index_lines()
     let l:current_dir = expand('%:p:h')
     let l:prev_dir = ''
 
-    while l:current_dir != l:prev_dir
+    while l:current_dir !=# l:prev_dir
       " Check if lucas.idx file exists in current dir
       let l:file_path = l:current_dir . '/lucas.idx'
       if filereadable(l:file_path)
@@ -32,13 +32,13 @@ endfunction
 function! vimqq#fmt#fill_context(message, context, use_index)
     let l:message = deepcopy(a:message)
 
-    if a:context != v:null
+    if a:context isnot v:null
         let l:message.sources.context = a:context
     endif
     if a:use_index
         " TODO: Do we save index snapshot here?
         let l:index_lines = s:load_index_lines()
-        if l:index_lines != v:null
+        if l:index_lines isnot v:null
             let l:message.sources.index = join(l:index_lines, '\n')
         else
             call vimqq#log#error('Unable to locate lucas.idx file')

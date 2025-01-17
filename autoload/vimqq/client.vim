@@ -30,7 +30,7 @@ function! vimqq#client#new(impl, config = {}) abort
     endfunction
 
     function! l:client._on_warmup_complete(error, params) dict
-        if a:error != v:null
+        if a:error isnot v:null
             call vimqq#log#error('warmup call failed')
         endif
         call vimqq#events#notify('warmup_done', {'bot' : self})

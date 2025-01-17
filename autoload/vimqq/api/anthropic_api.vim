@@ -115,7 +115,7 @@ function! vimqq#api#anthropic_api#new() abort
 
         call vimqq#log#debug(string(req['tools']))
 
-        if l:system != v:null
+        if l:system isnot v:null
             let req['system'] = l:system
         endif
 

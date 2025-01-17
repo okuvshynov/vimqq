@@ -51,7 +51,7 @@ function! vimqq#platform#jobs#start(command, config)
 
     let l:job = job_start(a:command, a:config)
 
-    if OnJob != v:null
+    if OnJob isnot v:null
         call OnJob(l:job)
     endif
     if job_status(l:job) ==# 'fail'

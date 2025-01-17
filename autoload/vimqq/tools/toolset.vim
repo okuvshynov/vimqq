@@ -8,7 +8,7 @@ function! s:find_lucas_root()
     let l:current_dir = expand('%:p:h')
     let l:prev_dir = ''
 
-    while l:current_dir != l:prev_dir
+    while l:current_dir !=# l:prev_dir
         " Check if lucas.idx file exists in current dir
         let l:file_path = l:current_dir . '/lucas.idx'
         if filereadable(l:file_path)
