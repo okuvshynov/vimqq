@@ -6,8 +6,10 @@ Each directory and file will have a summary.
 
 You will have access to several tools:
 - get_files: tool to get content of the files you might need to accomplish that task;
+- edit_file: tool to edit file;
+- create_file: tool to create new file;
 
-Use the summaries provided to identify the files you need. Feel free to use tools more than once if you discovered that you need more information.
+Use the summaries provided to identify the files you need. Feel free to use tools more than once if you discovered that you need more information. Use edit_file and/or create_file tools to do in-place edits to resolve the task.
 
 {vqq_lucas_index}
 

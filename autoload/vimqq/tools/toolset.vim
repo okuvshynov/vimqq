@@ -24,14 +24,20 @@ endfunction
 function! vimqq#tools#toolset#new()
     let res = {}
 
-    let res.tools = [vimqq#tools#get_files#new(s:find_lucas_root())]
+    let root = s:find_lucas_root()
+
+    let res.tools = [vimqq#tools#get_files#new(root), vimqq#tools#edit_file#new(root), vimqq#tools#create_file#new(root)]
 
     function! res.def(is_claude) dict
-        let tool = self.tools[0].schema()
-        if a:is_claude
-            let tool = vimqq#tools#schema#to_claude(tool)
-        endif
-        return [tool]
+        let res = []
+        for tool in self.tools
+            let schema = tool.schema()
+            if a:is_claude
+                let schema = vimqq#tools#schema#to_claude(schema)
+            endif
+            call add(res, schema)
+        endfor
+        return res
     endfunction
 
     function! res.run(tool_call) dict
@@ -43,6 +49,7 @@ function! vimqq#tools#toolset#new()
                 return res
             endif
         endfor
+        call vimqq#log#error('Unknown tool: ' . a:tool_call['name'])
         return v:null
     endfunction
 

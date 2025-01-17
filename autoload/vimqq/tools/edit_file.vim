@@ -50,7 +50,7 @@ function! vimqq#tools#edit_file#new(root) abort
         let l:file_path = self._root . '/' . l:path
         if filereadable(l:file_path)
             " Read the entire file content
-            let l:content = join(readfile(l:file_path, 'b'), "\n")
+            let l:content = join(readfile(l:file_path), "\n")
             
             " Count occurrences of the needle
             let l:count = 0
@@ -74,11 +74,22 @@ function! vimqq#tools#edit_file#new(root) abort
                 call add(l:res, 'ERROR: Multiple instances of pattern found.')
             else
                 " Perform the replacement
-                let l:new_content = substitute(l:content, l:needle, l:replacement, '')
+                call vimqq#log#info('EDIT_FILE: ')
+                call vimqq#log#info(l:content)
+                call vimqq#log#info(l:needle)
+                if l:content ==# l:needle
+                    call vimqq#log#info('CONTENT == NEEDLE')
+                endif
+                "call vimqq#log#info(l:replacement)
+                " TODO: vim is doing some magic with substitute. Just do it
+                " manually
+                let l:pos = stridx(l:content, l:needle, 0)
+
+                let l:new_content = substitute(l:content, '\V' . escape(l:needle, '\'), l:replacement, '')
                 
                 " Write back to file
                 let l:lines = split(l:new_content, "\n", 1)
-                call writefile(l:lines, l:file_path, 'b')
+                call writefile(l:lines, l:file_path)
                 
                 call add(l:res, '')
                 call add(l:res, l:path)

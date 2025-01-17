@@ -50,7 +50,7 @@ function! vimqq#tools#get_files#new(root) abort
             else
                 call add(l:res, '')
                 call add(l:res, l:p)
-                call add(l:res, '!! This file was not found.')
+                call add(l:res, 'ERROR: File not found.')
             endif
         endfor
 
