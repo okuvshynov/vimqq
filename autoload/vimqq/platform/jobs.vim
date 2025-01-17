@@ -8,7 +8,7 @@ let s:active_jobs    = []
 
 function! s:_is_empty_list(v)
     if type(a:v) == type([])
-        if len(a:v) == 1 && a:v[0] == ''
+        if len(a:v) == 1 && a:v[0] ==# ''
             return v:true
         else
             return v:false
@@ -22,7 +22,7 @@ function! s:_keep_job(job)
     let s:active_jobs += [a:job]
     if len(s:active_jobs) > s:n_jobs_cleanup
         for job in s:active_jobs[:]
-            if job_info(job)['status'] == 'dead'
+            if job_info(job)['status'] ==# 'dead'
                 call remove(s:active_jobs, index(s:active_jobs, job))
             endif
         endfor
@@ -54,7 +54,7 @@ function! vimqq#platform#jobs#start(command, config)
     if OnJob != v:null
         call OnJob(l:job)
     endif
-    if job_status(l:job) == 'fail'
+    if job_status(l:job) ==# 'fail'
         call vimqq#log#error('Job ' . a:command . 'failed to start.')
         return v:false
     endif

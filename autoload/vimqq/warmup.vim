@@ -110,12 +110,12 @@ function! vimqq#warmup#new(bots, db) abort
     endfunction
 
     function! l:w.handle_event(event, args)
-        if a:event == 'warmup_done'
+        if a:event ==# 'warmup_done'
             " TODO: we might be able to notify and immediately kick off the
             " next one
             let s:warmup_in_progress = v:false
         endif
-        if a:event == 'title_saved' || a:event == 'chat_selected'
+        if a:event ==# 'title_saved' || a:event ==# 'chat_selected'
             let chat_id = a:args['chat_id']
             if !self._db.chat_exists(chat_id)
                 call vimqq#log#info("warmup on non-existent chat.")

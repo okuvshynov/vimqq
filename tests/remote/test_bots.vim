@@ -22,10 +22,10 @@ function s:run_bot_test(client, expected_events = ['chunk_done', 'reply_done', '
             return
         endif
         call add(events, a:event)
-        if a:event == 'reply_done'
+        if a:event ==# 'reply_done'
             call client.send_gen_title(1, message)
         endif
-        if a:event == 'title_done'
+        if a:event ==# 'title_done'
             let done = v:true
         endif
     endfunction

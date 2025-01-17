@@ -210,7 +210,7 @@ function! vimqq#chatsdb#new() abort
     endfunction
 
     function! l:db.handle_event(event, args) dict
-        if a:event == 'tool_use_recv'
+        if a:event ==# 'tool_use_recv'
             if !self.chat_exists(a:args['chat_id'])
                 call vimqq#log#info("callback on non-existent chat.")
                 return
@@ -218,7 +218,7 @@ function! vimqq#chatsdb#new() abort
             call self.append_partial_tool_use(a:args['chat_id'], a:args['tool_use'])
             return
         endif
-        if a:event == 'chunk_done'
+        if a:event ==# 'chunk_done'
             if !self.chat_exists(a:args['chat_id'])
                 call vimqq#log#info("callback on non-existent chat.")
                 return
@@ -230,7 +230,7 @@ function! vimqq#chatsdb#new() abort
             call vimqq#events#notify('chunk_saved', a:args)
             return
         endif
-        if a:event == 'reply_done'
+        if a:event ==# 'reply_done'
             if !self.chat_exists(a:args['chat_id'])
                 call vimqq#log#info('reply completed for non-existing (likely deleted) chat.')
                 return
@@ -239,7 +239,7 @@ function! vimqq#chatsdb#new() abort
             call vimqq#events#notify('reply_saved', {'chat_id': a:args['chat_id'], 'bot': a:args['bot']})
             return
         endif
-        if a:event == 'title_done'
+        if a:event ==# 'title_done'
             if !self.chat_exists(a:args['chat_id'])
                 call vimqq#log#info("callback on non-existent chat.")
                 return

@@ -33,8 +33,8 @@ function! vimqq#api#anthropic_api#new() abort
             let json_string = substitute(message, '^data: ', '', '')
             let response = json_decode(json_string)
 
-            if response['type'] == 'content_block_start'
-                if response['content_block']['type'] == 'tool_use'
+            if response['type'] ==# 'content_block_start'
+                if response['content_block']['type'] ==# 'tool_use'
                     let tool_name = response['content_block']['name']
                     let tool_id = response['content_block']['id']
                     let self._tool_uses[a:req_id] = {
@@ -45,27 +45,27 @@ function! vimqq#api#anthropic_api#new() abort
                 endif
             endif
 
-            if response['type'] == 'message_start'
+            if response['type'] ==# 'message_start'
                 continue
             endif
-            if response['type'] == 'message_stop'
+            if response['type'] ==# 'message_stop'
                 " First param is 'error'
                 call a:params.on_complete(v:null, a:params)
                 continue
             endif
-            if response['type'] == 'message_delta'
-                if response['delta']['stop_reason'] == 'tool_use'
+            if response['type'] ==# 'message_delta'
+                if response['delta']['stop_reason'] ==# 'tool_use'
                     let self._tool_uses[a:req_id]['input'] = json_decode(self._tool_uses[a:req_id]['input'])
                     call a:params.on_tool_use(self._tool_uses[a:req_id])
                 endif
                 continue
             endif
-            if response['type'] == 'content_block_delta'
-                if response['delta']['type'] == 'text_delta'
+            if response['type'] ==# 'content_block_delta'
+                if response['delta']['type'] ==# 'text_delta'
                     let chunk = response.delta.text
                     call a:params.on_chunk(a:params, chunk)
                 endif
-                if response['delta']['type'] == 'input_json_delta'
+                if response['delta']['type'] ==# 'input_json_delta'
                     let chunk = response.delta.partial_json
                     let self._tool_uses[a:req_id]['input'] .= chunk
                 endif
@@ -100,7 +100,7 @@ function! vimqq#api#anthropic_api#new() abort
     function! l:api.chat(params) dict
         let l:messages = a:params.messages
         let l:system = v:null
-        if l:messages[0].role == 'system'
+        if l:messages[0].role ==# 'system'
             let l:system = l:messages[0].content
             call remove(l:messages, 0)
         endif

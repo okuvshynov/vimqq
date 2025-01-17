@@ -9,11 +9,11 @@ function! s:new() abort
     let l:controller = {}
 
     function! l:controller.handle_event(event, args) dict
-        if a:event == 'chat_selected'
+        if a:event ==# 'chat_selected'
             call vimqq#main#show_chat(a:args['chat_id'])
             return
         endif
-        if a:event == 'reply_saved'
+        if a:event ==# 'reply_saved'
             let chat_id = a:args['chat_id']
             let bot = a:args['bot']
             
@@ -52,7 +52,7 @@ function! s:new() abort
             call s:ui.update_queue_size(s:dispatcher.queue_size())
             return
         endif
-        if a:event == 'tool_result'
+        if a:event ==# 'tool_result'
             let chat_id = a:args['chat_id']
             let tool_reply = a:args['result']
             let bot = a:args['bot']
@@ -61,7 +61,7 @@ function! s:new() abort
             endif
             return
         endif
-        if a:event == 'delete_chat'
+        if a:event ==# 'delete_chat'
             let chat_id = a:args['chat_id']
             if !s:chatsdb.chat_exists(chat_id)
                 call vimqq#log#info("trying to delete non-existent chat")
@@ -74,7 +74,7 @@ function! s:new() abort
             endif
 
             call s:chatsdb.delete_chat(chat_id)
-            if s:state.get_chat_id() == chat_id
+            if s:state.get_chat_id() ==# chat_id
                 " TODO - select next chat instead
                 s:state.set_chat_id(-1)
             endif
@@ -184,7 +184,7 @@ endfunction
 
 function! vimqq#main#show_current_chat()
     let l:chat_id = s:state.get_chat_id()
-    if l:chat_id == -1
+    if l:chat_id ==# -1
         call vimqq#log#error("No current chat to show")
         return
     endif
@@ -231,7 +231,7 @@ endfunction
 
 function! vimqq#main#dispatch_new(count, line1, line2, args) abort
     call vimqq#log#info('dispatching')
-    if a:count == -1
+    if a:count ==# -1
         " No range was provided
         call vimqq#main#qn(a:args)
     else
@@ -242,7 +242,7 @@ endfunction
 
 function! vimqq#main#dispatch(count, line1, line2, args) abort
     call vimqq#log#info('dispatching')
-    if a:count == -1
+    if a:count ==# -1
         " No range was provided
         call vimqq#main#q(a:args)
     else
@@ -253,7 +253,7 @@ endfunction
 
 function! vimqq#main#dispatch_index(count, line1, line2, args) abort
     call vimqq#log#info('dispatching')
-    if a:count == -1
+    if a:count ==# -1
         " No range was provided
         call vimqq#main#qi(a:args)
     else
@@ -266,7 +266,7 @@ endfunction
 function! vimqq#main#fork_chat(args) abort
     let args = split(a:args, ' ')
     let l:src_chat_id = s:state.get_chat_id()
-    if l:src_chat_id == -1
+    if l:src_chat_id ==# -1
         call vimqq#log#error('no chat to fork')
         return
     endif

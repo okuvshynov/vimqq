@@ -74,7 +74,7 @@ function! vimqq#fmt#one(message, for_ui=v:false)
     let new_msg = deepcopy(a:message)
 
     if a:for_ui
-        if new_msg['role'] == 'user'
+        if new_msg['role'] ==# 'user'
             let new_msg['author'] = 'You: @' . a:message['bot_name'] . " "
         else
             let new_msg['author'] = new_msg['bot_name'] . ": "
@@ -83,7 +83,7 @@ function! vimqq#fmt#one(message, for_ui=v:false)
 
     " check if this is tool response
     if has_key(a:message, 'content')
-        if a:message.content[0].type == 'tool_result'
+        if a:message.content[0].type ==# 'tool_result'
             " if for UI:
             if a:for_ui
                 let new_msg.content = [{'type': 'text', 'text': "\n\n[tool_call_result]"}]

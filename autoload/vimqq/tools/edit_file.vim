@@ -74,15 +74,7 @@ function! vimqq#tools#edit_file#new(root) abort
                 call add(l:res, 'ERROR: Multiple instances of pattern found.')
             else
                 " Perform the replacement
-                call vimqq#log#info('EDIT_FILE: ')
-                call vimqq#log#info(l:content)
-                call vimqq#log#info(l:needle)
-                if l:content ==# l:needle
-                    call vimqq#log#info('CONTENT == NEEDLE')
-                endif
-                "call vimqq#log#info(l:replacement)
-                " TODO: vim is doing some magic with substitute. Just do it
-                " manually
+                " TODO: vim is doing some magic with substitute.
                 let l:pos = stridx(l:content, l:needle, 0)
 
                 let l:new_content = substitute(l:content, '\V' . escape(l:needle, '\'), l:replacement, '')

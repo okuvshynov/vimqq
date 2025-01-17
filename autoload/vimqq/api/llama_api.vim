@@ -19,7 +19,7 @@ function! vimqq#api#llama_api#new(endpoint) abort
               call vimqq#log#info('Unexpected reply: ' . message)
               continue
           endif
-          if message == 'data: [DONE]'
+          if message ==# 'data: [DONE]'
               call a:params.on_complete(v:null, a:params)
               return
           endif

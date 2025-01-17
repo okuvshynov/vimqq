@@ -8,7 +8,7 @@ let g:autoloaded_vimqq_fzf = 1
 " TODO: this needs to be improved, both search and presentation
 
 function! vimqq#fzf#fmt_msg(message) abort
-    if a:message['role'] == 'user'
+    if a:message['role'] ==# 'user'
         let prompt = "You: @" . a:message['bot_name'] . " "
     else
         let prompt = a:message['bot_name'] . ": "

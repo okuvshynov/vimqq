@@ -110,7 +110,7 @@ function vimqq#ui#new() abort
         " TODO: what if there's more than 1 piece of content?
         let lines = split(prompt . a:message['content'][0]['text'], '\n')
         for l in lines
-            if line('$') == 1 && getline(1) == ''
+            if line('$') == 1 && getline(1) ==# ''
                 call setline(1, l)
             else
                 call append(line('$'), l)
@@ -148,7 +148,7 @@ function vimqq#ui#new() abort
 
         for item in a:history
             let l:sep = ' '
-            if a:current_chat == item.id
+            if a:current_chat ==# item.id
                 let l:selected_line = len(titles) + 1
                 let l:sep = '>'
             endif
@@ -220,8 +220,8 @@ function vimqq#ui#new() abort
 
     function! l:ui.handle_event(event, args) dict
         call vimqq#log#info(a:event)
-        if a:event == 'chunk_saved'
-            if a:args['chat_id'] == a:args['state'].get_chat_id()
+        if a:event ==# 'chunk_saved'
+            if a:args['chat_id'] ==# a:args['state'].get_chat_id()
                 call self.append_partial(a:args['chunk'])
             endif
         endif
