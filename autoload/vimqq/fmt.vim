@@ -70,15 +70,24 @@ function! vimqq#fmt#content(message, for_ui=v:false)
     return l:res
 endfunction
 
-function! vimqq#fmt#one(message, folding_context=v:false)
+function! vimqq#fmt#one(message, for_ui=v:false)
     let new_msg = deepcopy(a:message)
+
+    if a:for_ui
+        if new_msg['role'] == 'user'
+            let new_msg['author'] = 'You: @' . a:message['bot_name'] . " "
+        else
+            let new_msg['author'] = new_msg['bot_name'] . ": "
+        endif
+    endif
 
     " check if this is tool response
     if has_key(a:message, 'content')
         if a:message.content[0].type == 'tool_result'
             " if for UI:
-            if a:folding_context
+            if a:for_ui
                 let new_msg.content = [{'type': 'text', 'text': "\n\n[tool_call_result]"}]
+                let new_msg.author = 'tool: @' . a:message['bot_name'] . " " 
                 return new_msg
             else
                 return new_msg
@@ -93,18 +102,18 @@ function! vimqq#fmt#one(message, folding_context=v:false)
             \ 'name': a:message.tool_use.name,
             \ 'input': a:message.tool_use.input
         \}
-        let new_msg.content = [{'type': 'text', 'text': vimqq#fmt#content(a:message, a:folding_context)}, tool_use]
+        let new_msg.content = [{'type': 'text', 'text': vimqq#fmt#content(a:message, a:for_ui)}, tool_use]
         return new_msg
     endif
 
-    let new_msg.content = [{'type': 'text', 'text': vimqq#fmt#content(a:message, a:folding_context)}]
+    let new_msg.content = [{'type': 'text', 'text': vimqq#fmt#content(a:message, a:for_ui)}]
     return new_msg
 endfunction
 
-function! vimqq#fmt#many(messages, folding_context=v:false)
+function! vimqq#fmt#many(messages, for_ui=v:false)
     let new_messages = []
     for msg in a:messages
-        call add(new_messages, vimqq#fmt#one(msg, a:folding_context))
+        call add(new_messages, vimqq#fmt#one(msg, a:for_ui))
     endfor
     return new_messages
 endfunction

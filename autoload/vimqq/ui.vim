@@ -106,11 +106,7 @@ function vimqq#ui#new() abort
         if has_key(a:message, 'timestamp')
             let l:tstamp = strftime(s:time_format . " ", a:message['timestamp'])
         endif
-        if a:message['role'] == 'user'
-            let prompt = l:tstamp . "You: @" . a:message['bot_name'] . " " 
-        else
-            let prompt = l:tstamp . a:message['bot_name'] . ": "
-        endif
+        let prompt = l:tstamp . a:message['author']
         " TODO: what if there's more than 1 piece of content?
         let lines = split(prompt . a:message['content'][0]['text'], '\n')
         for l in lines
