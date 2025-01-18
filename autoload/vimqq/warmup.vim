@@ -23,9 +23,9 @@ endfunction
 
 let s:current_message = ''
 function! s:ranged_warmup(new_chat) range
-    let l:lines = getline(a:firstline, a:lastline)
-    let l:context = join(l:lines, '\n')
-    call vimqq#main#send_warmup(a:new_chat, s:current_message, l:context)
+    let lines = getline(a:firstline, a:lastline)
+    let context = join(lines, '\n')
+    call vimqq#main#send_warmup(a:new_chat, s:current_message, context)
 endfunction
 
 function! s:parse_command_line(cmd)
@@ -42,26 +42,26 @@ function! s:parse_command_line(cmd)
         return v:true
     endif
 
-    let l:qq_pattern = '\v^(.+)QQ\s+(.*)$'
-    let l:matches = matchlist(a:cmd, l:qq_pattern)
-    if len(l:matches) > 0
-        let l:range = l:matches[1]
-        let s:current_message = l:matches[2]
+    let qq_pattern = '\v^(.+)QQ\s+(.*)$'
+    let matches = matchlist(a:cmd, qq_pattern)
+    if len(matches) > 0
+        let range = matches[1]
+        let s:current_message = matches[2]
         try
-            execute l:range . 'call s:ranged_warmup(v:false)'
+            execute range . 'call s:ranged_warmup(v:false)'
             return v:true
         catch
             return v:false
         endtry
     endif
 
-    let l:qq_pattern = '\v^(.+)QQN\s+(.*)$'
-    let l:matches = matchlist(a:cmd, l:qq_pattern)
-    if len(l:matches) > 0
-        let l:range = l:matches[1]
-        let s:current_message = l:matches[2]
+    let qq_pattern = '\v^(.+)QQN\s+(.*)$'
+    let matches = matchlist(a:cmd, qq_pattern)
+    if len(matches) > 0
+        let range = matches[1]
+        let s:current_message = matches[2]
         try
-            execute l:range . 'call s:ranged_warmup(v:true)'
+            execute range . 'call s:ranged_warmup(v:true)'
             return v:true
         catch
             return v:false
@@ -96,17 +96,17 @@ function! s:StartCommandTimer()
 endfunction
 
 function! vimqq#warmup#new(bots, db) abort
-    let l:w = {}
+    let w = {}
 
-    let l:w._bots = []
-    let l:w._db = a:db
+    let w._bots = []
+    let w._db = a:db
     for bot in a:bots.bots()
         if bot.do_autowarm()
-            call add(l:w._bots, bot)
+            call add(w._bots, bot)
         endif
     endfor
 
-    function! l:w.handle_event(event, args) dict
+    function! w.handle_event(event, args) dict
         if a:event ==# 'warmup_done'
             " TODO: we might be able to notify and immediately kick off the
             " next one
@@ -125,7 +125,7 @@ function! vimqq#warmup#new(bots, db) abort
         endif
     endfunction
 
-    return l:w
+    return w
 endfunction
 
 augroup VQQCommandLinePrefetch
