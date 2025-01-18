@@ -36,7 +36,6 @@ function! vimqq#client#new(impl, config = {}) abort
         call vimqq#events#notify('warmup_done', {'bot' : self})
     endfunction
 
-
     function! client.send_warmup(messages) dict
         if self._conf.send_warmup
             let req = {
@@ -90,11 +89,8 @@ function! vimqq#client#new(impl, config = {}) abort
         endif
 
         return self._impl.chat(req)
-
     endfunction
 
-
-    " ------ PRIVATE -------
     function! client._format(messages) dict
         let res = [{"role": "system", "content" : self._conf.system_prompt}]
         for msg in vimqq#fmt#many(a:messages)

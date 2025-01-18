@@ -37,7 +37,6 @@ function! s:new() abort
                     \   "bot_name": bot.name()
                     \ }
 
-                    call vimqq#metrics#user_started_waiting(chat_id)
                     if s:dispatcher.enqueue_query(chat_id, bot, tool_reply)
                         call vimqq#main#show_chat(chat_id)
                     endif
@@ -136,13 +135,10 @@ function! vimqq#main#send_message(force_new_chat, question, context=v:null, use_
     let chat_id = s:state.pick_chat_id(a:force_new_chat)
 
     " TODO: when do we allow tools? Currently, if index is allowed.
-    " Do we save tools themselves?
     if a:use_index
         " TODO: Assumes everything is anthropic
         call s:chatsdb.set_tools(chat_id, s:toolset.def(v:true))
     endif
-    call vimqq#metrics#user_started_waiting(chat_id)
-    call vimqq#log#debug('user started waiting')
     if s:dispatcher.enqueue_query(chat_id, bot, message)
         call vimqq#main#show_chat(chat_id)
     endif
@@ -205,6 +201,7 @@ function! vimqq#main#fork_chat(args) abort
     endif
 
     let message = deepcopy(s:chatsdb.get_first_message(src_chat_id))
+    " TODO: this is likely wrong
     let message.message = join(args, ' ')
 
     let [bot, _msg] = s:bots.select('@' . message.bot_name)
@@ -214,7 +211,7 @@ function! vimqq#main#fork_chat(args) abort
     if s:dispatcher.enqueue_query(chat_id, bot, message)
         call vimqq#main#show_chat(chat_id)
     endif
-    call s:ui.update_queue_size(s:state.queue_size())
+    call s:ui.update_queue_size(s:dispatcher.queue_size())
 endfunction
 
 function! vimqq#main#init() abort

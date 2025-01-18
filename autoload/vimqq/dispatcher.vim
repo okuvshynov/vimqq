@@ -27,6 +27,7 @@ function! vimqq#dispatcher#new(db) abort
     "   - v:true if query started running immediately
     "   - v:false if query was enqueued
     function! dispatcher.enqueue_query(chat_id, bot, message) dict
+        call vimqq#metrics#user_started_waiting(a:chat_id)
         let queue = get(self._queues, a:chat_id, [])
         let sent = v:false
         if empty(queue)
