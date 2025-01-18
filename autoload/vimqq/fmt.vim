@@ -5,39 +5,39 @@ endif
 let g:autoloaded_vimqq_fmt = 1
 
 function! s:load_index_lines()
-    let l:current_dir = expand('%:p:h')
-    let l:prev_dir = ''
+    let current_dir = expand('%:p:h')
+    let prev_dir = ''
 
-    while l:current_dir !=# l:prev_dir
+    while current_dir !=# prev_dir
       " Check if lucas.idx file exists in current dir
-      let l:file_path = l:current_dir . '/lucas.idx'
-      if filereadable(l:file_path)
-          return readfile(l:file_path)
+      let file_path = current_dir . '/lucas.idx'
+      if filereadable(file_path)
+          return readfile(file_path)
       endif
 
-      let l:prev_dir = l:current_dir
-      let l:current_dir = fnamemodify(l:current_dir, ':h')
+      let prev_dir = current_dir
+      let current_dir = fnamemodify(current_dir, ':h')
     endwhile
     return v:null
 endfunction
 
 " Fill context into message object
 function! vimqq#fmt#fill_context(message, context, use_index)
-    let l:message = deepcopy(a:message)
+    let message = deepcopy(a:message)
 
     if a:context isnot v:null
-        let l:message.sources.context = a:context
+        let message.sources.context = a:context
     endif
     if a:use_index
         " TODO: Do we save index snapshot here?
-        let l:index_lines = s:load_index_lines()
-        if l:index_lines isnot v:null
-            let l:message.sources.index = join(l:index_lines, '\n')
+        let index_lines = s:load_index_lines()
+        if index_lines isnot v:null
+            let message.sources.index = join(index_lines, '\n')
         else
             call vimqq#log#error('Unable to locate lucas.idx file')
         endif
     endif
-    return l:message
+    return message
 endfunction
 
 " receives message object. Picks the format based on selection/context
@@ -46,8 +46,8 @@ endfunction
 "
 " returns formatted content
 function! vimqq#fmt#content(message, for_ui=v:false)
-    let l:res = vimqq#prompts#pick(a:message, a:for_ui)
-    let l:replacements = {
+    let res = vimqq#prompts#pick(a:message, a:for_ui)
+    let replacements = {
         \ "{vqq_message}": {msg -> has_key(msg.sources, 'text') ? msg.sources.text : ''},
         \ "{vqq_context}": {msg -> has_key(msg.sources, 'context') ? msg.sources.context : ''},
         \ "{vqq_lucas_index}": {msg -> has_key(msg.sources, 'index') ? msg.sources.index : ''},
@@ -55,12 +55,12 @@ function! vimqq#fmt#content(message, for_ui=v:false)
         \ "{vqq_tool_call}" : {msg -> has_key(msg, 'tool_use') ? "\n\n[tool_call: " . msg.tool_use.name . "(...)]": ""}
         \ }
 
-    for [pattern, ContextFn] in items(l:replacements)
-        let l:escaped = escape(ContextFn(a:message), (&magic ? '&~' : ''))
-        let l:res = substitute(l:res, pattern, l:escaped, 'g')
+    for [pattern, ContextFn] in items(replacements)
+        let escaped = escape(ContextFn(a:message), (&magic ? '&~' : ''))
+        let res = substitute(res, pattern, escaped, 'g')
     endfor
 
-    return l:res
+    return res
 endfunction
 
 function! vimqq#fmt#one(message, for_ui=v:false)
