@@ -29,8 +29,8 @@ function! vimqq#prompts#pick(message, for_ui=v:false)
     endif
     let filename = filename . '.txt'
 
-    let l:root_dir = expand('<script>:p:h:h:h')
-    let l:prompt_file = l:root_dir . '/prompts/' . filename
-    return join(readfile(l:prompt_file), "\n")
+    let root_dir = expand('<script>:p:h:h:h')
+    let prompt_file = root_dir . '/prompts/' . filename
+    return join(readfile(prompt_file), "\n")
 endfunction
 

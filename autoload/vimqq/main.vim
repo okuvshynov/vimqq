@@ -6,9 +6,9 @@ let g:autoloaded_vimqq_main = 1
 
 " -----------------------------------------------------------------------------
 function! s:new() abort
-    let l:controller = {}
+    let controller = {}
 
-    function! l:controller.handle_event(event, args) dict
+    function! controller.handle_event(event, args) dict
         if a:event ==# 'chat_selected'
             call vimqq#main#show_chat(a:args['chat_id'])
             return
@@ -83,7 +83,7 @@ function! s:new() abort
         endif
     endfunction
 
-    return l:controller
+    return controller
 endfunction
 
 function! vimqq#main#setup()
@@ -113,30 +113,30 @@ call vimqq#main#setup()
 " Sends new message to the server
 function! vimqq#main#send_message(force_new_chat, question, context=v:null, use_index=v:false)
     " pick the bot. we modify message and remove bot tag
-    let [l:bot, l:question] = s:bots.select(a:question)
+    let [bot, question] = s:bots.select(a:question)
 
     " In this case bot_name means 'who is asked/tagged'.
     " The author of this message is user. TODO: Rename to 'tagged_bot'
-    let l:message = {
+    let message = {
           \ "role"     : 'user',
-          \ "sources"  : { "text": l:question },
-          \ "bot_name" : l:bot.name()
+          \ "sources"  : { "text": question },
+          \ "bot_name" : bot.name()
     \ }
 
-    let l:message = vimqq#fmt#fill_context(l:message, a:context, a:use_index)
+    let message = vimqq#fmt#fill_context(message, a:context, a:use_index)
 
-    let l:chat_id = s:state.pick_chat_id(a:force_new_chat)
+    let chat_id = s:state.pick_chat_id(a:force_new_chat)
 
     " TODO: when do we allow tools? Currently, if index is allowed.
     " Do we save tools themselves?
     if a:use_index
         " TODO: Assumes everything is anthropic
-        call s:chatsdb.set_tools(l:chat_id, s:toolset.def(v:true))
+        call s:chatsdb.set_tools(chat_id, s:toolset.def(v:true))
     endif
-    call vimqq#metrics#user_started_waiting(l:chat_id)
+    call vimqq#metrics#user_started_waiting(chat_id)
     call vimqq#log#debug('user started waiting')
-    if s:dispatcher.enqueue_query(l:chat_id, l:bot, l:message)
-        call vimqq#main#show_chat(l:chat_id)
+    if s:dispatcher.enqueue_query(chat_id, bot, message)
+        call vimqq#main#show_chat(chat_id)
     endif
 
     call s:ui.update_queue_size(s:dispatcher.queue_size())
@@ -144,31 +144,31 @@ endfunction
 
 " sends a warmup message to the server to pre-fill kv cache with context.
 function! vimqq#main#send_warmup(force_new_chat, question, context=v:null)
-    let [l:bot, l:question] = s:bots.select(a:question)
-    let l:message = {
+    let [bot, question] = s:bots.select(a:question)
+    let message = {
           \ "role"     : 'user',
-          \ "sources"  : { "text": l:question },
-          \ "bot_name" : l:bot.name()
+          \ "sources"  : { "text": question },
+          \ "bot_name" : bot.name()
     \ }
 
-    let l:message = vimqq#fmt#fill_context(l:message, a:context, v:false)
+    let message = vimqq#fmt#fill_context(message, a:context, v:false)
 
-    let l:chat_id = s:state.get_chat_id()
+    let chat_id = s:state.get_chat_id()
 
-    if l:chat_id >= 0 && !a:force_new_chat
-        let l:messages = s:chatsdb.get_messages(l:chat_id) + [l:message]
+    if chat_id >= 0 && !a:force_new_chat
+        let messages = s:chatsdb.get_messages(chat_id) + [message]
     else
-        let l:messages = [l:message]
+        let messages = [message]
     endif
 
-    call vimqq#log#debug('Sending warmup with message of ' . len(l:messages))
-    call l:bot.send_warmup(l:messages)
+    call vimqq#log#debug('Sending warmup with message of ' . len(messages))
+    call bot.send_warmup(messages)
 endfunction
 
 " show list of chats to select from 
 function! vimqq#main#show_list()
-    let l:history = s:chatsdb.get_ordered_chats()
-    call s:ui.display_chat_history(l:history, s:state.get_chat_id())
+    let history = s:chatsdb.get_ordered_chats()
+    call s:ui.display_chat_history(history, s:state.get_chat_id())
 endfunction
 
 function! vimqq#main#show_chat(chat_id)
@@ -177,41 +177,41 @@ function! vimqq#main#show_chat(chat_id)
         return
     endif
     call s:state.set_chat_id(a:chat_id)
-    let l:messages = s:chatsdb.get_messages(a:chat_id)
-    let l:partial  = s:chatsdb.get_partial(a:chat_id)
-    call s:ui.display_chat(l:messages, l:partial)
+    let messages = s:chatsdb.get_messages(a:chat_id)
+    let partial  = s:chatsdb.get_partial(a:chat_id)
+    call s:ui.display_chat(messages, partial)
 endfunction
 
 function! vimqq#main#show_current_chat()
-    let l:chat_id = s:state.get_chat_id()
-    if l:chat_id ==# -1
+    let chat_id = s:state.get_chat_id()
+    if chat_id ==# -1
         call vimqq#log#error("No current chat to show")
         return
     endif
-    call vimqq#main#show_chat(l:chat_id)
+    call vimqq#main#show_chat(chat_id)
 endfunction
 
 " -----------------------------------------------------------------------------
 " Here 'message' is just a string
 function! vimqq#main#qq(message) abort range
     call vimqq#log#debug('qq: sending message')
-    let l:lines = getline(a:firstline, a:lastline)
-    let l:context = join(l:lines, '\n')
-    call vimqq#main#send_message(v:false, a:message, l:context)
+    let lines = getline(a:firstline, a:lastline)
+    let context = join(lines, '\n')
+    call vimqq#main#send_message(v:false, a:message, context)
 endfunction
 
 function! vimqq#main#qqn(message) abort range
     call vimqq#log#debug('qqn: sending message')
-    let l:lines = getline(a:firstline, a:lastline)
-    let l:context = join(l:lines, '\n')
-    call vimqq#main#send_message(v:true, a:message, l:context)
+    let lines = getline(a:firstline, a:lastline)
+    let context = join(lines, '\n')
+    call vimqq#main#send_message(v:true, a:message, context)
 endfunction
 
 function! vimqq#main#qqi(message) abort range
     call vimqq#log#debug('qqi: sending message')
-    let l:lines = getline(a:firstline, a:lastline)
-    let l:context = join(l:lines, '\n')
-    call vimqq#main#send_message(v:true, a:message, l:context, v:true)
+    let lines = getline(a:firstline, a:lastline)
+    let context = join(lines, '\n')
+    call vimqq#main#send_message(v:true, a:message, context, v:true)
 endfunction
 
 function! vimqq#main#qi(message) abort
@@ -265,26 +265,26 @@ endfunction
 " TODO: forking will become particularly important if we use lucas index
 function! vimqq#main#fork_chat(args) abort
     let args = split(a:args, ' ')
-    let l:src_chat_id = s:state.get_chat_id()
-    if l:src_chat_id ==# -1
+    let src_chat_id = s:state.get_chat_id()
+    if src_chat_id ==# -1
         call vimqq#log#error('no chat to fork')
         return
     endif
 
-    if s:chatsdb.is_empty(l:src_chat_id)
+    if s:chatsdb.is_empty(src_chat_id)
         call vimqq#log#error('unable to fork empty chat')
         return
     endif
 
-    let l:message = deepcopy(s:chatsdb.get_first_message(l:src_chat_id))
-    let l:message.message = join(args, ' ')
+    let message = deepcopy(s:chatsdb.get_first_message(src_chat_id))
+    let message.message = join(args, ' ')
 
-    let [l:bot, _msg] = s:bots.select('@' . l:message.bot_name)
+    let [bot, _msg] = s:bots.select('@' . message.bot_name)
 
-    let l:chat_id = s:chatsdb.new_chat()
+    let chat_id = s:chatsdb.new_chat()
 
-    if s:dispatcher.enqueue_query(l:chat_id, l:bot, l:message)
-        call vimqq#main#show_chat(l:chat_id)
+    if s:dispatcher.enqueue_query(chat_id, bot, message)
+        call vimqq#main#show_chat(chat_id)
     endif
     call s:ui.update_queue_size(s:state.queue_size())
 endfunction

@@ -20,8 +20,8 @@ let s:log_levels = {
 
 function s:_log_impl(level, message)
     if s:log_levels[a:level] >= s:log_levels[g:vqq_log_level]
-        let l:message = a:level[0] . strftime(g:vqq_log_format) . a:message
-        call writefile([l:message], g:vqq_log_file, "a")
+        let message = a:level[0] . strftime(g:vqq_log_format) . a:message
+        call writefile([message], g:vqq_log_file, "a")
     endif
 endfunction
 

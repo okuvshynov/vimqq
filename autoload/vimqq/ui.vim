@@ -27,16 +27,16 @@ endfunction
 
 " -----------------------------------------------------------------------------
 function vimqq#ui#new() abort
-    let l:ui = {}
+    let ui = {}
 
-    let l:ui._bot_status = {}
-    let l:ui._queue_size = 0
+    let ui._bot_status = {}
+    let ui._queue_size = 0
 
     " {{{ private:
-    function! l:ui._open_list_window() dict
+    function! ui._open_list_window() dict
         " Check if the buffer already exists
-        let l:bufnum = s:bnrs(s:buffer_name_list)
-        if l:bufnum == -1
+        let bufnum = s:bnrs(s:buffer_name_list)
+        if bufnum == -1
             " Create a new buffer in a vertical split
             silent! execute 'topleft vertical ' . (g:vqq_width) . ' new'
             silent! execute 'edit ' . s:buffer_name_list
@@ -46,21 +46,21 @@ function vimqq#ui#new() abort
             setlocal nomodifiable
             setlocal wfw 
         else
-            let winnum = bufwinnr(l:bufnum)
+            let winnum = bufwinnr(bufnum)
             if winnum == -1
                 silent! execute 'topleft vertical ' . (g:vqq_width) . ' split'
-                silent! execute 'buffer ' l:bufnum
+                silent! execute 'buffer ' bufnum
             else
                 silent! execute winnum . 'wincmd w'
             endif
         endif
-        return l:bufnum
+        return bufnum
     endfunction
 
-    function! l:ui._open_chat_window() dict
+    function! ui._open_chat_window() dict
         " Check if the buffer already exists
-        let l:bufnum = s:bnrs(s:buffer_name_chat)
-        if l:bufnum == -1
+        let bufnum = s:bnrs(s:buffer_name_chat)
+        if bufnum == -1
             " Create a new buffer in a vertical split
             silent! execute 'rightbelow vertical new'
             silent! execute 'edit ' . s:buffer_name_chat
@@ -83,18 +83,18 @@ function vimqq#ui#new() abort
 
             setlocal statusline=%{GetStatus()}%=%{GetQueueSize()}
         else
-            let winnum = bufwinnr(l:bufnum)
+            let winnum = bufwinnr(bufnum)
             call vimqq#log#info('winnum: ' . winnum)
             if winnum == -1
-                silent! execute 'vert sb ' l:bufnum
+                silent! execute 'vert sb ' bufnum
             else
                 silent! execute winnum . 'wincmd w'
             endif
         endif
-        return l:bufnum
+        return bufnum
     endfunction
 
-    function! l:ui._append_message(open_chat, message) dict
+    function! ui._append_message(open_chat, message) dict
         if a:open_chat
             call self._open_chat_window()
         endif
@@ -102,11 +102,11 @@ function vimqq#ui#new() abort
         call vimqq#log#info('UI: append_message: ' . strcharpart(string(a:message), 0, 300))
 
         setlocal modifiable
-        let l:tstamp = "        "
+        let tstamp = "        "
         if has_key(a:message, 'timestamp')
-            let l:tstamp = strftime(s:time_format . " ", a:message['timestamp'])
+            let tstamp = strftime(s:time_format . " ", a:message['timestamp'])
         endif
-        let prompt = l:tstamp . a:message['author']
+        let prompt = tstamp . a:message['author']
         " TODO: what if there's more than 1 piece of content?
         let lines = split(prompt . a:message['content'][0]['text'], '\n')
         for l in lines
@@ -124,46 +124,46 @@ function vimqq#ui#new() abort
     " }}}
     " {{{ public:
 
-    function! l:ui.update_queue_size(queue_size) dict
+    function! ui.update_queue_size(queue_size) dict
         if self._queue_size != a:queue_size
             let self._queue_size = a:queue_size
             redrawstatus!
         endif
     endfunction
 
-    function! l:ui.append_partial(token) dict
-        let l:bufnum = s:bnrs(s:buffer_name_chat)
-        if l:bufnum != -1
-            let l:curr_line = getbufline(bufnum, '$')[0]
-            let l:lines     = split(l:curr_line . a:token . "\n", '\n')
-            silent! call setbufvar(l:bufnum, '&modifiable', 1)
-            silent! call setbufline(l:bufnum, '$', l:lines)
-            silent! call setbufvar(l:bufnum, '&modifiable', 0)
+    function! ui.append_partial(token) dict
+        let bufnum = s:bnrs(s:buffer_name_chat)
+        if bufnum != -1
+            let curr_line = getbufline(bufnum, '$')[0]
+            let lines     = split(curr_line . a:token . "\n", '\n')
+            silent! call setbufvar(bufnum, '&modifiable', 1)
+            silent! call setbufline(bufnum, '$', lines)
+            silent! call setbufvar(bufnum, '&modifiable', 0)
         endif
     endfunction
 
-    function! l:ui.display_chat_history(history, current_chat) dict
-        let l:titles = []
-        let l:chat_id_map = {}
+    function! ui.display_chat_history(history, current_chat) dict
+        let titles = []
+        let chat_id_map = {}
 
         for item in a:history
-            let l:sep = ' '
+            let sep = ' '
             if a:current_chat ==# item.id
-                let l:selected_line = len(titles) + 1
-                let l:sep = '>'
+                let selected_line = len(titles) + 1
+                let sep = '>'
             endif
 
-            call add(l:titles, strftime(g:vqq_time_format . l:sep . item.title, item.time))
-            let l:chat_id_map[len(titles)] = item.id
+            call add(titles, strftime(g:vqq_time_format . sep . item.title, item.time))
+            let chat_id_map[len(titles)] = item.id
         endfor
 
         call self._open_list_window()
 
         setlocal modifiable
         silent! call deletebufline('%', 1, '$')
-        call setline(1, l:titles)
-        if exists('l:selected_line')
-            call cursor(l:selected_line, 1)
+        call setline(1, titles)
+        if exists('selected_line')
+            call cursor(selected_line, 1)
         endif
         setlocal cursorline
         setlocal nomodifiable
@@ -171,7 +171,7 @@ function vimqq#ui#new() abort
         mapclear <buffer>
 
         function! ShowChat() closure
-            let chat_id = l:chat_id_map[line('.')]
+            let chat_id = chat_id_map[line('.')]
             call vimqq#events#notify('chat_selected', {'chat_id': chat_id})
         endfunction
 
@@ -180,7 +180,7 @@ function vimqq#ui#new() abort
         endfunction
 
         function! DeleteChat() closure
-            let chat_id = l:chat_id_map[line('.')]
+            let chat_id = chat_id_map[line('.')]
             call timer_start(0, { -> vimqq#events#notify('delete_chat', {'chat_id': chat_id}) })
         endfunction
 
@@ -189,7 +189,7 @@ function vimqq#ui#new() abort
         nnoremap <silent> <buffer> d    :call DeleteChat()<cr>
     endfunction
 
-    function l:ui.display_chat(messages, partial) dict
+    function ui.display_chat(messages, partial) dict
         call self._open_chat_window()
 
         mapclear <buffer>
@@ -199,8 +199,8 @@ function vimqq#ui#new() abort
         setlocal foldmarker={{{,}}}
         silent! call deletebufline('%', 1, '$')
 
-        for l:message in a:messages
-            call self._append_message(v:false, vimqq#fmt#one(l:message, v:true))
+        for message in a:messages
+            call self._append_message(v:false, vimqq#fmt#one(message, v:true))
         endfor
 
         " display streamed partial response
@@ -209,16 +209,16 @@ function vimqq#ui#new() abort
         endif
     endfunction
 
-    function! l:ui.hide_list() dict
-        let l:list_bufnum = s:bnrs(s:buffer_name_list)
-        let l:list_winid = bufwinid(s:buffer_name_list)
-        if l:list_winid != -1
-            call win_gotoid(l:list_winid)
+    function! ui.hide_list() dict
+        let list_bufnum = s:bnrs(s:buffer_name_list)
+        let list_winid = bufwinid(s:buffer_name_list)
+        if list_winid != -1
+            call win_gotoid(list_winid)
             silent! execute 'hide'
         endif
     endfunction
 
-    function! l:ui.handle_event(event, args) dict
+    function! ui.handle_event(event, args) dict
         call vimqq#log#info(a:event)
         if a:event ==# 'chunk_saved'
             if a:args['chat_id'] ==# a:args['state'].get_chat_id()
@@ -229,7 +229,7 @@ function vimqq#ui#new() abort
 
     " }}}
 
-    return l:ui
+    return ui
 endfunction
 
 " -----------------------------------------------------------------------------
