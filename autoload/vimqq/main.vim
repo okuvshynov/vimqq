@@ -178,34 +178,6 @@ function! vimqq#main#show_chat(chat_id)
     call s:ui.display_chat(messages, partial)
 endfunction
 
-" TODO: forking will become particularly important if we use lucas index
-function! vimqq#main#fork_chat(args) abort
-    let args = split(a:args, ' ')
-    let src_chat_id = s:state.get_chat_id()
-    if src_chat_id ==# -1
-        call vimqq#log#error('no chat to fork')
-        return
-    endif
-
-    if s:chatsdb.is_empty(src_chat_id)
-        call vimqq#log#error('unable to fork empty chat')
-        return
-    endif
-
-    let message = deepcopy(s:chatsdb.get_first_message(src_chat_id))
-    " TODO: this is likely wrong
-    let message.message = join(args, ' ')
-
-    let [bot, _msg] = s:bots.select('@' . message.bot_name)
-
-    let chat_id = s:chatsdb.new_chat()
-
-    if s:dispatcher.enqueue_query(chat_id, bot, message)
-        call vimqq#main#show_chat(chat_id)
-    endif
-    call s:ui.update_queue_size(s:dispatcher.queue_size())
-endfunction
-
 function! vimqq#main#init() abort
     " Just to autoload
 endfunction

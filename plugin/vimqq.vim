@@ -16,20 +16,6 @@ command! -range -nargs=+ QQ call vimqq#api#dispatch(<count>, <line1>, <line2>, <
 command! -range -nargs=+ QQN call vimqq#api#dispatch_new(<count>, <line1>, <line2>, <q-args>)
 command! -range -nargs=+ QQI call vimqq#api#dispatch_index(<count>, <line1>, <line2>, <q-args>)
 
-" Fork the current chat reusing the context from the first message.
-" It is useful in cases of long context, but when you want to start a new
-" discussion thread. For example,
-"   :QF Suggest a simple task for junior engineer working on the project
-"
-" It will:
-"   - take current chat's first message, keep the context and bot 
-"   - modify the question with 'Suggest a ...'
-"   - create new chat
-"   - append amended message to new chat
-"   - send new chat to the original bot
-"
-" This way we can reuse the context, which might be long (entire file/project)
-command! -nargs=+ QF     call vimqq#api#fork_chat(<q-args>)
 command! -nargs=0 QQList call vimqq#api#show_list()
 command! -nargs=0 QQFZF  call vimqq#api#fzf()
 
