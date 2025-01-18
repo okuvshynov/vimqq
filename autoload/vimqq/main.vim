@@ -191,77 +191,6 @@ function! vimqq#main#show_current_chat()
     call vimqq#main#show_chat(chat_id)
 endfunction
 
-" -----------------------------------------------------------------------------
-" Here 'message' is just a string
-function! vimqq#main#qq(message) abort range
-    call vimqq#log#debug('qq: sending message')
-    let lines = getline(a:firstline, a:lastline)
-    let context = join(lines, '\n')
-    call vimqq#main#send_message(v:false, a:message, context)
-endfunction
-
-function! vimqq#main#qqn(message) abort range
-    call vimqq#log#debug('qqn: sending message')
-    let lines = getline(a:firstline, a:lastline)
-    let context = join(lines, '\n')
-    call vimqq#main#send_message(v:true, a:message, context)
-endfunction
-
-function! vimqq#main#qqi(message) abort range
-    call vimqq#log#debug('qqi: sending message')
-    let lines = getline(a:firstline, a:lastline)
-    let context = join(lines, '\n')
-    call vimqq#main#send_message(v:true, a:message, context, v:true)
-endfunction
-
-function! vimqq#main#qi(message) abort
-    call vimqq#log#debug('qi: sending message')
-    call vimqq#main#send_message(v:true, a:message, v:null, v:true)
-endfunction
-
-function! vimqq#main#q(message) abort
-    call vimqq#log#debug('q: sending message')
-    call vimqq#main#send_message(v:false, a:message)
-endfunction
-
-function! vimqq#main#qn(message) abort
-    call vimqq#log#debug('qn: sending message')
-    call vimqq#main#send_message(v:true, a:message)
-endfunction
-
-function! vimqq#main#dispatch_new(count, line1, line2, args) abort
-    call vimqq#log#info('dispatching')
-    if a:count ==# -1
-        " No range was provided
-        call vimqq#main#qn(a:args)
-    else
-        " Range was provided, pass the line numbers
-        execute a:line1 . ',' . a:line2 . 'call vimqq#main#qqn(a:args)'
-    endif
-endfunction
-
-function! vimqq#main#dispatch(count, line1, line2, args) abort
-    call vimqq#log#info('dispatching')
-    if a:count ==# -1
-        " No range was provided
-        call vimqq#main#q(a:args)
-    else
-        " Range was provided, pass the line numbers
-        execute a:line1 . ',' . a:line2 . 'call vimqq#main#qq(a:args)'
-    endif
-endfunction
-
-function! vimqq#main#dispatch_index(count, line1, line2, args) abort
-    call vimqq#log#info('dispatching')
-    if a:count ==# -1
-        " No range was provided
-        call vimqq#main#qi(a:args)
-    else
-        " Range was provided, pass the line numbers
-        execute a:line1 . ',' . a:line2 . 'call vimqq#main#qqi(a:args)'
-    endif
-endfunction
-
 " TODO: forking will become particularly important if we use lucas index
 function! vimqq#main#fork_chat(args) abort
     let args = split(a:args, ' ')
@@ -289,10 +218,11 @@ function! vimqq#main#fork_chat(args) abort
     call s:ui.update_queue_size(s:state.queue_size())
 endfunction
 
+function! vimqq#main#init() abort
+    " Just to autoload
+endfunction
+
 function! vimqq#main#fzf() abort
     call vimqq#fzf#show(s:chatsdb)
 endfunction
 
-function! vimqq#main#init() abort
-    " Just to autoload
-endfunction

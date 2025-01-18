@@ -12,9 +12,9 @@
 "  example:
 "     :%QQ @llama How would you refactor this file?
 
-command! -range -nargs=+ QQ call vimqq#main#dispatch(<count>, <line1>, <line2>, <q-args>)
-command! -range -nargs=+ QQN call vimqq#main#dispatch_new(<count>, <line1>, <line2>, <q-args>)
-command! -range -nargs=+ QQI call vimqq#main#dispatch_index(<count>, <line1>, <line2>, <q-args>)
+command! -range -nargs=+ QQ call vimqq#api#dispatch(<count>, <line1>, <line2>, <q-args>)
+command! -range -nargs=+ QQN call vimqq#api#dispatch_new(<count>, <line1>, <line2>, <q-args>)
+command! -range -nargs=+ QQI call vimqq#api#dispatch_index(<count>, <line1>, <line2>, <q-args>)
 
 " Fork the current chat reusing the context from the first message.
 " It is useful in cases of long context, but when you want to start a new
@@ -33,9 +33,7 @@ command!        -nargs=+ QF call vimqq#main#fork_chat(<q-args>)
 
 command!        -nargs=0 QQList     call vimqq#main#show_list()
 command!        -nargs=0 QQFZF      call vimqq#main#fzf()
-command!        -nargs=1 QQOpenChat call vimqq#main#show_chat(<f-args>)
-command!        -nargs=0 QQChat     call vimqq#main#show_current_chat()
 
 if !has_key(g:, 'vqq_skip_init')
-    call vimqq#main#init()
+    call vimqq#api#init()
 endif
