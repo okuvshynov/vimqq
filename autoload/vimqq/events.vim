@@ -24,6 +24,8 @@ function! vimqq#events#notify(event, context) abort
     call vimqq#log#debug('context: ' . string(a:context))
     let a:context['state'] = s:state
     for observer in s:observers
+        " TODO: should this be called in timer to 
+        " break dependency chain?
         call observer.handle_event(a:event, a:context)
     endfor
 endfunction
