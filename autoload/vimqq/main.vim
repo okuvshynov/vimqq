@@ -182,15 +182,6 @@ function! vimqq#main#show_chat(chat_id)
     call s:ui.display_chat(messages, partial)
 endfunction
 
-function! vimqq#main#show_current_chat()
-    let chat_id = s:state.get_chat_id()
-    if chat_id ==# -1
-        call vimqq#log#error("No current chat to show")
-        return
-    endif
-    call vimqq#main#show_chat(chat_id)
-endfunction
-
 " TODO: forking will become particularly important if we use lucas index
 function! vimqq#main#fork_chat(args) abort
     let args = split(a:args, ' ')
