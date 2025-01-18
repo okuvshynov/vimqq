@@ -8,8 +8,16 @@ function! vimqq#api#fzf() abort
     call vimqq#main#fzf()
 endfunction
 
+function! vimqq#api#show_list() abort
+    call vimqq#main#show_list()
+endfunction
+
 function! vimqq#api#init() abort
     call vimqq#main#init()
+endfunction
+
+function! vimqq#api#fork_chat(args) abort
+    call vimqq#main#fork_chat(a:args)
 endfunction
 
 function! vimqq#api#qq(message) abort range

@@ -29,10 +29,9 @@ command! -range -nargs=+ QQI call vimqq#api#dispatch_index(<count>, <line1>, <li
 "   - send new chat to the original bot
 "
 " This way we can reuse the context, which might be long (entire file/project)
-command!        -nargs=+ QF call vimqq#main#fork_chat(<q-args>)
-
-command!        -nargs=0 QQList     call vimqq#main#show_list()
-command!        -nargs=0 QQFZF      call vimqq#main#fzf()
+command! -nargs=+ QF     call vimqq#api#fork_chat(<q-args>)
+command! -nargs=0 QQList call vimqq#api#show_list()
+command! -nargs=0 QQFZF  call vimqq#api#fzf()
 
 if !has_key(g:, 'vqq_skip_init')
     call vimqq#api#init()

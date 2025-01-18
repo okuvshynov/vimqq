@@ -13,19 +13,29 @@ function! s:new() abort
             call vimqq#main#show_chat(a:args['chat_id'])
             return
         endif
+        " This is when the reply from bot is fully processed and recorded
+        " Now we need to react to it - maybe generate title and check if
+        " There are any tool calls.
         if a:event ==# 'reply_saved'
             let chat_id = a:args['chat_id']
             let bot = a:args['bot']
             
             call vimqq#main#show_chat(chat_id)
-            " TODO: here we check if reply has tool call
             
             let messages = s:chatsdb.get_messages(chat_id)
             if len(messages) > 0 
                 let last_message = messages[len(messages) - 1]
                 if has_key(last_message, 'tool_use') 
                     let tool_result = s:toolset.run(last_message.tool_use)
-                    let tool_reply = {"role": "user", "content" : [{"type": "tool_result", "tool_use_id": last_message.tool_use['id'], "content": tool_result}], "bot_name": bot.name()}
+                    let tool_reply = {
+                    \   "role": "user", 
+                    \   "content" : [{
+                    \       "type": "tool_result",
+                    \       "tool_use_id": last_message.tool_use['id'],
+                    \       "content": tool_result
+                    \   }],
+                    \   "bot_name": bot.name()
+                    \ }
 
                     call vimqq#metrics#user_started_waiting(chat_id)
                     if s:dispatcher.enqueue_query(chat_id, bot, tool_reply)
@@ -36,7 +46,6 @@ function! s:new() abort
                 endif
             endif
     
-
             " TODO: modify this with event/observer based 
             if s:chatsdb.chat_len(chat_id) <= 2
                 call bot.send_gen_title(chat_id, s:chatsdb.get_first_message(chat_id))
@@ -44,9 +53,6 @@ function! s:new() abort
 
             " this might call the next query in queue
             if s:dispatcher.reply_complete(chat_id)
-                " TODO: do we need this? Need to test more to see if it makes sense.
-                " We probably do, because if we are in hidden reasoning mode, we won't
-                " update UI on partial replies.
                 call vimqq#main#show_chat(chat_id)
             endif
             call s:ui.update_queue_size(s:dispatcher.queue_size())
@@ -76,8 +82,10 @@ function! s:new() abort
             call s:chatsdb.delete_chat(chat_id)
             if s:state.get_chat_id() ==# chat_id
                 " TODO - select next chat instead
-                s:state.set_chat_id(-1)
+                call s:state.set_chat_id(-1)
             endif
+
+            " TODO: do we need this?
             call vimqq#main#show_list()
             return
         endif
@@ -165,7 +173,7 @@ function! vimqq#main#send_warmup(force_new_chat, question, context=v:null)
     call bot.send_warmup(messages)
 endfunction
 
-" show list of chats to select from 
+" show chat history
 function! vimqq#main#show_list()
     let history = s:chatsdb.get_ordered_chats()
     call s:ui.display_chat_history(history, s:state.get_chat_id())
