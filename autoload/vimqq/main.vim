@@ -26,6 +26,7 @@ function! s:new() abort
             if len(messages) > 0 
                 let last_message = messages[len(messages) - 1]
                 if has_key(last_message, 'tool_use') 
+                    " TODO: this is sync operation
                     let tool_result = s:toolset.run(last_message.tool_use)
                     let tool_reply = {
                     \   "role": "user", 
@@ -55,15 +56,6 @@ function! s:new() abort
                 call vimqq#main#show_chat(chat_id)
             endif
             call s:ui.update_queue_size(s:dispatcher.queue_size())
-            return
-        endif
-        if a:event ==# 'tool_result'
-            let chat_id = a:args['chat_id']
-            let tool_reply = a:args['result']
-            let bot = a:args['bot']
-            if s:dispatcher.enqueue_query(chat_id, bot, tool_reply)
-                call vimqq#main#show_chat(chat_id)
-            endif
             return
         endif
         if a:event ==# 'delete_chat'
