@@ -9,74 +9,74 @@ endif
 let g:autoloaded_vimqq_dispatcher = 1
 
 function! vimqq#dispatcher#new(db) abort
-    let l:dispatcher = {}
+    let dispatcher = {}
     
-    let l:dispatcher._db = a:db
-    let l:dispatcher._queues = {}
+    let dispatcher._db = a:db
+    let dispatcher._queues = {}
 
     " returns total size of all queues
-    function! l:dispatcher.queue_size() dict
-        let l:size = 0
-        for l:queue in values(self._queues)
-          let l:size += len(l:queue)
+    function! dispatcher.queue_size() dict
+        let res = 0
+        for queue in values(self._queues)
+          let res += len(queue)
         endfor
-        return l:size
+        return res
     endfunction 
 
     " returns
     "   - v:true if query started running immediately
     "   - v:false if query was enqueued
-    function! l:dispatcher.enqueue_query(chat_id, bot, message) dict
-        let l:queue = get(self._queues, a:chat_id, [])
-        let l:sent  = v:false
-        if empty(l:queue)
+    function! dispatcher.enqueue_query(chat_id, bot, message) dict
+        let queue = get(self._queues, a:chat_id, [])
+        let sent = v:false
+        if empty(queue)
             " timestamp and other metadata might get appended here
             call self._db.append_message(a:chat_id, a:message)
             call self._db.reset_partial(a:chat_id, a:bot.name())
-            let l:chat = self._db.get_chat(a:chat_id)
-            if a:bot.send_chat(l:chat)
-                call add(l:queue, [a:message, a:bot])
-                let l:sent = v:true
+            let chat = self._db.get_chat(a:chat_id)
+            if a:bot.send_chat(chat)
+                call add(queue, [a:message, a:bot])
+                let sent = v:true
             else
                 call vimqq#log#error('Unable to send message')
             endif
         else
-            call add(l:queue, [a:message, a:bot])
+            call add(queue, [a:message, a:bot])
         endif
-        let self._queues[a:chat_id] = l:queue
-        return l:sent
+        let self._queues[a:chat_id] = queue
+        return sent
     endfunction
 
     " Called when a reply to a query is complete.
     " Returns true if there was a queued query started 
-    function! l:dispatcher.reply_complete(chat_id) dict
-        let l:sent  = v:false
-        let l:queue = get(self._queues, a:chat_id, [])
+    function! dispatcher.reply_complete(chat_id) dict
+        let sent  = v:false
+        let queue = get(self._queues, a:chat_id, [])
 
-        if empty(l:queue)
+        if empty(queue)
             vimqq#log#error('got a reply from non-enqueued query')
             return v:false
         endif
 
         " Remove completed query
-        let [l:last_message, l:last_bot] = remove(l:queue, 0)
+        let [_last_message, _last_bot] = remove(queue, 0)
 
         " kick off the next request if there was one
-        if !empty(l:queue)
-            let [l:message, l:bot] = remove(l:queue, 0)
-            call self._db.append_message(a:chat_id, l:message)
-            call self._db.reset_partial(a:chat_id, l:bot.name())
-            let l:chat = self._db.get_chat(a:chat_id)
-            if l:bot.send_chat(l:chat)
-                let l:queue = [[l:message, l:bot]] + l:queue
-                let l:sent = v:true
+        if !empty(queue)
+            let [message, bot] = remove(queue, 0)
+            call self._db.append_message(a:chat_id, message)
+            call self._db.reset_partial(a:chat_id, bot.name())
+            let chat = self._db.get_chat(a:chat_id)
+            if bot.send_chat(chat)
+                let queue = [[message, bot]] + queue
+                let sent = v:true
             else
                 call vimqq#log#error('Unable to send message')
             endif
         endif
-        let self._queues[a:chat_id] = l:queue
-        return l:sent
+        let self._queues[a:chat_id] = queue
+        return sent
     endfunction
 
-    return l:dispatcher
+    return dispatcher
 endfunction

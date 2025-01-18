@@ -14,22 +14,22 @@ let s:default_conf = {
 \ }
 
 function! vimqq#client#new(impl, config = {}) abort
-    let l:client = {}
+    let client = {}
 
-    let l:client._conf = deepcopy(s:default_conf)
-    call extend(l:client._conf, a:config)
+    let client._conf = deepcopy(s:default_conf)
+    call extend(client._conf, a:config)
     
-    let l:client._impl = a:impl
+    let client._impl = a:impl
 
-    function! l:client.name() dict
+    function! client.name() dict
         return self._conf.bot_name
     endfunction
     
-    function! l:client.do_autowarm() dict
+    function! client.do_autowarm() dict
         return self._conf.do_autowarm
     endfunction
 
-    function! l:client._on_warmup_complete(error, params) dict
+    function! client._on_warmup_complete(error, params) dict
         if a:error isnot v:null
             call vimqq#log#error('warmup call failed')
         endif
@@ -37,7 +37,7 @@ function! vimqq#client#new(impl, config = {}) abort
     endfunction
 
 
-    function! l:client.send_warmup(messages) dict
+    function! client.send_warmup(messages) dict
         if self._conf.send_warmup
             let req = {
             \   'messages' : self._format(a:messages),
@@ -49,7 +49,7 @@ function! vimqq#client#new(impl, config = {}) abort
         endif
     endfunction
 
-    function! l:client.send_gen_title(chat_id, message) dict
+    function! client.send_gen_title(chat_id, message) dict
         let text = vimqq#fmt#content(a:message)
         let prompt = vimqq#prompts#gen_title_prompt()
         let messages = [
@@ -68,7 +68,7 @@ function! vimqq#client#new(impl, config = {}) abort
         return self._impl.chat(req)
     endfunction
 
-    function! l:client.send_chat(chat, stream=v:true) dict
+    function! client.send_chat(chat, stream=v:true) dict
         let chat_id = a:chat.id
         let messages = a:chat.messages
         " here we attemt to do streaming. If API implementation
@@ -95,18 +95,16 @@ function! vimqq#client#new(impl, config = {}) abort
 
 
     " ------ PRIVATE -------
-    function! l:client._format(messages) dict
-        let l:res = [{"role": "system", "content" : self._conf.system_prompt}]
+    function! client._format(messages) dict
+        let res = [{"role": "system", "content" : self._conf.system_prompt}]
         for msg in vimqq#fmt#many(a:messages)
             " Skipping empty messages
             if !empty(msg.content)
-                call add (l:res, {'role': msg.role, 'content': msg.content})
+                call add (res, {'role': msg.role, 'content': msg.content})
             endif
         endfor
-        return l:res
+        return res
     endfunction
 
-    return l:client
-
+    return client
 endfunction
-
