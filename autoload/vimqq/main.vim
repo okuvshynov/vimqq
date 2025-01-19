@@ -4,8 +4,7 @@ endif
 
 let g:autoloaded_vimqq_main = 1
 
-" -----------------------------------------------------------------------------
-function! s:new() abort
+function! s:new_controller() abort
     let controller = {}
 
     " Move all script-level variables into controller
@@ -174,13 +173,14 @@ endfunction
 " Single controller instance
 let s:controller = v:null
 
+" Creating new instance of vimqq resetting all state.
 function! vimqq#main#setup()
-    let s:controller = s:new()
+    let s:controller = s:new_controller()
     call s:controller.init()
 endfunction
 
-" -----------------------------------------------------------------------------
-" Public API - functions called by defined public commands
+" These functions are called from vimqq#cmd module.
+" They forward the commands to current s:controller instance.
 
 function! vimqq#main#send_message(force_new_chat, question, context=v:null, use_index=v:false)
     call s:controller.send_message(a:force_new_chat, a:question, a:context, a:use_index)

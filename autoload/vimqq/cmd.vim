@@ -1,90 +1,94 @@
-if exists('g:autoloaded_vimqq_api')
+" This module is parsing commands and forwards them to the 
+" appropriate vimqq#main command.
+" It is a stateless module, other than autoload guard.
+
+if exists('g:autoloaded_vimqq_cmd')
     finish
 endif
 
-let g:autoloaded_vimqq_api = 1
+let g:autoloaded_vimqq_cmd = 1
 
-function! vimqq#api#fzf() abort
+function! vimqq#cmd#fzf() abort
     call vimqq#main#fzf()
 endfunction
 
-function! vimqq#api#show_list() abort
+function! vimqq#cmd#show_list() abort
     call vimqq#main#show_list()
 endfunction
 
-function! vimqq#api#init() abort
+function! vimqq#cmd#init() abort
     call vimqq#main#init()
 endfunction
 
-function! vimqq#api#fork_chat(args) abort
+function! vimqq#cmd#fork_chat(args) abort
     call vimqq#main#fork_chat(a:args)
 endfunction
 
-function! vimqq#api#qq(message) abort range
+function! vimqq#cmd#qq(message) abort range
     call vimqq#log#debug('qq: sending message')
     let lines = getline(a:firstline, a:lastline)
     let context = join(lines, '\n')
     call vimqq#main#send_message(v:false, a:message, context)
 endfunction
 
-function! vimqq#api#qqn(message) abort range
+function! vimqq#cmd#qqn(message) abort range
     call vimqq#log#debug('qqn: sending message')
     let lines = getline(a:firstline, a:lastline)
     let context = join(lines, '\n')
     call vimqq#main#send_message(v:true, a:message, context)
 endfunction
 
-function! vimqq#api#qqi(message) abort range
+function! vimqq#cmd#qqi(message) abort range
     call vimqq#log#debug('qqi: sending message')
     let lines = getline(a:firstline, a:lastline)
     let context = join(lines, '\n')
     call vimqq#main#send_message(v:true, a:message, context, v:true)
 endfunction
 
-function! vimqq#api#qi(message) abort
+function! vimqq#cmd#qi(message) abort
     call vimqq#log#debug('qi: sending message')
     call vimqq#main#send_message(v:true, a:message, v:null, v:true)
 endfunction
 
-function! vimqq#api#q(message) abort
+function! vimqq#cmd#q(message) abort
     call vimqq#log#debug('q: sending message')
     call vimqq#main#send_message(v:false, a:message)
 endfunction
 
-function! vimqq#api#qn(message) abort
+function! vimqq#cmd#qn(message) abort
     call vimqq#log#debug('qn: sending message')
     call vimqq#main#send_message(v:true, a:message)
 endfunction
 
-function! vimqq#api#dispatch_new(count, line1, line2, args) abort
+function! vimqq#cmd#dispatch_new(count, line1, line2, args) abort
     call vimqq#log#info('dispatching')
     if a:count ==# -1
         " No range was provided
-        call vimqq#api#qn(a:args)
+        call vimqq#cmd#qn(a:args)
     else
         " Range was provided, pass the line numbers
-        execute a:line1 . ',' . a:line2 . 'call vimqq#api#qqn(a:args)'
+        execute a:line1 . ',' . a:line2 . 'call vimqq#cmd#qqn(a:args)'
     endif
 endfunction
 
-function! vimqq#api#dispatch(count, line1, line2, args) abort
+function! vimqq#cmd#dispatch(count, line1, line2, args) abort
     call vimqq#log#info('dispatching')
     if a:count ==# -1
         " No range was provided
-        call vimqq#api#q(a:args)
+        call vimqq#cmd#q(a:args)
     else
         " Range was provided, pass the line numbers
-        execute a:line1 . ',' . a:line2 . 'call vimqq#api#qq(a:args)'
+        execute a:line1 . ',' . a:line2 . 'call vimqq#cmd#qq(a:args)'
     endif
 endfunction
 
-function! vimqq#api#dispatch_index(count, line1, line2, args) abort
+function! vimqq#cmd#dispatch_index(count, line1, line2, args) abort
     call vimqq#log#info('dispatching')
     if a:count ==# -1
         " No range was provided
-        call vimqq#api#qi(a:args)
+        call vimqq#cmd#qi(a:args)
     else
         " Range was provided, pass the line numbers
-        execute a:line1 . ',' . a:line2 . 'call vimqq#api#qqi(a:args)'
+        execute a:line1 . ',' . a:line2 . 'call vimqq#cmd#qqi(a:args)'
     endif
 endfunction
