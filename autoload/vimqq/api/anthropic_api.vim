@@ -84,7 +84,7 @@ function! vimqq#api#anthropic_api#new() abort
     function! api._on_close(params, req_id) dict
         let response = json_decode(join(self._replies[a:req_id], '\n'))
         if has_key(response, 'content') && !empty(l:response.content) && has_key(l:response.content[0], 'text')
-            let message  = l:response.content[0].text
+            let message = l:response.content[0].text
             if has_key(a:params, 'on_chunk')
                 call a:params.on_chunk(a:params, message)
             endif
@@ -94,6 +94,7 @@ function! vimqq#api#anthropic_api#new() abort
         else
             call vimqq#log#error('Unable to process response')
             call vimqq#log#error(json_encode(response))
+            " TODO: still need to call on_complete with error?
         endif
     endfunction
 
