@@ -33,6 +33,24 @@ function! s:new_controller() abort
         call vimqq#events#add_observer(self)
     endfunction
 
+    function! controller.on_tool_result(bot, tool_use_id, tool_result, chat_id) dict
+        let tool_reply = {
+        \   "role": "user", 
+        \   "content" : [{
+        \       "type": "tool_result",
+        \       "tool_use_id": a:tool_use_id,
+        \       "content": a:tool_result
+        \   }],
+        \   "bot_name": a:bot.name()
+        \ }
+
+        if self.dispatcher.enqueue_query(a:chat_id, a:bot, tool_reply)
+            call self.show_chat(a:chat_id)
+        endif
+
+        call self.ui.update_queue_size(self.dispatcher.queue_size())
+    endfunction
+
     function! controller.handle_event(event, args) dict
         if a:event ==# 'chat_selected'
             call self.show_chat(a:args['chat_id'])
@@ -50,21 +68,7 @@ function! s:new_controller() abort
                 let last_message = messages[len(messages) - 1]
                 if has_key(last_message, 'tool_use') 
                     let tool_result = self.toolset.run(last_message.tool_use)
-                    let tool_reply = {
-                    \   "role": "user", 
-                    \   "content" : [{
-                    \       "type": "tool_result",
-                    \       "tool_use_id": last_message.tool_use['id'],
-                    \       "content": tool_result
-                    \   }],
-                    \   "bot_name": bot.name()
-                    \ }
-
-                    if self.dispatcher.enqueue_query(chat_id, bot, tool_reply)
-                        call self.show_chat(chat_id)
-                    endif
-
-                    call self.ui.update_queue_size(self.dispatcher.queue_size())
+                    call self.on_tool_result(bot, last_message.tool_use['id'], tool_result, chat_id)
                 endif
             endif
     
