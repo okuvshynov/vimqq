@@ -57,9 +57,7 @@ function! vimqq#tools#toolset#new()
         call vimqq#log#info('Calling tool: ' . string(a:tool_call))
         for tool in self.tools
             if tool.name() ==# a:tool_call['name']
-                let res = tool.run(a:tool_call['input'])
-                call vimqq#log#info(res)
-                call a:callback(res)
+                call tool.run_async(a:tool_call['input'], a:callback)
                 return
             endif
         endfor
