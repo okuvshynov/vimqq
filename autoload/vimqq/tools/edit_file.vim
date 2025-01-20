@@ -96,6 +96,11 @@ function! vimqq#tools#edit_file#new(root) abort
         return join(res, '\n')
     endfunction
 
+    function! tool.run_async(tool_use_args, callback) abort
+        let result = self.run(a:tool_use_args)
+        call a:callback(result)
+    endfunction
+
     return tool
 
 endfunction

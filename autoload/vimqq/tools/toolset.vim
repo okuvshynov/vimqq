@@ -60,6 +60,7 @@ function! vimqq#tools#toolset#new()
                 let res = tool.run(a:tool_call['input'])
                 call vimqq#log#info(res)
                 call a:callback(res)
+                return
             endif
         endfor
         call vimqq#log#error('Unknown tool: ' . a:tool_call['name'])
