@@ -40,19 +40,6 @@ function! vimqq#tools#toolset#new()
         return res
     endfunction
 
-    function! res.run(tool_call) dict
-        call vimqq#log#info('Calling tool: ' . string(a:tool_call))
-        for tool in self.tools
-            if tool.name() ==# a:tool_call['name']
-                let res = tool.run(a:tool_call['input'])
-                call vimqq#log#info(res)
-                return res
-            endif
-        endfor
-        call vimqq#log#error('Unknown tool: ' . a:tool_call['name'])
-        return v:null
-    endfunction
-
     function! res.run_async(tool_call, callback) dict
         call vimqq#log#info('Calling tool: ' . string(a:tool_call))
         for tool in self.tools
