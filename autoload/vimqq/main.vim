@@ -67,8 +67,8 @@ function! s:new_controller() abort
             if len(messages) > 0 
                 let last_message = messages[len(messages) - 1]
                 if has_key(last_message, 'tool_use') 
-                    let tool_result = self.toolset.run(last_message.tool_use)
-                    call self.on_tool_result(bot, last_message.tool_use['id'], tool_result, chat_id)
+                    let tool_use_id = last_message.tool_use['id']
+                    call self.toolset.run_async(last_message.tool_use, {res -> self.on_tool_result(bot, tool_use_id, res, chat_id)})
                 endif
             endif
     
