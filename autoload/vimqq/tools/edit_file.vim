@@ -80,7 +80,7 @@ function! vimqq#tools#edit_file#new(root) abort
                 let new_content = substitute(content, '\V' . escape(needle, '\'), replacement, '')
                 
                 " Write back to file
-                let lines = split(new_content, "\n", 1)
+                let lines = split(new_content, '\n', 1)
                 call writefile(lines, file_path)
                 
                 call add(res, '')

@@ -56,6 +56,31 @@ function! s:suite.test_create_file_async()
     call assert_equal(content, new_content)
 endfunction
 
+function! s:suite.test_create_file_async_exists()
+    let path = expand('%:p:h')
+    let tool = vimqq#tools#create_file#new(path)
+    let s:async_result = ''
+
+    " First create a file
+    let content = ['existing content']
+    call writefile(content, path . '/test_create_file.txt')
+
+    function! OnComplete(result)
+        let s:async_result = a:result
+    endfunction
+
+    " Try to create it again asynchronously
+    call tool.run_async({'filepath': 'test_create_file.txt', 'content': 'new content'}, function('OnComplete'))
+    
+    " Since run_async immediately calls run in this implementation, we can check the result right away
+    let s:expected = ['', 'test_create_file.txt', 'ERROR: File already exists.']
+    call assert_equal(join(s:expected, '\n'), s:async_result)
+
+    " Verify original content was not changed
+    let new_content = readfile(path . '/test_create_file.txt')
+    call assert_equal(content, new_content)
+endfunction
+
 function s:suite.after_each()
     call delete(expand('%:p:h') . '/test_create_file.txt')
 endfunction
