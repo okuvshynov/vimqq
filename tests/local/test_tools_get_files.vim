@@ -47,3 +47,28 @@ function s:suite.test_get_files_async()
     " Check that callback was called
     call s:assert.equals(1, s:callback_called)
 endfunction
+
+function s:suite.test_get_files_async_not_found()
+    let s:path = expand('<script>:p:h')
+    let s:tool = vimqq#tools#get_files#new(s:path)
+
+    " Define expected value from synchronous run 
+    let s:expected = ['', 'non_existent_file.txt', 'ERROR: File not found.']
+    let s:expected = join(s:expected, '\n')
+
+    " Spy variable to check if callback was called
+    let s:callback_called = 0
+
+    " Define callback function 
+    function! s:test_callback_not_found(result) closure
+        let s:callback_called = 1
+        " Compare result with expected value
+        call s:assert.equals(s:expected, a:result)
+    endfunction
+
+    " Run asynchronously with non-existent file
+    call s:tool.run_async({'filepaths': ['non_existent_file.txt']}, function('s:test_callback_not_found'))
+
+    " Check that callback was called
+    call s:assert.equals(1, s:callback_called)
+endfunction

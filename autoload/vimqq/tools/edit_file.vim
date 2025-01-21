@@ -46,6 +46,7 @@ function! vimqq#tools#edit_file#new(root) abort
         let path = a:tool_use_args['filepath']
         let needle = a:tool_use_args['needle']
         let replacement = a:tool_use_args['replacement']
+        call vimqq#log#info('REPLACEMENT: ' . replacement)
 
         let file_path = self._root . '/' . path
         if filereadable(file_path)

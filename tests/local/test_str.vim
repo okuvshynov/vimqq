@@ -41,3 +41,12 @@ function s:suite.test_nl3()
     call s:assert.equals(observed, "Hello, world")
 endfunction
 
+function s:suite.test_nl4()
+    let observed = vimqq#str#replace('hello\nworld', "hello\n", 'Hello, ')
+    call s:assert.equals(observed, 'hello\nworld')
+endfunction
+
+function s:suite.test_nl5()
+    let observed = vimqq#str#replace("hello\nworld", 'hello\n', "Hello, ")
+    call s:assert.equals(observed, "hello\nworld")
+endfunction
