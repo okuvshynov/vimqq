@@ -48,6 +48,14 @@ function! vimqq#tools#run_cmd#new(root) abort
         endif
 
         " Prepare shell wrapper that captures stdout, stderr and return code
+        " Save current directory
+        let save_cwd = getcwd()
+        
+        " Change to root directory
+        if isdirectory(self._root)
+            execute 'cd ' . fnameescape(self._root)
+        endif
+
         let shell_cmd = cmd . ' > ' . stdout_file . ' 2> ' . stderr_file . '; echo $? > ' . returncode_file
 
         let stdout = []
@@ -55,6 +63,12 @@ function! vimqq#tools#run_cmd#new(root) abort
         let rc = -1
 
         let config = {}
+        
+        " Extend on_close to restore directory
+        function! s:wrapper_on_close(channel) closure
+            " Restore original directory
+            execute 'cd ' . fnameescape(save_cwd)
+        endfunction
 
         function! s:on_close(channel) closure
             let result = {
@@ -67,6 +81,9 @@ function! vimqq#tools#run_cmd#new(root) abort
             call delete(stdout_file)
             call delete(stderr_file) 
             call delete(returncode_file)
+            
+            " Restore original directory
+            execute 'lcd ' . fnameescape(save_cwd)
 
             call a:callback(json_encode(result))
         endfunction
