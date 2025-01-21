@@ -80,6 +80,34 @@ function s:suite.test_edit_file_not_found()
     call s:assert.equals(s:expected, s:result)
 endfunction
 
+function s:suite.test_edit_file_async()
+    let path = expand('<script>:p:h')
+    let tool = vimqq#tools#edit_file#new(path)
+
+    let content = ['hello', 'world']
+    call writefile(content, path . '/test_edit_file.txt')
+
+    " Store result in script-local variable that we can access from the callback
+    let s:async_result = ''
+    
+    " Create callback function that stores the result
+    function! s:callback(result)
+        let s:async_result = a:result
+    endfunction
+
+    " Run the async operation
+    call tool.run_async({'filepath': 'test_edit_file.txt', 'needle': 'hello', 'replacement': 'HELLO'}, function('s:callback'))
+
+    " Since run_async is synchronous in implementation, we can check result immediately
+    let s:expected = ['', 'test_edit_file.txt', 'SUCCESS: File updated successfully.']
+    let s:expected = join(s:expected, '\n')
+    call s:assert.equals(s:expected, s:async_result)
+
+    " Verify file was actually updated
+    let new_content = readfile(path . '/test_edit_file.txt')
+    call s:assert.equals(new_content, ['HELLO', 'world'])
+endfunction
+
 function s:suite.after_each()
     let path = expand('<script>:p:h')
     call delete(path . '/test_edit_file.txt')
