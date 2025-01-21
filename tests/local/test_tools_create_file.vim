@@ -35,6 +35,27 @@ function! s:suite.test_create_file_exists()
 endfunction
 
 " Clean up after each test
+function! s:suite.test_create_file_async()
+    let path = expand('%:p:h')
+    let tool = vimqq#tools#create_file#new(path)
+    let content = ['test line 1', 'test line 2']
+    let s:async_result = ''
+
+    function! OnComplete(result)
+        let s:async_result = a:result
+    endfunction
+
+    call tool.run_async({'filepath': 'test_create_file.txt', 'content': join(content, "\n")}, function('OnComplete'))
+    
+    " Since run_async immediately calls run in this implementation, we can check the result right away
+    let s:expected = ['', 'test_create_file.txt', 'SUCCESS: File created successfully.']
+    call assert_equal(join(s:expected, '\n'), s:async_result)
+
+    " Test that file was created with correct content
+    let new_content = readfile(path . '/test_create_file.txt')
+    call assert_equal(content, new_content)
+endfunction
+
 function s:suite.after_each()
     call delete(expand('%:p:h') . '/test_create_file.txt')
 endfunction
