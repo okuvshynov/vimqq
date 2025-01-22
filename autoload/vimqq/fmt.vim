@@ -45,8 +45,7 @@ endfunction
 " effective warmup. 
 "
 " returns formatted content
-function! vimqq#fmt#content(message, for_ui=v:false)
-    let res = vimqq#prompts#pick(a:message, a:for_ui)
+function! vimqq#fmt#content(message, prompt)
     let replacements = {
         \ "{vqq_message}": {msg -> has_key(msg.sources, 'text') ? msg.sources.text : ''},
         \ "{vqq_context}": {msg -> has_key(msg.sources, 'context') ? msg.sources.context : ''},
@@ -55,6 +54,7 @@ function! vimqq#fmt#content(message, for_ui=v:false)
         \ "{vqq_tool_call}" : {msg -> has_key(msg, 'tool_use') ? "\n\n[tool_call: " . msg.tool_use.name . "(...)]": ""}
         \ }
 
+    let res = a:prompt
     for [pattern, ContextFn] in items(replacements)
         let escaped = escape(ContextFn(a:message), (&magic ? '&~' : ''))
         let res = substitute(res, pattern, escaped, 'g')
@@ -63,28 +63,18 @@ function! vimqq#fmt#content(message, for_ui=v:false)
     return res
 endfunction
 
-function! vimqq#fmt#one(message, for_ui=v:false)
-    let new_msg = deepcopy(a:message)
+function! s:format_message(message, for_ui) abort
+    let prompt = vimqq#prompts#pick(a:message, a:for_ui)
+    return vimqq#fmt#content(a:message, prompt)
+endfunction
 
-    if a:for_ui
-        if new_msg['role'] ==# 'user'
-            let new_msg['author'] = 'You: @' . a:message['bot_name'] . " "
-        else
-            let new_msg['author'] = new_msg['bot_name'] . ": "
-        endif
-    endif
+function! vimqq#fmt#for_wire(message) abort
+    let new_msg = deepcopy(a:message)
 
     " check if this is tool response
     if has_key(a:message, 'content')
         if a:message.content[0].type ==# 'tool_result'
-            " if for UI:
-            if a:for_ui
-                let new_msg.content = [{'type': 'text', 'text': "\n\n[tool_call_result]"}]
-                let new_msg.author = 'tool: @' . a:message['bot_name'] . " " 
-                return new_msg
-            else
-                return new_msg
-            endif
+            return new_msg
         endif
     endif
 
@@ -94,19 +84,52 @@ function! vimqq#fmt#one(message, for_ui=v:false)
             \ 'id': a:message.tool_use.id,
             \ 'name': a:message.tool_use.name,
             \ 'input': a:message.tool_use.input
-        \}
-        let new_msg.content = [{'type': 'text', 'text': vimqq#fmt#content(a:message, a:for_ui)}, tool_use]
+        \ }
+        let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message, v:false)}, tool_use]
         return new_msg
     endif
 
-    let new_msg.content = [{'type': 'text', 'text': vimqq#fmt#content(a:message, a:for_ui)}]
+    let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message, v:false)}]
     return new_msg
 endfunction
 
-function! vimqq#fmt#many(messages, for_ui=v:false)
+function! vimqq#fmt#for_ui(message) abort
+    let new_msg = deepcopy(a:message)
+
+    if new_msg['role'] ==# 'user'
+        let new_msg['author'] = 'You: @' . a:message['bot_name'] . " "
+    else
+        let new_msg['author'] = new_msg['bot_name'] . ": "
+    endif
+
+    " check if this is tool response
+    if has_key(a:message, 'content')
+        if a:message.content[0].type ==# 'tool_result'
+            let new_msg.content = [{'type': 'text', 'text': "\n\n[tool_call_result]"}]
+            let new_msg.author = 'tool: @' . a:message['bot_name'] . " " 
+            return new_msg
+        endif
+    endif
+
+    if has_key(a:message, 'tool_use')
+        let tool_use = {
+            \ 'type': 'tool_use',
+            \ 'id': a:message.tool_use.id,
+            \ 'name': a:message.tool_use.name,
+            \ 'input': a:message.tool_use.input
+        \ }
+        let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message, v:true)}, tool_use]
+        return new_msg
+    endif
+
+    let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message, v:true)}]
+    return new_msg
+endfunction
+
+function! vimqq#fmt#many(messages)
     let new_messages = []
     for msg in a:messages
-        call add(new_messages, vimqq#fmt#one(msg, a:for_ui))
+        call add(new_messages, vimqq#fmt#for_wire(msg))
     endfor
     return new_messages
 endfunction

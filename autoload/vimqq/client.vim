@@ -49,7 +49,7 @@ function! vimqq#client#new(impl, config = {}) abort
     endfunction
 
     function! client.send_gen_title(chat_id, message) dict
-        let text = vimqq#fmt#content(a:message)
+        let text = vimqq#fmt#content(a:message, vimqq#prompts#pick(a:message, v:false))
         let prompt = vimqq#prompts#gen_title_prompt()
         let messages = [
         \   {'role': 'system', 'content' : self._conf.system_prompt},

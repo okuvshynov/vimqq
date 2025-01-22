@@ -200,12 +200,12 @@ function vimqq#ui#new() abort
         silent! call deletebufline('%', 1, '$')
 
         for message in a:messages
-            call self._append_message(v:false, vimqq#fmt#one(message, v:true))
+            call self._append_message(v:false, vimqq#fmt#for_ui(message))
         endfor
 
         " display streamed partial response
         if has_key(a:partial, 'bot_name') && !empty(a:partial.bot_name)
-            call self._append_message(v:false, vimqq#fmt#one(a:partial, v:true))
+            call self._append_message(v:false, vimqq#fmt#for_ui(a:partial))
         endif
     endfunction
 
