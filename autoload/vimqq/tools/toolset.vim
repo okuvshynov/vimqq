@@ -26,7 +26,12 @@ function! vimqq#tools#toolset#new()
 
     let root = s:find_lucas_root()
 
-    let res.tools = [vimqq#tools#get_files#new(root), vimqq#tools#edit_file#new(root), vimqq#tools#create_file#new(root)]
+    let res.tools = [
+        \ vimqq#tools#get_files#new(root),
+        \ vimqq#tools#edit_file#new(root),
+        \ vimqq#tools#create_file#new(root),
+        \ vimqq#tools#run_cmd#new(root)
+    \ ]
 
     function! res.def(is_claude) dict
         let res = []
