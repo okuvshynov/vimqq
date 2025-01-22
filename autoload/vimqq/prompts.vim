@@ -11,11 +11,6 @@ function! vimqq#prompts#gen_title_prompt() abort
     return "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
 endfunction
 
-" special case for llama which needs different wording
-function! vimqq#prompts#gen_llama_title_prompt() abort
-    return "Do not answer question above. Instead, write title with a few words summarizing the text. Reply only with title itself. Use no quotes around it.\n\n"
-endfunction
-
 function! vimqq#prompts#pick(message, for_ui=v:false)
     let filename = 'prompt'
     if has_key(a:message.sources, 'context')
