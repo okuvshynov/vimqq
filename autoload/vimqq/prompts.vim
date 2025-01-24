@@ -6,9 +6,10 @@ endif
 
 let g:autoloaded_vimqq_prompts_module = 1
 
-function! vimqq#prompts#gen_title_prompt() abort
+function! vimqq#prompts#gen_title_prompt(message) abort
+    let text = vimqq#prompts#apply(a:message, vimqq#prompts#pick(a:message, v:false))
     " This prompt is used by all bots to generate a title from a message
-    return "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n"
+    return "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n" . text
 endfunction
 
 function! vimqq#prompts#pick(message, for_ui=v:false)
@@ -29,3 +30,20 @@ function! vimqq#prompts#pick(message, for_ui=v:false)
     return join(readfile(prompt_file), "\n")
 endfunction
 
+function! vimqq#prompts#apply(message, prompt)
+    let replacements = {
+        \ "{vqq_message}": {msg -> has_key(msg.sources, 'text') ? msg.sources.text : ''},
+        \ "{vqq_context}": {msg -> has_key(msg.sources, 'context') ? msg.sources.context : ''},
+        \ "{vqq_lucas_index}": {msg -> has_key(msg.sources, 'index') ? msg.sources.index : ''},
+        \ "{vqq_lucas_index_size}": {msg -> has_key(msg.sources, 'index') ? len(msg.sources.index) : 0},
+        \ "{vqq_tool_call}" : {msg -> has_key(msg, 'tool_use') ? "\n\n[tool_call: " . msg.tool_use.name . "(...)]": ""}
+        \ }
+
+    let res = a:prompt
+    for [pattern, ContextFn] in items(replacements)
+        let escaped = escape(ContextFn(a:message), (&magic ? '&~' : ''))
+        let res = substitute(res, pattern, escaped, 'g')
+    endfor
+
+    return res
+endfunction

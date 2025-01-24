@@ -41,7 +41,7 @@ endfunction
 
 function! s:format_message(message) abort
     let prompt = vimqq#prompts#pick(a:message, v:true)
-    return vimqq#fmt#content(a:message, prompt)
+    return vimqq#prompts#apply(a:message, prompt)
 endfunction
 
 function! vimqq#fmt_ui#ui(message) abort

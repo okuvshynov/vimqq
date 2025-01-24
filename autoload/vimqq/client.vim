@@ -49,11 +49,10 @@ function! vimqq#client#new(impl, config = {}) abort
     endfunction
 
     function! client.send_gen_title(chat_id, message) dict
-        let text = vimqq#fmt#content(a:message, vimqq#prompts#pick(a:message, v:false))
-        let prompt = vimqq#prompts#gen_title_prompt()
+        let prompt = vimqq#prompts#gen_title_prompt(a:message)
         let messages = [
         \   {'role': 'system', 'content' : self._conf.system_prompt},
-        \   {'role': 'user', 'content' : [{'type': 'text', 'text': prompt . text}]}
+        \   {'role': 'user', 'content' : [{'type': 'text', 'text': prompt}]}
         \ ]
 
         " for non-streaming there'll be exactly one chunk
