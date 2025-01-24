@@ -92,7 +92,7 @@ function vimqq#ui#new() abort
     endfunction
 
     function! ui._append_message(message) dict
-        let lines = vimqq#fmt#ui(a:message)
+        let lines = vimqq#fmt_ui#ui(a:message)
         setlocal modifiable
         for l in lines
             if line('$') == 1 && getline(1) ==# ''

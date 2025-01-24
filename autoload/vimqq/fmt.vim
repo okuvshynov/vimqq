@@ -2,8 +2,6 @@ if exists('g:autoloaded_vimqq_fmt')
     finish
 endif
 
-let s:TIME_FORMAT = "%H:%M"
-
 let g:autoloaded_vimqq_fmt = 1
 
 function! s:load_index_lines()
@@ -65,8 +63,8 @@ function! vimqq#fmt#content(message, prompt)
     return res
 endfunction
 
-function! s:format_message(message, for_ui) abort
-    let prompt = vimqq#prompts#pick(a:message, a:for_ui)
+function! s:format_message(message) abort
+    let prompt = vimqq#prompts#pick(a:message, v:false)
     return vimqq#fmt#content(a:message, prompt)
 endfunction
 
@@ -87,56 +85,12 @@ function! vimqq#fmt#for_wire(message) abort
             \ 'name': a:message.tool_use.name,
             \ 'input': a:message.tool_use.input
         \ }
-        let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message, v:false)}, tool_use]
+        let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message)}, tool_use]
         return new_msg
     endif
 
-    let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message, v:false)}]
+    let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message)}]
     return new_msg
-endfunction
-
-function! vimqq#fmt#for_ui(message) abort
-    let new_msg = deepcopy(a:message)
-
-    if new_msg['role'] ==# 'user'
-        let new_msg['author'] = 'You: @' . a:message['bot_name'] . " "
-    else
-        let new_msg['author'] = new_msg['bot_name'] . ": "
-    endif
-
-    " check if this is tool response
-    if has_key(a:message, 'content')
-        if a:message.content[0].type ==# 'tool_result'
-            let new_msg.content = [{'type': 'text', 'text': "\n\n[tool_call_result]"}]
-            let new_msg.author = 'tool: @' . a:message['bot_name'] . " " 
-            return new_msg
-        endif
-    endif
-
-    if has_key(a:message, 'tool_use')
-        let tool_use = {
-            \ 'type': 'tool_use',
-            \ 'id': a:message.tool_use.id,
-            \ 'name': a:message.tool_use.name,
-            \ 'input': a:message.tool_use.input
-        \ }
-        let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message, v:true)}, tool_use]
-        return new_msg
-    endif
-
-    let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message, v:true)}]
-    return new_msg
-endfunction
-
-function! vimqq#fmt#ui(message) abort
-    let msg = vimqq#fmt#for_ui(a:message)
-    let tstamp = "        "
-    if has_key(msg, 'timestamp')
-        let tstamp = strftime(s:TIME_FORMAT . " ", msg['timestamp'])
-    endif
-    let prompt = tstamp . msg['author']
-    " TODO: what if there's more than 1 piece of content?
-    return split(prompt . msg['content'][0]['text'], '\n')
 endfunction
 
 function! vimqq#fmt#many(messages)
