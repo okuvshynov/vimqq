@@ -19,16 +19,17 @@ function! vimqq#fmt_ui#for_ui(message) abort
     endif
 
     " check if this is tool response
+    " currently tool_use is handled in prompt format
+    " but tool result is handled here
     if has_key(a:message, 'content')
         if a:message.content[0].type ==# 'tool_result'
-            let new_msg.text = "\n\n[tool_call_result]"
+            let text = a:message.content[0].content
+            let new_msg.text = "\n\n[tool_call_result]\n{{{" . text . "}}}\n"
             let new_msg.author = 'tool: @' . a:message['bot_name'] . " " 
             return new_msg
         endif
     endif
 
-    " TODO: currently tool_use is handled in the prompt
-    " while tool_result is handled above
     let new_msg.text = s:format_message(a:message)
     return new_msg
 endfunction

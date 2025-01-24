@@ -45,7 +45,7 @@ function! s:suite.test_fmt_tool_result()
         \ 'timestamp': localtime(),
         \ 'role': 'assistant',
         \ 'bot_name': 'test_bot',
-        \ 'content': [{'type': 'tool_result', 'text': 'tool output'}]
+        \ 'content': [{'type': 'tool_result', 'content': 'tool_output'}]
     \}
 
     let result = vimqq#fmt#for_wire(msg)
@@ -53,7 +53,7 @@ function! s:suite.test_fmt_tool_result()
 
     " Test formatting a tool result message with UI
     let result_ui = vimqq#fmt_ui#for_ui(msg)
-    call s:assert.equals(result_ui.text, "\n\n[tool_call_result]")
+    call s:assert.equals(result_ui.text, "\n\n[tool_call_result]\n{{{tool_output}}}\n")
     call s:assert.equals(result_ui.author, 'tool: @test_bot ')
 endfunction
 
