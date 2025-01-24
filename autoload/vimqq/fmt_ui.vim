@@ -28,7 +28,7 @@ function! vimqq#fmt_ui#for_ui(message) abort
     endif
 
     " TODO: currently tool_use is handled in the prompt
-    " while tool_call is handled above
+    " while tool_result is handled above
     let new_msg.text = s:format_message(a:message)
     return new_msg
 endfunction

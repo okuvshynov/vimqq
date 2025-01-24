@@ -101,6 +101,11 @@ function! vimqq#tools#edit_file#new(root) abort
         call a:callback(result)
     endfunction
 
+    function! tool.format_call(tool_use_args) dict abort
+        let path = a:tool_use_args['filepath']
+        return "\n\n[tool_call: edit_file('" . path . "')]"
+    endfunction
+
     return tool
 
 endfunction

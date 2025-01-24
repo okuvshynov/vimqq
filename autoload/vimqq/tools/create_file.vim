@@ -62,9 +62,14 @@ function! vimqq#tools#create_file#new(root) abort
         return join(res, '\n')
     endfunction
 
-    function! tool.run_async(tool_use_args, callback) abort
+    function! tool.run_async(tool_use_args, callback) dict abort
         let result = self.run(a:tool_use_args)
         call a:callback(result)
+    endfunction
+
+    function! tool.format_call(tool_use_args) dict abort
+        let path = a:tool_use_args['filepath']
+        return "\n\n[tool_call: create_file('" . path . "')]"
     endfunction
     
     return tool

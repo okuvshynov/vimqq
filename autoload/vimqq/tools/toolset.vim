@@ -60,3 +60,20 @@ function! vimqq#tools#toolset#new()
     return res
 endfunction
 
+function! vimqq#tools#toolset#format(tool_call)
+    let root = ''
+    let tools = [
+        \ vimqq#tools#get_files#new(root),
+        \ vimqq#tools#edit_file#new(root),
+        \ vimqq#tools#create_file#new(root),
+        \ vimqq#tools#run_cmd#new(root)
+    \ ]
+    for tool in tools
+        if tool.name() ==# a:tool_call['name']
+            return tool.format_call(a:tool_call['input'])
+        endif
+    endfor
+    call vimqq#log#error('Unknown tool: ' . a:tool_call['name'])
+    return "\n\n[tool_call: unknown tool " . a:tool_call['name'] . "]"
+endfunction
+

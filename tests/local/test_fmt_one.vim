@@ -66,8 +66,8 @@ function! s:suite.test_fmt_tool_use()
         \ 'sources': {'text': 'Using tool'},
         \ 'tool_use': {
             \ 'id': '123',
-            \ 'name': 'test_tool',
-            \ 'input': {'param': 'value'}
+            \ 'name': 'edit_file',
+            \ 'input': {'filepath': 'hello.txt'}
         \ }
     \}
 
@@ -75,11 +75,11 @@ function! s:suite.test_fmt_tool_use()
     call s:assert.equals(result.content[0].type, 'text')
     call s:assert.match(result.content[0].text, 'Using tool')
     call s:assert.equals(result.content[1].type, 'tool_use')
-    call s:assert.equals(result.content[1].name, 'test_tool')
-    call s:assert.equals(result.content[1].input, {'param': 'value'})
+    call s:assert.equals(result.content[1].name, 'edit_file')
+    call s:assert.equals(result.content[1].input, {'filepath': 'hello.txt'})
 
     " Test formatting a message with tool use with UI
     let result_ui = vimqq#fmt_ui#for_ui(msg)
     call s:assert.match(result_ui.text, 'Using tool')
-    call s:assert.match(result_ui.text, '\[tool_call: test_tool(...)\]')
+    call s:assert.match(result_ui.text, '\[tool_call: edit_file(''hello.txt'')\]')
 endfunction
