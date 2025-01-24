@@ -14,9 +14,6 @@ let g:vqq_width = get(g:, 'vqq_width', 80)
 " format to use in chat list
 let g:vqq_time_format = get(g:, 'vqq_time_format', "%b %d %H:%M ")
 
-" format to use for each message. Not configurable, we have hardcoded syntax
-let s:time_format = "%H:%M"
-
 let s:buffer_name_list = 'vimqq_chatlist'
 let s:buffer_name_chat = 'vimqq_chat'
 
@@ -94,21 +91,9 @@ function vimqq#ui#new() abort
         return bufnum
     endfunction
 
-    function! ui._append_message(open_chat, message) dict
-        if a:open_chat
-            call self._open_chat_window()
-        endif
-
-        call vimqq#log#info('UI: append_message: ' . strcharpart(string(a:message), 0, 300))
-
+    function! ui._append_message(message) dict
+        let lines = vimqq#fmt#ui(a:message)
         setlocal modifiable
-        let tstamp = "        "
-        if has_key(a:message, 'timestamp')
-            let tstamp = strftime(s:time_format . " ", a:message['timestamp'])
-        endif
-        let prompt = tstamp . a:message['author']
-        " TODO: what if there's more than 1 piece of content?
-        let lines = split(prompt . a:message['content'][0]['text'], '\n')
         for l in lines
             if line('$') == 1 && getline(1) ==# ''
                 call setline(1, l)
@@ -200,12 +185,12 @@ function vimqq#ui#new() abort
         silent! call deletebufline('%', 1, '$')
 
         for message in a:messages
-            call self._append_message(v:false, vimqq#fmt#for_ui(message))
+            call self._append_message(message)
         endfor
 
         " display streamed partial response
         if has_key(a:partial, 'bot_name') && !empty(a:partial.bot_name)
-            call self._append_message(v:false, vimqq#fmt#for_ui(a:partial))
+            call self._append_message(a:partial)
         endif
     endfunction
 

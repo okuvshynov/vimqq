@@ -2,6 +2,8 @@ if exists('g:autoloaded_vimqq_fmt')
     finish
 endif
 
+let s:TIME_FORMAT = "%H:%M"
+
 let g:autoloaded_vimqq_fmt = 1
 
 function! s:load_index_lines()
@@ -124,6 +126,17 @@ function! vimqq#fmt#for_ui(message) abort
 
     let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message, v:true)}]
     return new_msg
+endfunction
+
+function! vimqq#fmt#ui(message) abort
+    let msg = vimqq#fmt#for_ui(a:message)
+    let tstamp = "        "
+    if has_key(msg, 'timestamp')
+        let tstamp = strftime(s:TIME_FORMAT . " ", msg['timestamp'])
+    endif
+    let prompt = tstamp . msg['author']
+    " TODO: what if there's more than 1 piece of content?
+    return split(prompt . msg['content'][0]['text'], '\n')
 endfunction
 
 function! vimqq#fmt#many(messages)
