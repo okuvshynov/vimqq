@@ -18,7 +18,7 @@ function! vimqq#api#groq_api#new() abort
         let messages = split(a:msg, '\n')
         for message in messages
             if message !~# '^data: '
-                call vimqq#log#info('Unexpected reply: ' . message)
+                call vimqq#log#warning('Unexpected reply: ' . message)
                 continue
             endif
             if message ==# 'data: [DONE]'
@@ -36,7 +36,7 @@ function! vimqq#api#groq_api#new() abort
 
     " Not calling any callback as we expect to act on data: [DONE]
     function! api._on_stream_close(params) dict
-        call vimqq#log#info('groq_api stream closed.')
+        call vimqq#log#debug('groq_api stream closed.')
     endfunction
 
     function! api._on_out(msg, params, req_id) dict

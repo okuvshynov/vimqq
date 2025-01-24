@@ -20,11 +20,10 @@ function! vimqq#api#anthropic_api#new() abort
 
     " Not calling any callback as we expect to act on data: [DONE]
     function! api._on_stream_close(params) dict
-        call vimqq#log#info('anthropic stream closed.')
+        call vimqq#log#debug('anthropic stream closed.')
     endfunction
 
     function! api._on_stream_out(msg, params, req_id) dict
-        call vimqq#log#debug(a:msg)
         let messages = split(a:msg, '\n')
         for message in messages
             if message !~# '^data: '
@@ -113,8 +112,6 @@ function! vimqq#api#anthropic_api#new() abort
         \   'stream': get(a:params, 'stream', v:false),
         \   'tools': get(a:params, 'tools', [])
         \}
-
-        call vimqq#log#debug(string(req['tools']))
 
         if system isnot v:null
             let req['system'] = system

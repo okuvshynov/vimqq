@@ -16,7 +16,7 @@ function! vimqq#api#llama_api#new(endpoint) abort
       let messages = split(a:msg, '\n')
       for message in messages
           if message !~# '^data: '
-              call vimqq#log#info('Unexpected reply: ' . message)
+              call vimqq#log#warning('Unexpected reply: ' . message)
               continue
           endif
           if message ==# 'data: [DONE]'
@@ -35,7 +35,7 @@ function! vimqq#api#llama_api#new(endpoint) abort
     " Not calling any callback as we expect to act on data: [DONE]
     " However, we might need to do that to handle any errors?
     function! api._on_stream_close(params) dict
-        call vimqq#log#info('llama stream closed.')
+        call vimqq#log#debug('llama.cpp stream closed')
     endfunction
 
     function! api._on_out(msg, params, req_id) dict

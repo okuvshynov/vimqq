@@ -61,7 +61,7 @@ function! vimqq#client#new(impl, config = {}) abort
         \   'max_tokens' : self._conf.title_tokens,
         \   'model' : self._conf.model,
         \   'on_chunk' : {p, m -> vimqq#events#notify('title_done', {'chat_id' : a:chat_id, 'title': m})},
-        \   'on_complete': {err, p -> vimqq#log#info('title complete')}
+        \   'on_complete': {err, p -> vimqq#log#debug('title complete')}
         \ }
         return self._impl.chat(req)
     endfunction
@@ -72,7 +72,6 @@ function! vimqq#client#new(impl, config = {}) abort
         " here we attemt to do streaming. If API implementation
         " doesn't support it, it would 'stream' everything in single chunk
 
-        call vimqq#log#info('send_chat ' . string(messages))
         let req = {
         \   'messages' : self._format(messages),
         \   'max_tokens' : self._conf.max_tokens,

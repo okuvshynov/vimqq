@@ -81,7 +81,6 @@ function vimqq#ui#new() abort
             setlocal statusline=%{GetStatus()}%=%{GetQueueSize()}
         else
             let winnum = bufwinnr(bufnum)
-            call vimqq#log#info('winnum: ' . winnum)
             if winnum == -1
                 silent! execute 'vert sb ' bufnum
             else
@@ -204,7 +203,6 @@ function vimqq#ui#new() abort
     endfunction
 
     function! ui.handle_event(event, args) dict
-        call vimqq#log#info(a:event)
         if a:event ==# 'chunk_saved'
             if a:args['chat_id'] ==# a:args['state'].get_chat_id()
                 call self.append_partial(a:args['chunk'])

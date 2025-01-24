@@ -61,7 +61,6 @@ function! vimqq#cmd#qn(message) abort
 endfunction
 
 function! vimqq#cmd#dispatch_new(count, line1, line2, args) abort
-    call vimqq#log#info('dispatching')
     if a:count ==# -1
         " No range was provided
         call vimqq#cmd#qn(a:args)
@@ -72,7 +71,6 @@ function! vimqq#cmd#dispatch_new(count, line1, line2, args) abort
 endfunction
 
 function! vimqq#cmd#dispatch(count, line1, line2, args) abort
-    call vimqq#log#info('dispatching')
     if a:count ==# -1
         " No range was provided
         call vimqq#cmd#q(a:args)
@@ -83,7 +81,6 @@ function! vimqq#cmd#dispatch(count, line1, line2, args) abort
 endfunction
 
 function! vimqq#cmd#dispatch_index(count, line1, line2, args) abort
-    call vimqq#log#info('dispatching')
     if a:count ==# -1
         " No range was provided
         call vimqq#cmd#qi(a:args)

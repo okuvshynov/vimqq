@@ -21,7 +21,7 @@ function! vimqq#metrics#first_token(chat_id) abort
         else
             " TODO: this tracking is wrong in case of non-empty queue
             " as we would unlet the start point for both messages
-            call vimqq#log#info('token for chat with no start point.')
+            call vimqq#log#warning('token for chat with no start point.')
         endif
     endif
 endfunction

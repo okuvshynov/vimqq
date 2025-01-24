@@ -115,7 +115,7 @@ function! vimqq#warmup#new(bots, db) abort
         if a:event ==# 'title_saved' || a:event ==# 'chat_selected'
             let chat_id = a:args['chat_id']
             if !self._db.chat_exists(chat_id)
-                call vimqq#log#info("warmup on non-existent chat.")
+                call vimqq#log#warning("warmup on non-existent chat.")
                 return
             endif
             let messages = self._db.get_messages(chat_id)

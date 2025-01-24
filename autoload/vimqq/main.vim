@@ -86,7 +86,7 @@ function! s:new_controller() abort
         if a:event ==# 'delete_chat'
             let chat_id = a:args['chat_id']
             if !self.chatsdb.chat_exists(chat_id)
-                call vimqq#log#info("trying to delete non-existent chat")
+                call vimqq#log#warning("trying to delete non-existent chat")
                 return
             endif
             let title = self.chatsdb.get_title(chat_id)

@@ -33,7 +33,6 @@ endfunction
 function s:suite.test_http_get_404()
     let status_code = 0
     function! OnOut(msg) closure
-        call vimqq#log#info(a:msg)
         let status_code = a:msg
     endfunction
 
@@ -48,7 +47,6 @@ endfunction
 function s:suite.test_http_get_na()
     let status_code = 0
     function! OnOut(msg) closure
-        call vimqq#log#info(a:msg)
         let status_code = a:msg
     endfunction
 
@@ -63,7 +61,6 @@ endfunction
 function s:suite.test_http_get_na_body()
     let reply_received = []
     function! OnOut(msg) closure
-        call vimqq#log#info(a:msg)
         call add(reply_received, a:msg)
     endfunction
 
