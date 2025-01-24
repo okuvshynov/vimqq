@@ -93,7 +93,7 @@ function! vimqq#tools#edit_file#new(root) abort
             call add(res, 'ERROR: File not found.')
         endif
 
-        return join(res, '\n')
+        return join(res, "\n")
     endfunction
 
     function! tool.run_async(tool_use_args, callback) abort

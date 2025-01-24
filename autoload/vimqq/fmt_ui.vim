@@ -6,6 +6,11 @@ let g:autoloaded_vimqq_fmt_ui = 1
 
 let s:TIME_FORMAT = "%H:%M"
 
+" tool output longer than 400 bytes will be hidden in fold
+" we are not using line count to capture the case when it is one extremely
+" long line, which will make chat hard to read.
+let s:TOOL_FOLD_LIMIT = 400
+
 function! vimqq#fmt_ui#for_ui(message) abort
     let new_msg = { 
         \ 'timestamp' : a:message['timestamp'] ,
@@ -24,7 +29,10 @@ function! vimqq#fmt_ui#for_ui(message) abort
     if has_key(a:message, 'content')
         if a:message.content[0].type ==# 'tool_result'
             let text = a:message.content[0].content
-            let new_msg.text = "\n\n[tool_call_result]\n{{{" . text . "}}}\n"
+            if len(text) >= s:TOOL_FOLD_LIMIT
+                let text = "{{{\n" . text . "\n}}}"
+            endif
+            let new_msg.text = "\n\n[tool_call_result]\n" . text . "\n"
             let new_msg.author = 'tool: @' . a:message['bot_name'] . " " 
             return new_msg
         endif

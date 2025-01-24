@@ -11,7 +11,7 @@ function s:suite.test_edit_file()
     let s:result = tool.run({'filepath': 'test_edit_file.txt', 'needle': 'hello', 'replacement': 'HELLO'})
 
     let s:expected = ['', 'test_edit_file.txt', 'SUCCESS: File updated successfully.']
-    let s:expected = join(s:expected, '\n')
+    let s:expected = join(s:expected, "\n")
     call s:assert.equals(s:expected, s:result)
 
     let new_content = readfile(path . '/test_edit_file.txt')
@@ -28,7 +28,7 @@ function s:suite.test_edit_file_newline()
     let s:result = tool.run({'filepath': 'test_edit_file.txt', 'needle': "hello\nwo", 'replacement': 'hello, wo'})
 
     let s:expected = ['', 'test_edit_file.txt', 'SUCCESS: File updated successfully.']
-    let s:expected = join(s:expected, '\n')
+    let s:expected = join(s:expected, "\n")
     call s:assert.equals(s:expected, s:result)
 
     let new_content = readfile(path . '/test_edit_file.txt')
@@ -45,7 +45,7 @@ function s:suite.test_edit_file_pattern_not_found()
     let s:result = tool.run({'filepath': 'test_edit_file.txt', 'needle': "hello!", 'replacement': ''})
 
     let s:expected = ['', 'test_edit_file.txt', 'ERROR: Pattern not found in file.']
-    let s:expected = join(s:expected, '\n')
+    let s:expected = join(s:expected, "\n")
     call s:assert.equals(s:expected, s:result)
 
     let new_content = readfile(path . '/test_edit_file.txt')
@@ -62,7 +62,7 @@ function s:suite.test_edit_file_more_instances()
     let s:result = tool.run({'filepath': 'test_edit_file.txt', 'needle': "hell", 'replacement': ''})
 
     let s:expected = ['', 'test_edit_file.txt', 'ERROR: Multiple instances of pattern found.']
-    let s:expected = join(s:expected, '\n')
+    let s:expected = join(s:expected, "\n")
     call s:assert.equals(s:expected, s:result)
 
     let new_content = readfile(path . '/test_edit_file.txt')
@@ -76,7 +76,7 @@ function s:suite.test_edit_file_not_found()
     let s:result = tool.run({'filepath': 'test_edit_file.txt', 'needle': "hello", 'replacement': ''})
 
     let s:expected = ['', 'test_edit_file.txt', 'ERROR: File not found.']
-    let s:expected = join(s:expected, '\n')
+    let s:expected = join(s:expected, "\n")
     call s:assert.equals(s:expected, s:result)
 endfunction
 
@@ -100,7 +100,7 @@ function s:suite.test_edit_file_async()
 
     " Since run_async is synchronous in implementation, we can check result immediately
     let s:expected = ['', 'test_edit_file.txt', 'SUCCESS: File updated successfully.']
-    let s:expected = join(s:expected, '\n')
+    let s:expected = join(s:expected, "\n")
     call s:assert.equals(s:expected, s:async_result)
 
     " Verify file was actually updated

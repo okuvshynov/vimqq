@@ -8,7 +8,7 @@ function! s:suite.test_create_file()
     let s:result = tool.run({'filepath': 'test_create_file.txt', 'content': join(content, "\n")})
 
     let s:expected = ['', 'test_create_file.txt', 'SUCCESS: File created successfully.']
-    call assert_equal(join(s:expected, '\n'), s:result)
+    call assert_equal(join(s:expected, "\n"), s:result)
 
     " Test that file was created with correct content
     let new_content = readfile(path . '/test_create_file.txt')
@@ -27,7 +27,7 @@ function! s:suite.test_create_file_exists()
     let s:result = tool.run({'filepath': 'test_create_file.txt', 'content': 'new content'})
 
     let s:expected = ['', 'test_create_file.txt', 'ERROR: File already exists.']
-    call assert_equal(join(s:expected, '\n'), s:result)
+    call assert_equal(join(s:expected, "\n"), s:result)
 
     " Verify original content was not changed
     let new_content = readfile(path . '/test_create_file.txt')
@@ -49,7 +49,7 @@ function! s:suite.test_create_file_async()
     
     " Since run_async immediately calls run in this implementation, we can check the result right away
     let s:expected = ['', 'test_create_file.txt', 'SUCCESS: File created successfully.']
-    call assert_equal(join(s:expected, '\n'), s:async_result)
+    call assert_equal(join(s:expected, "\n"), s:async_result)
 
     " Test that file was created with correct content
     let new_content = readfile(path . '/test_create_file.txt')
@@ -74,7 +74,7 @@ function! s:suite.test_create_file_async_exists()
     
     " Since run_async immediately calls run in this implementation, we can check the result right away
     let s:expected = ['', 'test_create_file.txt', 'ERROR: File already exists.']
-    call assert_equal(join(s:expected, '\n'), s:async_result)
+    call assert_equal(join(s:expected, "\n"), s:async_result)
 
     " Verify original content was not changed
     let new_content = readfile(path . '/test_create_file.txt')

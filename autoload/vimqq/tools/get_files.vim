@@ -54,7 +54,7 @@ function! vimqq#tools#get_files#new(root) abort
             endif
         endfor
 
-        return join(res, '\n')
+        return join(res, "\n")
     endfunction
 
     function! tool.run_async(tool_use_args, callback) abort

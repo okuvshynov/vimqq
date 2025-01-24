@@ -8,7 +8,7 @@ function s:suite.test_get_files()
     let s:content = s:tool.run({'filepaths': ['tools_get_files.txt']})
 
     let s:expected = ['', 'tools_get_files.txt', 'Hello, world!']
-    let s:expected = join(s:expected, '\n')
+    let s:expected = join(s:expected, "\n")
     call s:assert.equals(s:expected, s:content)
 endfunction
 
@@ -19,7 +19,7 @@ function s:suite.test_get_files_not_found()
     let s:content = s:tool.run({'filepaths': ['non_existent_file.txt']})
 
     let s:expected = ['', 'non_existent_file.txt', 'ERROR: File not found.']
-    let s:expected = join(s:expected, '\n')
+    let s:expected = join(s:expected, "\n")
     call s:assert.equals(s:expected, s:content)
 endfunction
 
@@ -29,7 +29,7 @@ function s:suite.test_get_files_async()
 
     " Define expected value from synchronous run
     let s:expected = ['', 'tools_get_files.txt', 'Hello, world!']
-    let s:expected = join(s:expected, '\n')
+    let s:expected = join(s:expected, "\n")
 
     " Spy variable to check if callback was called 
     let s:callback_called = 0
@@ -54,7 +54,7 @@ function s:suite.test_get_files_async_not_found()
 
     " Define expected value from synchronous run 
     let s:expected = ['', 'non_existent_file.txt', 'ERROR: File not found.']
-    let s:expected = join(s:expected, '\n')
+    let s:expected = join(s:expected, "\n")
 
     " Spy variable to check if callback was called
     let s:callback_called = 0

@@ -59,7 +59,7 @@ function! vimqq#tools#create_file#new(root) abort
             call add(res, 'SUCCESS: File created successfully.')
         endif
 
-        return join(res, '\n')
+        return join(res, "\n")
     endfunction
 
     function! tool.run_async(tool_use_args, callback) dict abort
