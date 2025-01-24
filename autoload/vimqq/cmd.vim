@@ -25,38 +25,32 @@ function! vimqq#cmd#fork_chat(args) abort
 endfunction
 
 function! vimqq#cmd#qq(message) abort range
-    call vimqq#log#debug('qq: sending message')
     let lines = getline(a:firstline, a:lastline)
     let context = join(lines, '\n')
     call vimqq#main#send_message(v:false, a:message, context)
 endfunction
 
 function! vimqq#cmd#qqn(message) abort range
-    call vimqq#log#debug('qqn: sending message')
     let lines = getline(a:firstline, a:lastline)
     let context = join(lines, '\n')
     call vimqq#main#send_message(v:true, a:message, context)
 endfunction
 
 function! vimqq#cmd#qqi(message) abort range
-    call vimqq#log#debug('qqi: sending message')
     let lines = getline(a:firstline, a:lastline)
     let context = join(lines, '\n')
     call vimqq#main#send_message(v:true, a:message, context, v:true)
 endfunction
 
 function! vimqq#cmd#qi(message) abort
-    call vimqq#log#debug('qi: sending message')
     call vimqq#main#send_message(v:true, a:message, v:null, v:true)
 endfunction
 
 function! vimqq#cmd#q(message) abort
-    call vimqq#log#debug('q: sending message')
     call vimqq#main#send_message(v:false, a:message)
 endfunction
 
 function! vimqq#cmd#qn(message) abort
-    call vimqq#log#debug('qn: sending message')
     call vimqq#main#send_message(v:true, a:message)
 endfunction
 
