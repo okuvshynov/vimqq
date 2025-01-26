@@ -27,11 +27,24 @@ function! vimqq#api#anthropic_api#new() abort
     function! api._on_stream_out(msg, params, req_id) dict
         let messages = split(a:msg, '\n')
         for message in messages
+            call vimqq#log#info(message)
             if message !~# '^data: '
+                " Likely an error, let's try deserialize it
+                try
+                    let error_json = json_decode(message)
+                    if error_json['type'] == 'error'
+                        call vimqq#log#error(string(error_json['error']))
+                    else
+                        call vimqq#log#warning('Unexpected message: ' . message)
+                    endif
+                catch
+                    call vimqq#log#warning('Unexpected message: ' . message)
+                endtry
                 continue
             endif
             let json_string = substitute(message, '^data: ', '', '')
             let response = json_decode(json_string)
+            call vimqq#log#info(string(response))
 
             if response['type'] ==# 'content_block_start'
                 if response['content_block']['type'] ==# 'tool_use'
@@ -121,7 +134,7 @@ function! vimqq#api#anthropic_api#new() abort
 
         let first_message_json = json_encode(messages[0])
         if len(first_message_json) > g:vqq_claude_cache_above
-            let req.messages[0]['cache_control'] = {"type": "ephemeral"}
+            let req.messages[0]['content'][0]['cache_control'] = {"type": "ephemeral"}
         endif
 
         if system isnot v:null
