@@ -7,9 +7,22 @@ endif
 let g:autoloaded_vimqq_prompts_module = 1
 
 function! vimqq#prompts#gen_title_prompt(message) abort
-    let text = vimqq#prompts#apply(a:message, vimqq#prompts#pick(a:message, v:false))
+    let text = vimqq#prompts#apply(a:message, vimqq#prompts#pick_title(a:message))
     " This prompt is used by all bots to generate a title from a message
     return "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n" . text
+endfunction
+
+" never send index to title gen
+function! vimqq#prompts#pick_title(message)
+    let filename = 'prompt'
+    if has_key(a:message.sources, 'context')
+        let filename = filename . '_context'
+    endif
+    let filename = filename . '.txt'
+
+    let root_dir = expand('<script>:p:h:h:h')
+    let prompt_file = root_dir . '/prompts/' . filename
+    return join(readfile(prompt_file), "\n")
 endfunction
 
 function! vimqq#prompts#pick(message, for_ui=v:false)

@@ -5,6 +5,7 @@ endif
 let g:autoloaded_vimqq_api_anthropic_module = 1
 
 let g:vqq_claude_api_key = get(g:, 'vqq_claude_api_key', $ANTHROPIC_API_KEY)
+let g:vqq_claude_cache_above = get(g:, 'vqq_claude_cache_above', 5000)
 
 function! vimqq#api#anthropic_api#new() abort
     let api = {}
@@ -46,7 +47,7 @@ function! vimqq#api#anthropic_api#new() abort
 
             if response['type'] ==# 'message_start'
                 " Here we get usage for input tokens
-                call vimqq#log#debug('usage: ' . string(response.message.usage))
+                call vimqq#log#info('usage: ' . string(response.message.usage))
                 continue
             endif
             if response['type'] ==# 'message_stop'
@@ -56,7 +57,7 @@ function! vimqq#api#anthropic_api#new() abort
             endif
             if response['type'] ==# 'message_delta'
                 " Here we get usage for output
-                call vimqq#log#debug('usage: ' . string(response.usage))
+                call vimqq#log#info('usage: ' . string(response.usage))
                 if response['delta']['stop_reason'] ==# 'tool_use'
                     let self._tool_uses[a:req_id]['input'] = json_decode(self._tool_uses[a:req_id]['input'])
                     call a:params.on_tool_use(self._tool_uses[a:req_id])
@@ -117,6 +118,11 @@ function! vimqq#api#anthropic_api#new() abort
         \   'stream': get(a:params, 'stream', v:false),
         \   'tools': get(a:params, 'tools', [])
         \}
+
+        let first_message_json = json_encode(messages[0])
+        if len(first_message_json) > g:vqq_claude_cache_above
+            let req.messages[0]['cache_control'] = {"type": "ephemeral"}
+        endif
 
         if system isnot v:null
             let req['system'] = system
