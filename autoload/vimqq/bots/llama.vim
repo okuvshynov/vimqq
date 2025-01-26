@@ -11,10 +11,10 @@ let s:default_conf = {
     \ 'max_tokens'    : 1024,
     \ 'bot_name'      : 'llama',
     \ 'system_prompt' : 'You are a helpful assistant.',
+    \ 'send_warmup'   : v:true,
+    \ 'do_autowarm'   : v:true
 \ }
 
-" 'send_warmup'   : v:true,
-" 'do_autowarm'   : v:true
 function vimqq#bots#llama#new(config = {}) abort
     let config = deepcopy(s:default_conf)
     call extend(config, a:config)

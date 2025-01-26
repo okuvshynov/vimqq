@@ -14,6 +14,7 @@ function! vimqq#api#anthropic_api#new() abort
     let api._replies = {}
     let api._tool_uses = {}
     let api._api_key = g:vqq_claude_api_key
+    let api._usage = {}
 
     function! api._on_error(msg, params) dict
         call vimqq#log#error('API error')
@@ -27,7 +28,6 @@ function! vimqq#api#anthropic_api#new() abort
     function! api._on_stream_out(msg, params, req_id) dict
         let messages = split(a:msg, '\n')
         for message in messages
-            call vimqq#log#info(message)
             if message !~# '^data: '
                 " Likely an error, let's try deserialize it
                 try
@@ -44,7 +44,6 @@ function! vimqq#api#anthropic_api#new() abort
             endif
             let json_string = substitute(message, '^data: ', '', '')
             let response = json_decode(json_string)
-            call vimqq#log#info(string(response))
 
             if response['type'] ==# 'content_block_start'
                 if response['content_block']['type'] ==# 'tool_use'
@@ -60,7 +59,9 @@ function! vimqq#api#anthropic_api#new() abort
 
             if response['type'] ==# 'message_start'
                 " Here we get usage for input tokens
-                call vimqq#log#info('usage: ' . string(response.message.usage))
+                call vimqq#log#debug('usage: ' . string(response.message.usage))
+                let self._usage = vimqq#agg#merge(self._usage, response.message.usage)
+
                 continue
             endif
             if response['type'] ==# 'message_stop'
@@ -70,7 +71,8 @@ function! vimqq#api#anthropic_api#new() abort
             endif
             if response['type'] ==# 'message_delta'
                 " Here we get usage for output
-                call vimqq#log#info('usage: ' . string(response.usage))
+                call vimqq#log#debug('usage: ' . string(response.usage))
+                let self._usage = vimqq#agg#merge(self._usage, response.usage)
                 if response['delta']['stop_reason'] ==# 'tool_use'
                     let self._tool_uses[a:req_id]['input'] = json_decode(self._tool_uses[a:req_id]['input'])
                     call a:params.on_tool_use(self._tool_uses[a:req_id])
@@ -102,6 +104,7 @@ function! vimqq#api#anthropic_api#new() abort
         let response = json_decode(join(self._replies[a:req_id], "\n"))
         if has_key(response, 'content') && !empty(l:response.content) && has_key(l:response.content[0], 'text')
             call vimqq#log#debug('usage: ' . string(response.usage))
+            let self._usage = vimqq#agg#merge(self._usage, response.usage)
             let message = l:response.content[0].text
             if has_key(a:params, 'on_chunk')
                 call a:params.on_chunk(a:params, message)

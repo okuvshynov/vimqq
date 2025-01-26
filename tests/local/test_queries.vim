@@ -168,7 +168,7 @@ function s:suite.test_selection()
     :normal ggV5j
     :execute "normal! \<Esc>"
     :'<,'>QQ @mock hello
-    :sleep 500m
+    :sleep 1000m
     let content = s:normtime(getline(1, '$'))
     let expected = [
                 \ "00:00 You: @mock Here's a code snippet:",
