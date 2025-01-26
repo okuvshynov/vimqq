@@ -45,6 +45,8 @@ function! vimqq#api#anthropic_api#new() abort
             endif
 
             if response['type'] ==# 'message_start'
+                " Here we get usage for input tokens
+                call vimqq#log#debug('usage: ' . string(response.message.usage))
                 continue
             endif
             if response['type'] ==# 'message_stop'
@@ -53,6 +55,8 @@ function! vimqq#api#anthropic_api#new() abort
                 continue
             endif
             if response['type'] ==# 'message_delta'
+                " Here we get usage for output
+                call vimqq#log#debug('usage: ' . string(response.usage))
                 if response['delta']['stop_reason'] ==# 'tool_use'
                     let self._tool_uses[a:req_id]['input'] = json_decode(self._tool_uses[a:req_id]['input'])
                     call a:params.on_tool_use(self._tool_uses[a:req_id])
@@ -81,8 +85,9 @@ function! vimqq#api#anthropic_api#new() abort
     endfunction
 
     function! api._on_close(params, req_id) dict
-        let response = json_decode(join(self._replies[a:req_id], '\n'))
+        let response = json_decode(join(self._replies[a:req_id], "\n"))
         if has_key(response, 'content') && !empty(l:response.content) && has_key(l:response.content[0], 'text')
+            call vimqq#log#debug('usage: ' . string(response.usage))
             let message = l:response.content[0].text
             if has_key(a:params, 'on_chunk')
                 call a:params.on_chunk(a:params, message)
