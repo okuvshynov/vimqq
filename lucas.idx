@@ -1,5 +1,21 @@
 {
     "files": {
+        "autoload/vimqq/agg.vim": {
+            "path": "autoload/vimqq/agg.vim",
+            "size": 346,
+            "checksum": "83c69da2a6cdf34f230c5ec8c61d2fde",
+            "processing_timestamp": "2025-01-25T23:14:49.868713",
+            "approx_tokens": 113,
+            "processing_result": "This file contains a single function, vimqq#agg#merge, which merges two dictionaries, summing up values for existing keys. The function takes two dictionaries as input and returns a new dictionary with the merged result. This function is used in other parts of the codebase to combine data."
+        },
+        "autoload/vimqq/api/anthropic_api.vim": {
+            "path": "autoload/vimqq/api/anthropic_api.vim",
+            "size": 6947,
+            "checksum": "c19e4c50ea8ba6f32e8dbe410a7a367f",
+            "processing_timestamp": "2025-01-25T23:14:49.868713",
+            "approx_tokens": 1646,
+            "processing_result": "This file provides an implementation of the Anthropic API, a conversational AI model. The API is wrapped in a Vimscript object, allowing for easy interaction with the API. The file defines several functions for handling API requests and responses, including error handling and data processing. The API is used to send messages and receive responses, which are then processed and logged."
+        },
         "autoload/vimqq/api/deepseek_api.vim": {
             "path": "autoload/vimqq/api/deepseek_api.vim",
             "size": 4087,
@@ -168,6 +184,14 @@
             "approx_tokens": 615,
             "processing_result": "This file provides FuzzyFinder integration for VimQQ. It includes functions to format messages for FZF, parse selected lines back into components, and show a list of chats using FZF. The file exports several functions, including vimqq#fzf#fmt_msg, vimqq#fzf#format, vimqq#fzf#parse, and vimqq#fzf#show. These functions are used to integrate VimQQ with the FZF plugin, allowing users to select chats and messages using FZF. The file also includes error handling to ensure that FZF is installed before attempting to use it."
         },
+        "autoload/vimqq/log.vim": {
+            "path": "autoload/vimqq/log.vim",
+            "size": 1251,
+            "checksum": "b4dd63e9c7956720569a31900894473d",
+            "processing_timestamp": "2025-01-25T23:14:49.868713",
+            "approx_tokens": 377,
+            "processing_result": "This file provides a logging system for the Vimqq plugin. It defines several log levels (DEBUG, INFO, WARNING, ERROR, NONE) and functions for logging messages at each level. The log messages are written to a file, and the log level can be configured. The logging system is used throughout the codebase to track events and errors."
+        },
         "autoload/vimqq/main.vim": {
             "path": "autoload/vimqq/main.vim",
             "size": 6998,
@@ -207,6 +231,14 @@
             "processing_timestamp": "2024-12-21T23:43:16.351255",
             "approx_tokens": 152,
             "processing_result": "This file contains the path utility functions for the vimqq plugin. It provides functions for getting the log and data paths, which are used by other parts of the plugin. The functions take into account the differences between Vim and Neovim and use the stdpath function to get the standard data path. Relationships with other files: used by chatsdb.vim for getting the data path and jobs.vim for getting the data path."
+        },
+        "autoload/vimqq/prompts.vim": {
+            "path": "autoload/vimqq/prompts.vim",
+            "size": 2368,
+            "checksum": "90c338fda0890cf975b5a9a6cb92a0cc",
+            "processing_timestamp": "2025-01-25T23:14:49.868713",
+            "approx_tokens": 619,
+            "processing_result": "This file provides functions for generating prompts for the conversational AI model. It defines several functions for picking prompts based on the input message and context, and for applying replacements to the prompts. The prompts are used to generate titles and other text based on the input message."
         },
         "autoload/vimqq/state.vim": {
             "path": "autoload/vimqq/state.vim",
@@ -376,6 +408,14 @@
             "approx_tokens": 476,
             "processing_result": "This file contains a test suite for Vim scripts, specifically testing the behavior of string substitution and splitting. The tests cover various scenarios, including basic substitution, substitution with newlines, and splitting of strings with newlines. The tests are written using the Themis testing framework and use assertions to verify the expected behavior."
         },
+        "tests/local/test_agg.vim": {
+            "path": "tests/local/test_agg.vim",
+            "size": 872,
+            "checksum": "a6c98b4d72e7aea106965e3e431c5639",
+            "processing_timestamp": "2025-01-25T23:14:49.868713",
+            "approx_tokens": 317,
+            "processing_result": "This file contains tests for the vimqq#agg#merge function. The tests cover several scenarios, including merging two dictionaries with overlapping keys, merging an empty dictionary with a non-empty dictionary, and merging two dictionaries with non-overlapping keys. The tests ensure that the merge function behaves correctly and produces the expected results."
+        },
         "tests/local/test_dir/a.txt": {
             "path": "tests/local/test_dir/a.txt",
             "size": 0,
@@ -415,6 +455,14 @@
             "processing_timestamp": "2025-01-24T14:54:57.061158",
             "approx_tokens": 409,
             "processing_result": "This file contains a set of test cases for the prompt generation functions provided by the VimQQ plugin. The tests cover various scenarios, including generating prompts with and without context and index information. The tests verify that the prompt generation functions produce the expected output and that the prompts are correctly formatted for display in the chat window. The test cases are written using the Themis testing framework and use the VimQQ plugin's internal functions to generate the prompts. The tests provide a way to ensure that the prompt generation functions are working correctly and that the chat window displays the prompts as expected."
+        },
+        "tests/local/test_queries.vim": {
+            "path": "tests/local/test_queries.vim",
+            "size": 6444,
+            "checksum": "006ab3ec0c865e90beb95f0444fb95f3",
+            "processing_timestamp": "2025-01-25T23:15:49.287769",
+            "approx_tokens": 1891,
+            "processing_result": "This is a test file written in Vimscript, utilizing the themis testing framework. It contains a suite of tests for the mock server queries functionality. The file defines several test functions, including tests for listing chats, creating new chats, querying the server, and testing the queue functionality. Each test function exercises a specific aspect of the mock server queries, verifying that the expected behavior is exhibited. The tests also check the server statistics after each test, ensuring that the expected number of chat queries, stream queries, deltas, non-stream queries, and warmups have occurred. The file uses various Vimscript functions and commands to simulate user interactions, such as sending queries to the mock server and verifying the responses."
         },
         "tests/local/test_str.vim": {
             "path": "tests/local/test_str.vim",
@@ -472,6 +520,14 @@
             "approx_tokens": 4,
             "processing_result": "This file is a sample file used in the `test_tools_get_files.vim` test. It contains a simple text content that is used to test the `get_files` tool."
         },
+        "tests/readme.txt": {
+            "path": "tests/readme.txt",
+            "size": 608,
+            "checksum": "c5571ae479176d6a72304a59ced56860",
+            "processing_timestamp": "2025-01-25T23:15:49.287769",
+            "approx_tokens": 148,
+            "processing_result": "This is a README file providing instructions on how to run tests for the project. It explains the different types of tests, including local tests that do not depend on remote API calls and remote tests that call remote APIs or a local llama.cpp server. The file provides examples of how to run all local tests, all remote tests, or individual test files using the themis testing framework. It also notes the requirements for running the tests, such as having python and flask installed for the mock server, and API keys and cost balance for the remote tests."
+        },
         "tests/remote/test_api.vim": {
             "path": "tests/remote/test_api.vim",
             "size": 2836,
@@ -495,62 +551,6 @@
             "processing_timestamp": "2024-12-20T15:16:08.793467",
             "approx_tokens": 184,
             "processing_result": "This is a todo list file for the vimqq plugin, which contains a list of tasks and ideas for improving the plugin. The tasks include implementing auto-fix functionality, supporting additional AI providers, and improving context generalization and tool use. The file also mentions several other features and improvements that are planned or in progress."
-        },
-        "autoload/vimqq/agg.vim": {
-            "path": "autoload/vimqq/agg.vim",
-            "size": 346,
-            "checksum": "83c69da2a6cdf34f230c5ec8c61d2fde",
-            "processing_timestamp": "2025-01-25T23:14:49.868713",
-            "approx_tokens": 113,
-            "processing_result": "This file contains a single function, vimqq#agg#merge, which merges two dictionaries, summing up values for existing keys. The function takes two dictionaries as input and returns a new dictionary with the merged result. This function is used in other parts of the codebase to combine data."
-        },
-        "autoload/vimqq/api/anthropic_api.vim": {
-            "path": "autoload/vimqq/api/anthropic_api.vim",
-            "size": 6947,
-            "checksum": "c19e4c50ea8ba6f32e8dbe410a7a367f",
-            "processing_timestamp": "2025-01-25T23:14:49.868713",
-            "approx_tokens": 1646,
-            "processing_result": "This file provides an implementation of the Anthropic API, a conversational AI model. The API is wrapped in a Vimscript object, allowing for easy interaction with the API. The file defines several functions for handling API requests and responses, including error handling and data processing. The API is used to send messages and receive responses, which are then processed and logged."
-        },
-        "autoload/vimqq/log.vim": {
-            "path": "autoload/vimqq/log.vim",
-            "size": 1251,
-            "checksum": "b4dd63e9c7956720569a31900894473d",
-            "processing_timestamp": "2025-01-25T23:14:49.868713",
-            "approx_tokens": 377,
-            "processing_result": "This file provides a logging system for the Vimqq plugin. It defines several log levels (DEBUG, INFO, WARNING, ERROR, NONE) and functions for logging messages at each level. The log messages are written to a file, and the log level can be configured. The logging system is used throughout the codebase to track events and errors."
-        },
-        "autoload/vimqq/prompts.vim": {
-            "path": "autoload/vimqq/prompts.vim",
-            "size": 2368,
-            "checksum": "90c338fda0890cf975b5a9a6cb92a0cc",
-            "processing_timestamp": "2025-01-25T23:14:49.868713",
-            "approx_tokens": 619,
-            "processing_result": "This file provides functions for generating prompts for the conversational AI model. It defines several functions for picking prompts based on the input message and context, and for applying replacements to the prompts. The prompts are used to generate titles and other text based on the input message."
-        },
-        "tests/local/test_agg.vim": {
-            "path": "tests/local/test_agg.vim",
-            "size": 872,
-            "checksum": "a6c98b4d72e7aea106965e3e431c5639",
-            "processing_timestamp": "2025-01-25T23:14:49.868713",
-            "approx_tokens": 317,
-            "processing_result": "This file contains tests for the vimqq#agg#merge function. The tests cover several scenarios, including merging two dictionaries with overlapping keys, merging an empty dictionary with a non-empty dictionary, and merging two dictionaries with non-overlapping keys. The tests ensure that the merge function behaves correctly and produces the expected results."
-        },
-        "tests/local/test_queries.vim": {
-            "path": "tests/local/test_queries.vim",
-            "size": 6444,
-            "checksum": "006ab3ec0c865e90beb95f0444fb95f3",
-            "processing_timestamp": "2025-01-25T23:15:49.287769",
-            "approx_tokens": 1891,
-            "processing_result": "This is a test file written in Vimscript, utilizing the themis testing framework. It contains a suite of tests for the mock server queries functionality. The file defines several test functions, including tests for listing chats, creating new chats, querying the server, and testing the queue functionality. Each test function exercises a specific aspect of the mock server queries, verifying that the expected behavior is exhibited. The tests also check the server statistics after each test, ensuring that the expected number of chat queries, stream queries, deltas, non-stream queries, and warmups have occurred. The file uses various Vimscript functions and commands to simulate user interactions, such as sending queries to the mock server and verifying the responses."
-        },
-        "tests/readme.txt": {
-            "path": "tests/readme.txt",
-            "size": 608,
-            "checksum": "c5571ae479176d6a72304a59ced56860",
-            "processing_timestamp": "2025-01-25T23:15:49.287769",
-            "approx_tokens": 148,
-            "processing_result": "This is a README file providing instructions on how to run tests for the project. It explains the different types of tests, including local tests that do not depend on remote API calls and remote tests that call remote APIs or a local llama.cpp server. The file provides examples of how to run all local tests, all remote tests, or individual test files using the themis testing framework. It also notes the requirements for running the tests, such as having python and flask installed for the mock server, and API keys and cost balance for the remote tests."
         }
     },
     "dirs": {
