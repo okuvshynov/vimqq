@@ -119,13 +119,45 @@ function! vimqq#api#anthropic_api#new() abort
         endif
     endfunction
 
+    function! api._count_tokens(messages, tools, model, system_msg) dict
+        let req = {
+            \ 'model': a:model,
+            \ 'messages': a:messages,
+            \ 'tools': a:tools
+        \ }
+        if a:system_msg isnot v:null
+            let req['system'] = a:system_msg
+        endif
+
+        let headers = {
+            \ 'Content-Type': 'application/json',
+            \ 'x-api-key': self._api_key,
+            \ 'anthropic-version': '2023-06-01'
+        \ }
+        let json_req = json_encode(req)
+		let job_conf = {
+		\   'out_cb': {channel, msg -> vimqq#log#debug('token count: ' . msg)}
+		\ }
+        return vimqq#platform#http#post(
+            \ 'https://api.anthropic.com/v1/messages/count_tokens',
+            \ headers,
+            \ json_req,
+            \ job_conf)
+    endfunction
+
     function! api.chat(params) dict
         let messages = a:params.messages
-        let system = v:null
+        let tools = get(a:params, 'tools', [])
+        
+        let system_msg = v:null
         if messages[0].role ==# 'system'
-            let system = l:messages[0].content
+            let system_msg = l:messages[0].content
             call remove(messages, 0)
         endif
+
+        " Count tokens before proceeding
+        call self._count_tokens(messages, tools, a:params.model, system_msg)
+        
 
         let req = {
         \   'messages' : messages,
@@ -140,8 +172,8 @@ function! vimqq#api#anthropic_api#new() abort
             let req.messages[0]['content'][0]['cache_control'] = {"type": "ephemeral"}
         endif
 
-        if system isnot v:null
-            let req['system'] = system
+        if system_msg isnot v:null
+            let req['system'] = system_msg
         endif
 
         let req_id = self._req_id
