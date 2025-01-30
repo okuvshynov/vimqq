@@ -69,7 +69,13 @@ function! vimqq#tools#create_file#new(root) abort
 
     function! tool.format_call(tool_use_args) dict abort
         let path = a:tool_use_args['filepath']
-        return "\n\n[tool_call: create_file('" . path . "')]"
+        let content = a:tool_use_args['content']
+        let COLLAPSE_WHEN_OVER_N = 1
+        let output = "[tool_call: create_file('" . path . "')]"
+        if count(content, "\n") > COLLAPSE_WHEN_OVER_N
+            let output = "{{{ " . output . "\n}}}"
+        endif
+        return "\n\n" . output . "\n\n"
     endfunction
     
     return tool

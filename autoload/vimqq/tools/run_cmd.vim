@@ -94,7 +94,7 @@ function! vimqq#tools#run_cmd#new(root) abort
 
     function! tool.format_call(tool_use_args) dict abort
         let cmd = a:tool_use_args['command']
-        return "\n\n[tool_call: run_cmd('" . cmd . "')]"
+        return "\n\n[tool_call: run_cmd]\n\n\$ " . cmd . "\n\n"
     endfunction
 
     return tool
