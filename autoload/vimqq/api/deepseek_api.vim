@@ -15,6 +15,7 @@ function! vimqq#api#deepseek_api#new() abort
     let api._api_key = g:vqq_deepseek_api_key
 
     function! api._on_stream_out(msg, params) dict
+        call vimqq#log#debug('deepseek msg ' . a:msg)
       let messages = split(a:msg, '\n')
       for message in messages
           if message !~# '^data: '
@@ -29,7 +30,15 @@ function! vimqq#api#deepseek_api#new() abort
           let response = json_decode(json_string)
           if has_key(response.choices[0].delta, 'content')
               let chunk = response.choices[0].delta.content
-              call a:params.on_chunk(a:params, chunk)
+              if chunk isnot v:null
+                call a:params.on_chunk(a:params, chunk)
+              endif
+          endif
+          if has_key(response.choices[0].delta, 'reasoning_content')
+              let chunk = response.choices[0].delta.reasoning_content
+              if chunk isnot v:null
+                call a:params.on_chunk(a:params, chunk)
+              endif
           endif
       endfor
     endfunction
