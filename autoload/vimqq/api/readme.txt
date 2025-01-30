@@ -7,6 +7,7 @@ Example differences:
  - llama.cpp API calls max_tokens n_predict
  - anthropic has a separate field for system prompt
  - there are more differences in tool calling APIs, which we'll also include here
+ - deepseek has 'content' and 'reasoning_content' as part of the output
 
 API consists of a single call chat(params), which is similar to chat.completions.create.
 
@@ -17,5 +18,5 @@ params can contain:
  - max_tokens: int -- how many tokens to generate
  - stream: bool - stream response
  - on_complete: func(params) -- callback to call on chat completion
- - on_chunk: func(params, message) -- callback to call on new chunk of text. For non streaming requests, will be called once.
+ - on_chunk: func(params, chunk) -- callback to call on new chunk of text. For non streaming requests, will be called once.
 
