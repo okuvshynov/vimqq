@@ -90,9 +90,11 @@ function! vimqq#client#new(impl, config = {}) abort
     endfunction
 
     function! client._format(messages) dict
+        " TODO: shall we save this to the chat itself?
         let res = [{"role": "system", "content" : self._conf.system_prompt}]
         for msg in vimqq#fmt#many(a:messages)
             " Skipping empty messages
+            " TODO: this should never happen
             if !empty(msg.content)
                 call add (res, {'role': msg.role, 'content': msg.content})
             endif

@@ -30,9 +30,10 @@ function! vimqq#fmt_ui#for_ui(message) abort
         if a:message.content[0].type ==# 'tool_result'
             let text = a:message.content[0].content
             if len(text) >= s:TOOL_FOLD_LIMIT
-                let text = "{{{\n" . text . "\n}}}"
+                let new_msg.text = "\n\n{{{ [tool_call_result]\n" . text . "\n}}}\n\n"
+            else
+                let new_msg.text = "\n\n[tool_call_result]\n" . text . "\n\n"
             endif
-            let new_msg.text = "\n\n[tool_call_result]\n" . text . "\n"
             let new_msg.author = 'tool: @' . a:message['bot_name'] . " " 
             return new_msg
         endif

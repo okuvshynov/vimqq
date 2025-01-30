@@ -6,4 +6,8 @@ Here's a code snippet:
 
 {vqq_message}
 
-[index ({vqq_lucas_index_size} bytes)]
+{{{ [index ({vqq_lucas_index_size} bytes)]
+{vqq_lucas_index}
+}}}
+
+

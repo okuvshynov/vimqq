@@ -102,7 +102,15 @@ function! vimqq#tools#edit_file#new(root) abort
 
     function! tool.format_call(tool_use_args) dict abort
         let path = a:tool_use_args['filepath']
-        return "\n\n[tool_call: edit_file('" . path . "')]"
+        let output = "[tool_call: edit_file('" . path . "')]"
+        let output = output . "\nPattern:\n" . a:tool_use_args['needle']
+        let output = output . "\nReplacement:\n" . a:tool_use_args['replacement']
+        let COLLAPSE_WHEN_OVER_N = 1
+        if count(output, "\n") > COLLAPSE_WHEN_OVER_N
+            let output = "{{{ " . output . "\n}}}"
+        endif
+        return "\n\n" . output . "\n\n"
+
     endfunction
 
     return tool
