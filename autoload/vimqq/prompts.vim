@@ -12,6 +12,12 @@ function! vimqq#prompts#gen_title_prompt(message) abort
     return "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n" . text
 endfunction
 
+function! vimqq#prompts#index_warmup() abort
+    let root_dir = expand('<script>:p:h:h:h')
+    let prompt_file = root_dir . '/prompts/prompt_index_warmup.txt'
+    return join(readfile(prompt_file), "\n")
+endfunction
+
 function! vimqq#prompts#reviewer_prompt() abort
     let root_dir = expand('<script>:p:h:h:h')
     let prompt_file = root_dir . '/prompts/reviewer_prompt.txt'

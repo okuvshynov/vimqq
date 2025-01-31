@@ -1,0 +1,5 @@
+You will be given your task in <task></task> tags.
+
+To help you resolve the task, you are given an index summary of a code repository in <index></index> tags. Each directory and file will have a summary.
+
+<index>{vqq_lucas_index}</index>
