@@ -13,15 +13,22 @@ let g:autoloaded_vimqq_http_module = 1
 "   body: string - request body (JSON)
 "   job_conf: dict - job configuration for response handling
 function! vimqq#platform#http#post(url, headers, body, job_conf) abort
-    let json_req = substitute(a:body, "'", "'\\\\''", "g")
+    let curl_args = ['curl', '-s', '--no-buffer', '-X', 'POST']
     
-    let curl_cmd = "curl -s --no-buffer -X POST '" . a:url . "'"
+    " Add URL
+    call add(curl_args, a:url)
+    
+    " Add headers
     for [key, value] in items(a:headers)
-        let curl_cmd .= " -H '" . key . ": " . value . "'"
+        call add(curl_args, '-H')
+        call add(curl_args, key . ': ' . value)
     endfor
-    let curl_cmd .= " -d '" . json_req . "'"
-
-    return vimqq#platform#jobs#start(['/bin/sh', '-c', curl_cmd], a:job_conf)
+    
+    " Add body
+    call add(curl_args, '-d')
+    call add(curl_args, a:body)
+    
+    return vimqq#platform#jobs#start(curl_args, a:job_conf)
 endfunction
 
 " Send GET request
