@@ -10,6 +10,7 @@ let g:vqq_groq_models = get(g:, 'vqq_groq_models', [])
 let g:vqq_mistral_models = get(g:, 'vqq_mistral_models', [])
 let g:vqq_deepseek_models = get(g:, 'vqq_deepseek_models', [])
 let g:vqq_reviewer_models = get(g:, 'vqq_reviewer_models', [])
+let g:vqq_local_reviewer_models = get(g:, 'vqq_local_reviewer_models', [])
 let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
 
 " Validate a bot name to ensure it's unique and follows naming conventions
@@ -62,6 +63,7 @@ function! vimqq#bots#bots#new() abort
           \ [g:vqq_mistral_models, {conf -> vimqq#bots#mistral#new(conf)}],
           \ [g:vqq_deepseek_models, {conf -> vimqq#bots#deepseek#new(conf)}],
           \ [g:vqq_reviewer_models, {conf -> vimqq#bots#deepseek_reviewer#new(conf)}],
+          \ [g:vqq_local_reviewer_models, {conf -> vimqq#bots#local_reviewer#new(conf)}],
           \ [g:vqq_claude_models, {conf -> vimqq#bots#claude#new(conf)}]
     \]
 
