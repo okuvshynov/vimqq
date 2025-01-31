@@ -196,6 +196,7 @@ function! vimqq#api#anthropic_api#new() abort
         endif
 
         let json_req = json_encode(req)
+        call vimqq#log#debug('JSON_REQ: ' . json_req)
         let headers = {
             \ 'Content-Type': 'application/json',
             \ 'x-api-key': self._api_key,
