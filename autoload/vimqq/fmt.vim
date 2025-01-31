@@ -26,7 +26,12 @@ function! vimqq#fmt#for_wire(message) abort
             \ 'name': a:message.tool_use.name,
             \ 'input': a:message.tool_use.input
         \ }
-        let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message)}, tool_use]
+        let text = s:format_message(a:message)
+        if empty(text)
+            let new_msg.content = [tool_use]
+        else
+            let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message)}, tool_use]
+        endif
         return new_msg
     endif
 
