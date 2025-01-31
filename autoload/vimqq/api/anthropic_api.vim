@@ -156,7 +156,7 @@ function! vimqq#api#anthropic_api#new() abort
         endif
 
         " Count tokens before proceeding
-        call self._count_tokens(messages, tools, a:params.model, system_msg)
+        " call self._count_tokens(messages, tools, a:params.model, system_msg)
         
 
         let req = {
