@@ -13,9 +13,9 @@ let s:TOOL_FOLD_LIMIT = 400
 
 function! vimqq#fmt_ui#for_ui(message) abort
     let new_msg = { 
-        \ 'timestamp' : a:message['timestamp'] ,
+        \ 'timestamp' : a:message['timestamp'],
         \ 'bot_name' : a:message['bot_name']
-        \ }
+    \ }
 
     if a:message['role'] ==# 'user'
         let new_msg['author'] = 'You: @' . a:message['bot_name'] . " "
