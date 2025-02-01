@@ -220,18 +220,22 @@ endfunction
 function! s:setup_syntax()
     syntax clear
 
-    syntax match timestr    "^\d\d:\d\d"      nextgroup=userPrompt,botPrompt skipwhite
+    syntax match timestr    "^\d\d:\d\d"      nextgroup=userPrompt,botPrompt,systemPrompt skipwhite
     syntax match userPrompt "You:"            contained nextgroup=taggedBot skipwhite
-    syntax match botPrompt  "\%(You\)\@![A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
+    syntax match systemPrompt "system:"       contained nextgroup=restOfLineSys skipwhite
+    syntax match botPrompt  "\%(You\|system\)\@![A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
     syntax match taggedBot  "@[A-Za-z0-9_]\+" contained nextgroup=restOfLine
     syntax match indexSize  "\[index (\d\+ bytes)\]"
     syntax match toolCall "\[tool_call: .\+(.*)\]"
     syntax match toolCallRes "\[tool_call_result\]"
 
     syntax match restOfLine ".*$" contained
+    syntax match restOfLineSys ".*$" contained
 
     highlight link userPrompt Identifier
     highlight link botPrompt Identifier
+    highlight link systemPrompt Comment
+    highlight link restOfLineSys Comment
     highlight link timestr Constant
     highlight link taggedBot Comment
     highlight link indexSize Todo

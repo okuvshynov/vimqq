@@ -57,6 +57,14 @@ function! s:new_controller() abort
             return
         endif
 
+        if a:event ==# 'system_message'
+            let chat_id = a:args['chat_id']
+            let message = {'role': 'local', 'content' : a:args['content']}
+            let message = self.chatsdb.append_message(chat_id, message)
+            call self.show_chat(chat_id)
+            return
+        endif
+
         if a:event ==# 'reply_saved'
             let chat_id = a:args['chat_id']
             let bot = a:args['bot']

@@ -11,7 +11,20 @@ let s:TIME_FORMAT = "%H:%M"
 " long line, which will make chat hard to read.
 let s:TOOL_FOLD_LIMIT = 400
 
+function! s:fmt_local_message(message) abort
+    let new_msg = { 
+        \ 'timestamp' : a:message['timestamp'],
+        \ 'bot_name' : '',
+        \ 'author' : 'system: ',
+        \ 'text' : a:message['content']
+    \ }
+    return new_msg
+endfunction
+
 function! vimqq#fmt_ui#for_ui(message) abort
+    if a:message['role'] ==# 'local'
+        return s:fmt_local_message(a:message)
+    endif
     let new_msg = { 
         \ 'timestamp' : a:message['timestamp'],
         \ 'bot_name' : a:message['bot_name']

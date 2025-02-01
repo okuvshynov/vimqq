@@ -9,6 +9,7 @@ function! s:format_message(message) abort
     return vimqq#prompts#apply(a:message, prompt)
 endfunction
 
+" public only for tests
 function! vimqq#fmt#for_wire(message) abort
     let new_msg = deepcopy(a:message)
 
@@ -42,6 +43,11 @@ endfunction
 function! vimqq#fmt#many(messages)
     let new_messages = []
     for msg in a:messages
+        if has_key(msg, 'role')
+            if msg.role ==# 'local'
+                continue
+            endif
+        endif
         call add(new_messages, vimqq#fmt#for_wire(msg))
     endfor
     return new_messages
