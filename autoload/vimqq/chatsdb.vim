@@ -252,7 +252,7 @@ function! vimqq#chatsdb#new() abort
             endif
             call self.set_title(a:args['chat_id'], a:args['title'])
             call vimqq#events#notify('title_saved', {'chat_id': a:args['chat_id']})
-            call vimqq#events#notify('system_message', {'chat_id': a:args['chat_id'], 'content': 'Setting title: ' . a:args['title'], 'type': 'info'})
+            call vimqq#sys_msg#info(a:args.chat_id, 'Setting title: ' . a:args['title'])
         endif
 
     endfunction
