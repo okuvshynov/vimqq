@@ -73,6 +73,9 @@ function! vimqq#api#anthropic_api#new() abort
                 " Here we get usage for output
                 call vimqq#log#debug('usage: ' . string(response.usage))
                 let self._usage = vimqq#agg#merge(self._usage, response.usage)
+                if has_key(a:params, 'on_sys_msg')
+                    call a:params.on_sys_msg('info', string(self._usage))
+                endif
                 if response['delta']['stop_reason'] ==# 'tool_use'
                     let self._tool_uses[a:req_id]['input'] = json_decode(self._tool_uses[a:req_id]['input'])
                     call a:params.on_tool_use(self._tool_uses[a:req_id])
