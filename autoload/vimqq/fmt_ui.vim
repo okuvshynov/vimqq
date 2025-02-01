@@ -15,7 +15,7 @@ function! s:fmt_local_message(message) abort
     let new_msg = { 
         \ 'timestamp' : a:message['timestamp'],
         \ 'bot_name' : '',
-        \ 'author' : 'system: ',
+        \ 'author' : get(a:message, 'type', 'info') . ': ',
         \ 'text' : a:message['content']
     \ }
     return new_msg

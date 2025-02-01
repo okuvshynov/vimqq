@@ -220,22 +220,30 @@ endfunction
 function! s:setup_syntax()
     syntax clear
 
-    syntax match timestr    "^\d\d:\d\d"      nextgroup=userPrompt,botPrompt,systemPrompt skipwhite
+    syntax match timestr    "^\d\d:\d\d"      nextgroup=userPrompt,botPrompt,infoPrompt,warningPrompt,errorPrompt skipwhite
     syntax match userPrompt "You:"            contained nextgroup=taggedBot skipwhite
-    syntax match systemPrompt "system:"       contained nextgroup=restOfLineSys skipwhite
-    syntax match botPrompt  "\%(You\|system\)\@![A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
+    syntax match infoPrompt "info:"           contained nextgroup=restOfLineInfo skipwhite
+    syntax match warningPrompt "warning:"           contained nextgroup=restOfLineWarn skipwhite
+    syntax match errorPrompt "error:"           contained nextgroup=restOfLineError skipwhite
+    syntax match botPrompt  "\%(You\|info\|warning\|error\)\@![A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
     syntax match taggedBot  "@[A-Za-z0-9_]\+" contained nextgroup=restOfLine
     syntax match indexSize  "\[index (\d\+ bytes)\]"
     syntax match toolCall "\[tool_call: .\+(.*)\]"
     syntax match toolCallRes "\[tool_call_result\]"
 
     syntax match restOfLine ".*$" contained
-    syntax match restOfLineSys ".*$" contained
+    syntax match restOfLineInfo ".*$" contained
+    syntax match restOfLineWarn ".*$" contained
+    syntax match restOfLineError ".*$" contained
 
     highlight link userPrompt Identifier
     highlight link botPrompt Identifier
-    highlight link systemPrompt Comment
-    highlight link restOfLineSys Comment
+    highlight link infoPrompt Identifier
+    highlight link restOfLineInfo Identifier
+    highlight link warningPrompt WarningMsg
+    highlight link restOfLineWarn WarningMsg
+    highlight link errorPrompt ErrorMsg
+    highlight link restOfLineError ErrorMsg
     highlight link timestr Constant
     highlight link taggedBot Comment
     highlight link indexSize Todo

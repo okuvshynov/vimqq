@@ -85,6 +85,8 @@ function! vimqq#client#new(impl, config = {}) abort
         if has_key(a:chat, 'tools_allowed')
             let req['tools'] = a:chat.toolset
             let req['on_tool_use'] = {tool_call -> vimqq#events#notify('tool_use_recv', {'chat_id': chat_id, 'tool_use': tool_call})}
+        else
+            "call vimqq#events#notify('system_message', {'chat_id': chat_id, 'content': 'Not using tools', 'type': 'error'})
         endif
 
         return self._impl.chat(req)

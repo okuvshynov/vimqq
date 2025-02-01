@@ -112,7 +112,7 @@ function s:suite.test_query()
                 \ "00:00 mock: BEGIN",
                 \ "hello",
                 \ "END",
-                \ "00:00 system: Setting title: l=129"
+                \ "00:00 info: Setting title: l=129"
                 \ ]
     call s:assert.equals(content, expected)
     let l:server_stats = s:server_stats()
@@ -132,7 +132,7 @@ function s:suite.test_query_twice()
                 \ "00:00 mock: BEGIN",
                 \ "hello",
                 \ "END",
-                \ "00:00 system: Setting title: l=129",
+                \ "00:00 info: Setting title: l=129",
                 \ "00:00 You: @mock world!",
                 \ "00:00 mock: BEGIN",
                 \ "world!",
@@ -158,7 +158,7 @@ function s:suite.test_queue()
                 \ "00:00 mock: BEGIN",
                 \ "world!",
                 \ "END",
-                \ "00:00 system: Setting title: l=129"
+                \ "00:00 info: Setting title: l=129"
                 \ ]
     call s:assert.equals(content, expected)
     let l:server_stats = s:server_stats()
@@ -200,7 +200,7 @@ function s:suite.test_selection()
                 \ "",
                 \ "hello",
                 \ "END",
-                \ "00:00 system: Setting title: l=165"
+                \ "00:00 info: Setting title: l=165"
     \ ]
     call s:assert.equals(content, expected)
     let l:server_stats = s:server_stats()

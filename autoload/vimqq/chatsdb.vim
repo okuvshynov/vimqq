@@ -168,7 +168,13 @@ function! vimqq#chatsdb#new() abort
     endfunction
 
     function! db.chat_len(chat_id) dict
-        return len(self._chats[a:chat_id].messages)
+        let res = 0
+        for message in self._chats[a:chat_id].messages
+            if message.role !=# 'local'
+                let res = res + 1
+            endif
+        endfor
+        return res
     endfunction
 
     function! db.get_partial(chat_id) dict
@@ -246,7 +252,7 @@ function! vimqq#chatsdb#new() abort
             endif
             call self.set_title(a:args['chat_id'], a:args['title'])
             call vimqq#events#notify('title_saved', {'chat_id': a:args['chat_id']})
-            call vimqq#events#notify('system_message', {'chat_id': a:args['chat_id'], 'content': 'Setting title: ' . a:args['title']})
+            call vimqq#events#notify('system_message', {'chat_id': a:args['chat_id'], 'content': 'Setting title: ' . a:args['title'], 'type': 'info'})
         endif
 
     endfunction
