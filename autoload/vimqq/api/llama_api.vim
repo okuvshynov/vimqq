@@ -13,23 +13,23 @@ function! vimqq#api#llama_api#new(endpoint) abort
     let api._req_id = 0
 
     function! api._on_stream_out(msg, params) dict
-      let messages = split(a:msg, '\n')
-      for message in messages
-          if message !~# '^data: '
-              call vimqq#log#warning('Unexpected reply: ' . message)
-              continue
-          endif
-          if message ==# 'data: [DONE]'
-              call a:params.on_complete(v:null, a:params)
-              return
-          endif
-          let json_string = substitute(message, '^data: ', '', '')
-          let response = json_decode(json_string)
-          if has_key(response.choices[0].delta, 'content')
-              let chunk = response.choices[0].delta.content
-              call a:params.on_chunk(a:params, chunk)
-          endif
-      endfor
+        let messages = split(a:msg, '\n')
+        for message in messages
+            if message !~# '^data: '
+                call vimqq#log#warning('Unexpected reply: ' . message)
+                continue
+            endif
+            if message ==# 'data: [DONE]'
+                call a:params.on_complete(v:null, a:params)
+                return
+            endif
+            let json_string = substitute(message, '^data: ', '', '')
+            let response = json_decode(json_string)
+            if has_key(response.choices[0].delta, 'content')
+                let chunk = response.choices[0].delta.content
+                call a:params.on_chunk(a:params, chunk)
+            endif
+        endfor
     endfunction
 
     " Not calling any callback as we expect to act on data: [DONE]
