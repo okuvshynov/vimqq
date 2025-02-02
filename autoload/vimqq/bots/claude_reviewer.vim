@@ -12,13 +12,17 @@ function! vimqq#bots#claude_reviewer#new(config = {}) abort
 
     function! client._format(messages) dict
         let res = [{"role": "system", "content" : vimqq#prompts#reviewer_prompt()}]
-        for msg in vimqq#fmt#many(a:messages)
-            " Skipping empty messages
-            " TODO: this should never happen
-            if !empty(msg.content)
-                call add (res, {'role': msg.role, 'content': msg.content})
-            endif
+        let lines = []
+        for message in a:messages
+            call extend(lines, vimqq#fmt_ui#ui(message))
         endfor
+
+        let content = [{'type': 'text', 'text': join(lines, "\n")}]
+
+        "call vimqq#log#debug('REVIEW CONTENT: ' . content)
+
+        call add(res, {'role': 'user', 'content': content})
+
         return res
     endfunction
 

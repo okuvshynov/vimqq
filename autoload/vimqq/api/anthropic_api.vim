@@ -41,20 +41,15 @@ function! vimqq#api#anthropic_api#new() abort
                     else
                         let warn = 'Unexpected message received: ' . message
                         call vimqq#log#warning(warn)
-                        if has_key(a:params, 'on_sys_msg')
-                            call a:params.on_sys_msg('warning', warn)
-                        endif
                     endif
                 catch
                     let warn = 'Unexpected message received: ' . message
                     call vimqq#log#warning(warn)
-                    if has_key(a:params, 'on_sys_msg')
-                        call a:params.on_sys_msg('warning', warn)
-                    endif
                 endtry
                 continue
             endif
             let json_string = substitute(message, '^data: ', '', '')
+            call vimqq#log#debug('ANTHROPIC REPLY: ' . json_string)
             let response = json_decode(json_string)
 
             if response['type'] ==# 'content_block_start'

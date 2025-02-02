@@ -70,6 +70,7 @@ function! s:new_controller() abort
             let bot = a:args['bot']
             
             call self.show_chat(chat_id)
+            call self.dispatcher.reply_complete(chat_id)
             
             let messages = self.chatsdb.get_messages(chat_id)
             if len(messages) > 0 
@@ -84,7 +85,6 @@ function! s:new_controller() abort
                 call bot.send_gen_title(chat_id, self.chatsdb.get_first_message(chat_id))
             endif
 
-            call self.dispatcher.reply_complete(chat_id)
             call self.show_chat(chat_id)
             call self.ui.update_queue_size(self.dispatcher.queue_size())
             return
