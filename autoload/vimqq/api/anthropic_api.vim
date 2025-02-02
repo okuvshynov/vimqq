@@ -33,12 +33,24 @@ function! vimqq#api#anthropic_api#new() abort
                 try
                     let error_json = json_decode(message)
                     if error_json['type'] == 'error'
-                        call vimqq#log#error(string(error_json['error']))
+                        let err = string(error_json['error'])
+                        if has_key(a:params, 'on_sys_msg')
+                            call a:params.on_sys_msg('error', err)
+                        endif
+                        call vimqq#log#error(err)
                     else
-                        call vimqq#log#warning('Unexpected message: ' . message)
+                        let warn = 'Unexpected message received: ' . message
+                        call vimqq#log#warning(warn)
+                        if has_key(a:params, 'on_sys_msg')
+                            call a:params.on_sys_msg('warning', warn)
+                        endif
                     endif
                 catch
-                    call vimqq#log#warning('Unexpected message: ' . message)
+                    let warn = 'Unexpected message received: ' . message
+                    call vimqq#log#warning(warn)
+                    if has_key(a:params, 'on_sys_msg')
+                        call a:params.on_sys_msg('warning', warn)
+                    endif
                 endtry
                 continue
             endif
