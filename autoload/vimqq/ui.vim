@@ -238,10 +238,13 @@ function! s:setup_syntax()
 
     highlight link userPrompt Identifier
     highlight link botPrompt Identifier
-    highlight link infoPrompt Identifier
-    highlight link restOfLineInfo Identifier
+
+    highlight link infoPrompt Title
+    highlight link restOfLineInfo Title
+
     highlight link warningPrompt WarningMsg
     highlight link restOfLineWarn WarningMsg
+
     highlight link errorPrompt ErrorMsg
     highlight link restOfLineError ErrorMsg
     highlight link timestr Constant
