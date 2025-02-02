@@ -151,18 +151,15 @@ function s:suite.test_queue()
     let content = s:normtime(getline(1, '$'))
     let expected = [
                 \ "00:00 You: @mock hello",
+                \ "00:00 info: Try sending your message after assistant reply is complete",
                 \ "00:00 mock: BEGIN",
                 \ "hello",
-                \ "END",
-                \ "00:00 You: @mock world!",
-                \ "00:00 mock: BEGIN",
-                \ "world!",
                 \ "END",
                 \ "00:00 info: Setting title: l=129"
                 \ ]
     call s:assert.equals(content, expected)
     let l:server_stats = s:server_stats()
-    let expected_stats = {"n_chat_queries": 4, "n_stream_queries": 2, "n_deltas": 6, "n_non_stream_queries": 1, "n_warmups": 1}
+    let expected_stats = {'n_warmups': 1, 'n_deltas': 3, 'n_stream_queries': 1, 'n_non_stream_queries': 1, 'n_chat_queries': 3}
     call s:assert.equals(l:server_stats, expected_stats)
 endfunction
 
