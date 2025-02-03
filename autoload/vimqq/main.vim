@@ -13,24 +13,43 @@ function! s:new_controller() abort
     let controller.bots = v:null
     let controller.state = v:null
     let controller.warmup = v:null
-    let controller.dispatcher = v:null
     let controller.toolset = v:null
 
     function! controller.init() dict
         let self.ui = vimqq#ui#new()
-        let self.chatsdb = vimqq#chatsdb#new()
+        let self.db = vimqq#chatsdb#new()
         let self.bots = vimqq#bots#bots#new()
-        let self.state = vimqq#state#new(self.chatsdb)
-        let self.warmup = vimqq#warmup#new(self.bots, self.chatsdb)
-        let self.dispatcher = vimqq#dispatcher#new(self.chatsdb)  
+        let self.state = vimqq#state#new(self.db)
+        let self.warmup = vimqq#warmup#new(self.bots, self.db)
         let self.toolset = vimqq#tools#toolset#new()
+        let self._in_flight = {}
 
         call vimqq#events#set_state(self.state)
         call vimqq#events#clear_observers()
-        call vimqq#events#add_observer(self.chatsdb)
+        call vimqq#events#add_observer(self.db)
         call vimqq#events#add_observer(self.ui)
         call vimqq#events#add_observer(self.warmup)
         call vimqq#events#add_observer(self)
+    endfunction
+
+    function! controller.run_query(chat_id, bot, message) dict
+        if has_key(self._in_flight, a:chat_id)
+            call vimqq#sys_msg#info(a:chat_id, 'Try sending your message after assistant reply is complete')
+            return v:false
+        endif
+
+        call vimqq#metrics#user_started_waiting(a:chat_id)
+        " timestamp and other metadata might get appended here
+        call self.db.append_message(a:chat_id, a:message)
+        call self.db.reset_partial(a:chat_id, a:bot.name())
+        let chat = self.db.get_chat(a:chat_id)
+        if a:bot.send_chat(chat)
+            let self._in_flight[a:chat_id] = v:true
+            return v:true
+        else
+            call vimqq#log#error('Unable to send message')
+        endif
+        return v:false
     endfunction
 
     function! controller.on_tool_result(bot, tool_use_id, tool_result, chat_id) dict
@@ -44,11 +63,11 @@ function! s:new_controller() abort
         \   "bot_name": a:bot.name()
         \ }
 
-        if self.dispatcher.enqueue_query(a:chat_id, a:bot, tool_reply)
+        if self.run_query(a:chat_id, a:bot, tool_reply)
             call self.show_chat(a:chat_id)
         endif
 
-        call self.ui.update_queue_size(self.dispatcher.queue_size())
+        call self.ui.update_queue_size(len(self._in_flight))
     endfunction
 
     function! controller.handle_event(event, args) dict
@@ -60,7 +79,7 @@ function! s:new_controller() abort
         if a:event ==# 'system_message'
             let chat_id = a:args['chat_id']
             let message = {'role': 'local', 'content' : a:args['content'], 'type': a:args['type']}
-            let message = self.chatsdb.append_message(chat_id, message)
+            let message = self.db.append_message(chat_id, message)
             call self.show_chat(chat_id)
             return
         endif
@@ -70,9 +89,13 @@ function! s:new_controller() abort
             let bot = a:args['bot']
             
             call self.show_chat(chat_id)
-            call self.dispatcher.reply_complete(chat_id)
+            if has_key(self._in_flight, chat_id)
+                unlet self._in_flight[chat_id]
+            else
+                vimqq#log#error('got a reply from non-enqueued query')
+            endif
             
-            let messages = self.chatsdb.get_messages(chat_id)
+            let messages = self.db.get_messages(chat_id)
             if len(messages) > 0 
                 let last_message = messages[len(messages) - 1]
                 if has_key(last_message, 'tool_use') 
@@ -81,28 +104,28 @@ function! s:new_controller() abort
                 endif
             endif
     
-            if self.chatsdb.chat_len(chat_id) <= 2
-                call bot.send_gen_title(chat_id, self.chatsdb.get_first_message(chat_id))
+            if self.db.chat_len(chat_id) <= 2
+                call bot.send_gen_title(chat_id, self.db.get_first_message(chat_id))
             endif
 
             call self.show_chat(chat_id)
-            call self.ui.update_queue_size(self.dispatcher.queue_size())
+            call self.ui.update_queue_size(len(self._in_flight))
             return
         endif
 
         if a:event ==# 'delete_chat'
             let chat_id = a:args['chat_id']
-            if !self.chatsdb.chat_exists(chat_id)
+            if !self.db.chat_exists(chat_id)
                 call vimqq#log#warning("trying to delete non-existent chat")
                 return
             endif
-            let title = self.chatsdb.get_title(chat_id)
+            let title = self.db.get_title(chat_id)
             let choice = confirm("Are you sure you want to delete '" . title . "'?", "&Yes\n&No", 2)
             if choice != 1
                 return
             endif
 
-            call self.chatsdb.delete_chat(chat_id)
+            call self.db.delete_chat(chat_id)
             if self.state.get_chat_id() ==# chat_id
                 call self.state.set_chat_id(-1)
             endif
@@ -126,14 +149,14 @@ function! s:new_controller() abort
         let chat_id = self.state.pick_chat_id(a:force_new_chat)
 
         if a:use_index
-            call self.chatsdb.set_tools(chat_id, self.toolset.def(v:true))
+            call self.db.set_tools(chat_id, self.toolset.def(v:true))
         endif
 
-        if self.dispatcher.enqueue_query(chat_id, bot, message)
+        if self.run_query(chat_id, bot, message)
             call self.show_chat(chat_id)
         endif
 
-        call self.ui.update_queue_size(self.dispatcher.queue_size())
+        call self.ui.update_queue_size(len(self._in_flight))
     endfunction
 
     function! controller.send_warmup(force_new_chat, question, context) dict
@@ -149,7 +172,7 @@ function! s:new_controller() abort
         let chat_id = self.state.get_chat_id()
 
         if chat_id >= 0 && !a:force_new_chat
-            let messages = self.chatsdb.get_messages(chat_id) + [message]
+            let messages = self.db.get_messages(chat_id) + [message]
         else
             let messages = [message]
         endif
@@ -159,23 +182,23 @@ function! s:new_controller() abort
     endfunction
 
     function! controller.show_list() dict
-        let history = self.chatsdb.get_ordered_chats()
+        let history = self.db.get_ordered_chats()
         call self.ui.display_chat_history(history, self.state.get_chat_id())
     endfunction
 
     function! controller.show_chat(chat_id) dict
-        if !self.chatsdb.chat_exists(a:chat_id)
+        if !self.db.chat_exists(a:chat_id)
             call vimqq#log#error("Attempting to show non-existent chat")
             return
         endif
         call self.state.set_chat_id(a:chat_id)
-        let messages = self.chatsdb.get_messages(a:chat_id)
-        let partial  = self.chatsdb.get_partial(a:chat_id)
+        let messages = self.db.get_messages(a:chat_id)
+        let partial  = self.db.get_partial(a:chat_id)
         call self.ui.display_chat(messages, partial)
     endfunction
 
     function! controller.fzf() dict
-        call vimqq#fzf#show(self.chatsdb)
+        call vimqq#fzf#show(self.db)
     endfunction
 
     return controller
