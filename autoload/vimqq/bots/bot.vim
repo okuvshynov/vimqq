@@ -1,7 +1,7 @@
-if exists('g:autoloaded_vimqq_client_module')
+if exists('g:autoloaded_vimqq_bot_module')
     finish
 endif
-let g:autoloaded_vimqq_client_module = 1
+let g:autoloaded_vimqq_bot_module = 1
 
 let s:default_conf = {
     \ 'title_tokens'  : 32,
@@ -15,29 +15,29 @@ let s:default_conf = {
 \ }
 
 function! vimqq#bots#bot#new(impl, config = {}) abort
-    let client = {}
+    let bot = {}
 
-    let client._conf = deepcopy(s:default_conf)
-    call extend(client._conf, a:config)
+    let bot._conf = deepcopy(s:default_conf)
+    call extend(bot._conf, a:config)
     
-    let client._impl = a:impl
+    let bot._impl = a:impl
 
-    function! client.name() dict
+    function! bot.name() dict
         return self._conf.bot_name
     endfunction
     
-    function! client.do_autowarm() dict
+    function! bot.do_autowarm() dict
         return self._conf.do_autowarm
     endfunction
 
-    function! client._on_warmup_complete(error, params) dict
+    function! bot._on_warmup_complete(error, params) dict
         if a:error isnot v:null
             call vimqq#log#error('warmup call failed')
         endif
         call vimqq#events#notify('warmup_done', {'bot' : self})
     endfunction
 
-    function! client.send_warmup(messages) dict
+    function! bot.send_warmup(messages) dict
         if self._conf.send_warmup
             let req = {
             \   'messages' : self._format(a:messages),
@@ -49,7 +49,7 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         endif
     endfunction
 
-    function! client.send_gen_title(chat_id, message) dict
+    function! bot.send_gen_title(chat_id, message) dict
         let prompt = vimqq#prompts#gen_title_prompt(a:message)
         let messages = [
         \   {'role': 'system', 'content' : self._conf.system_prompt},
@@ -68,14 +68,11 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         return self._impl.chat(req)
     endfunction
 
-    function! client.send_chat(chat, stream=v:true) dict
+    function! bot.send_chat(chat, stream=v:true) dict
         let chat_id = a:chat.id
-        let messages = a:chat.messages
-        " here we attemt to do streaming. If API implementation
-        " doesn't support it, it would 'stream' everything in single chunk
 
         let req = {
-        \   'messages' : self._format(messages),
+        \   'messages' : self._format(a:chat.messages),
         \   'max_tokens' : self._conf.max_tokens,
         \   'model' : self._conf.model,
         \   'stream' : a:stream,
@@ -87,14 +84,12 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         if has_key(a:chat, 'tools_allowed')
             let req['tools'] = a:chat.toolset
             let req['on_tool_use'] = {tool_call -> vimqq#events#notify('tool_use_recv', {'chat_id': chat_id, 'tool_use': tool_call})}
-        else
-            "call vimqq#events#notify('system_message', {'chat_id': chat_id, 'content': 'Not using tools', 'type': 'error'})
         endif
 
         return self._impl.chat(req)
     endfunction
 
-    function! client._format(messages) dict
+    function! bot._format(messages) dict
         " TODO: shall we save this to the chat itself?
         let res = [{"role": "system", "content" : self._conf.system_prompt}]
         for msg in vimqq#fmt#many(a:messages)
@@ -107,5 +102,5 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         return res
     endfunction
 
-    return client
+    return bot
 endfunction
