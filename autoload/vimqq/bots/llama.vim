@@ -23,5 +23,5 @@ function vimqq#bots#llama#new(config = {}) abort
 
     let impl = vimqq#api#llama_api#new(endpoint)
 
-    return vimqq#client#new(impl, config)
+    return vimqq#bots#bot#new(impl, config)
 endfunction

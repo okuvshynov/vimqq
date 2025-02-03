@@ -14,7 +14,7 @@ let s:default_conf = {
     \ 'model'         : ''
 \ }
 
-function! vimqq#client#new(impl, config = {}) abort
+function! vimqq#bots#bot#new(impl, config = {}) abort
     let client = {}
 
     let client._conf = deepcopy(s:default_conf)

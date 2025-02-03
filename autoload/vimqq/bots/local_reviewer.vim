@@ -23,7 +23,7 @@ function vimqq#bots#local_reviewer#new(config = {}) abort
 
     let impl = vimqq#api#llama_api#new(endpoint)
 
-    let base_client = vimqq#client#new(impl, config)
+    let base_client = vimqq#bots#bot#new(impl, config)
 
     function! base_client._format(messages) dict
         let res = [{"role": "system", "content" : vimqq#prompts#reviewer_prompt()}]

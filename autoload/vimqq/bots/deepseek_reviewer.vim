@@ -8,7 +8,7 @@ let g:autoloaded_vimqq_deepseek_reviewer_module = 1
 
 function! vimqq#bots#deepseek_reviewer#new(config = {}) abort
     let impl = vimqq#api#deepseek_api#new()
-    let base_client = vimqq#client#new(impl, a:config)
+    let base_client = vimqq#bots#bot#new(impl, a:config)
 
     function! base_client._format(messages) dict
         let res = [{"role": "system", "content" : vimqq#prompts#reviewer_prompt()}]

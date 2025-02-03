@@ -8,7 +8,7 @@ let g:autoloaded_vimqq_claude_reviwer = 1
 
 function! vimqq#bots#claude_reviewer#new(config = {}) abort
     let impl = vimqq#api#anthropic_api#new()
-    let client = vimqq#client#new(impl, a:config)
+    let client = vimqq#bots#bot#new(impl, a:config)
 
     function! client._format(messages) dict
         let res = [{"role": "system", "content" : vimqq#prompts#reviewer_prompt()}]
