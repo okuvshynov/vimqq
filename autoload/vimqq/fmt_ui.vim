@@ -21,6 +21,12 @@ function! s:fmt_local_message(message) abort
     return new_msg
 endfunction
 
+function! s:message_text(message) abort
+    let prompt = vimqq#prompts#pick(a:message, v:true)
+    return vimqq#prompts#apply(a:message, prompt)
+endfunction
+
+
 function! vimqq#fmt_ui#for_ui(message) abort
     if a:message['role'] ==# 'local'
         return s:fmt_local_message(a:message)
@@ -52,13 +58,8 @@ function! vimqq#fmt_ui#for_ui(message) abort
         endif
     endif
 
-    let new_msg.text = s:format_message(a:message)
+    let new_msg.text = s:message_text(a:message)
     return new_msg
-endfunction
-
-function! s:format_message(message) abort
-    let prompt = vimqq#prompts#pick(a:message, v:true)
-    return vimqq#prompts#apply(a:message, prompt)
 endfunction
 
 function! vimqq#fmt_ui#ui(message) abort
