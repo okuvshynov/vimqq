@@ -20,10 +20,6 @@ function! vimqq#cmd#init() abort
     call vimqq#main#init()
 endfunction
 
-function! vimqq#cmd#fork_chat(args) abort
-    call vimqq#main#fork_chat(a:args)
-endfunction
-
 function! vimqq#cmd#qq(message) abort range
     let lines = getline(a:firstline, a:lastline)
     let context = join(lines, '\n')

@@ -21,15 +21,14 @@ function! s:load_index_lines()
     return v:null
 endfunction
 
-" Fill context into message object
-function! vimqq#ctx#fill_context(message, context, use_index)
+" Fill sources (index, selection) into message object
+function! vimqq#msg_sources#fill(message, context, use_index)
     let message = deepcopy(a:message)
 
     if a:context isnot v:null
         let message.sources.context = a:context
     endif
     if a:use_index
-        " TODO: Do we save index snapshot here?
         let index_lines = s:load_index_lines()
         if index_lines isnot v:null
             let message.sources.index = join(index_lines, '\n')

@@ -121,7 +121,7 @@ function! s:new_controller() abort
               \ "bot_name" : bot.name()
         \ }
 
-        let message = vimqq#ctx#fill_context(message, a:context, a:use_index)
+        let message = vimqq#msg_sources#fill(message, a:context, a:use_index)
 
         let chat_id = self.state.pick_chat_id(a:force_new_chat)
 
@@ -144,7 +144,7 @@ function! s:new_controller() abort
               \ "bot_name" : bot.name()
         \ }
 
-        let message = vimqq#ctx#fill_context(message, a:context, v:false)
+        let message = vimqq#msg_sources#fill(message, a:context, v:false)
 
         let chat_id = self.state.get_chat_id()
 
