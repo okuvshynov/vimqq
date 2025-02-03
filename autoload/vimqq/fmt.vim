@@ -4,7 +4,7 @@ endif
 
 let g:autoloaded_vimqq_fmt = 1
 
-function! s:format_message(message) abort
+function! s:message_text(message) abort
     let prompt = vimqq#prompts#pick(a:message, v:false)
     return vimqq#prompts#apply(a:message, prompt)
 endfunction
@@ -20,6 +20,7 @@ function! vimqq#fmt#for_wire(message) abort
         endif
     endif
 
+    let text = s:message_text(a:message)
     if has_key(a:message, 'tool_use')
         let tool_use = {
             \ 'type': 'tool_use',
@@ -27,16 +28,15 @@ function! vimqq#fmt#for_wire(message) abort
             \ 'name': a:message.tool_use.name,
             \ 'input': a:message.tool_use.input
         \ }
-        let text = s:format_message(a:message)
         if empty(text)
             let new_msg.content = [tool_use]
         else
-            let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message)}, tool_use]
+            let new_msg.content = [{'type': 'text', 'text': text}, tool_use]
         endif
         return new_msg
     endif
 
-    let new_msg.content = [{'type': 'text', 'text': s:format_message(a:message)}]
+    let new_msg.content = [{'type': 'text', 'text': text}]
     return new_msg
 endfunction
 
