@@ -26,6 +26,18 @@ function! s:message_text(message) abort
     return vimqq#prompts#apply(a:message, prompt)
 endfunction
 
+function! s:fmt_tool_result(message, new_msg) abort
+    let text = a:message.content[0].content
+    let msg = a:new_msg
+    if len(text) >= s:TOOL_FOLD_LIMIT
+        let msg.text = "\n\n{{{ [tool_call_result]\n" . text . "\n}}}\n\n"
+    else
+        let msg.text = "\n\n[tool_call_result]\n" . text . "\n\n"
+    endif
+    let msg.author = 'tool: @' . a:message['bot_name'] . " " 
+    return msg
+endfunction
+
 
 function! vimqq#fmt_ui#for_ui(message) abort
     if a:message['role'] ==# 'local'
@@ -42,19 +54,9 @@ function! vimqq#fmt_ui#for_ui(message) abort
         let new_msg['author'] = new_msg['bot_name'] . ": "
     endif
 
-    " check if this is tool response
-    " currently tool_use is handled in prompt format
-    " but tool result is handled here
     if has_key(a:message, 'content')
         if a:message.content[0].type ==# 'tool_result'
-            let text = a:message.content[0].content
-            if len(text) >= s:TOOL_FOLD_LIMIT
-                let new_msg.text = "\n\n{{{ [tool_call_result]\n" . text . "\n}}}\n\n"
-            else
-                let new_msg.text = "\n\n[tool_call_result]\n" . text . "\n\n"
-            endif
-            let new_msg.author = 'tool: @' . a:message['bot_name'] . " " 
-            return new_msg
+            return s:fmt_tool_result(a:message, new_msg)
         endif
     endif
 
