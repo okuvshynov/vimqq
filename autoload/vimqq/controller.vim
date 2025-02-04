@@ -107,7 +107,8 @@ function! vimqq#controller#new() abort
                 endif
             endif
     
-            if self.db.chat_len(chat_id) <= 2
+            if !self.db.has_title(chat_id)
+                call self.db.set_title(chat_id, 'generating title...')
                 call bot.send_gen_title(chat_id, self.db.get_first_message(chat_id))
             endif
 

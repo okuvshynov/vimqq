@@ -11,6 +11,7 @@ let g:vqq_log_level = get(g:, 'vqq_log_level', 'INFO')
 let g:vqq_log_format = get(g:, 'vqq_log_format', '%Y-%m-%d %H:%M:%S ')
 
 let s:log_levels = {
+    \ 'VERBOSE': -1,
     \ 'DEBUG': 0,
     \ 'INFO': 1,
     \ 'WARNING': 2,
@@ -41,4 +42,10 @@ endfunction
 
 function! vimqq#log#warning(message)
     call s:_log_impl('WARNING', a:message)
+endfunction
+
+function! vimqq#log#verbose(message)
+    let l:stack = expand('<stack>')
+    let l:trace = "\n  Stack trace:\n    " . substitute(l:stack, '\.\.', "\n    ", 'g')
+    call s:_log_impl('VERBOSE', a:message . l:trace)
 endfunction
