@@ -76,7 +76,7 @@ function! vimqq#tools#edit_file#new(root) abort
                 " Perform the replacement
                 " TODO: vim is doing some magic with substitute.
 
-                let new_content = vimqq#str#replace(content, needle, replacement)
+                let new_content = vimqq#util#replace(content, needle, replacement)
                 
                 " Write back to file
                 let lines = split(new_content, '\n', 1)

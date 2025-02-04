@@ -67,7 +67,7 @@ function! vimqq#api#anthropic_api#new() abort
             if response['type'] ==# 'message_start'
                 " Here we get usage for input tokens
                 call vimqq#log#debug('usage: ' . string(response.message.usage))
-                let self._usage = vimqq#agg#merge(self._usage, response.message.usage)
+                let self._usage = vimqq#util#merge(self._usage, response.message.usage)
 
                 continue
             endif
@@ -79,7 +79,7 @@ function! vimqq#api#anthropic_api#new() abort
             if response['type'] ==# 'message_delta'
                 " Here we get usage for output
                 call vimqq#log#debug('usage: ' . string(response.usage))
-                let self._usage = vimqq#agg#merge(self._usage, response.usage)
+                let self._usage = vimqq#util#merge(self._usage, response.usage)
                 if has_key(a:params, 'on_sys_msg')
                     call a:params.on_sys_msg('info', string(self._usage))
                 endif
@@ -114,7 +114,7 @@ function! vimqq#api#anthropic_api#new() abort
         let response = json_decode(join(self._replies[a:req_id], "\n"))
         if has_key(response, 'content') && !empty(l:response.content) && has_key(l:response.content[0], 'text')
             call vimqq#log#debug('usage: ' . string(response.usage))
-            let self._usage = vimqq#agg#merge(self._usage, response.usage)
+            let self._usage = vimqq#util#merge(self._usage, response.usage)
             let message = l:response.content[0].text
             if has_key(a:params, 'on_chunk')
                 call a:params.on_chunk(a:params, message)
