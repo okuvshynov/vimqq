@@ -13,13 +13,13 @@ function! vimqq#prompts#gen_title_prompt(message) abort
 endfunction
 
 function! vimqq#prompts#index_warmup() abort
-    let root_dir = expand('<script>:p:h:h:h')
+    let root_dir = vimqq#util#root()
     let prompt_file = root_dir . '/prompts/prompt_index_warmup.txt'
     return join(readfile(prompt_file), "\n")
 endfunction
 
 function! vimqq#prompts#reviewer_prompt() abort
-    let root_dir = expand('<script>:p:h:h:h')
+    let root_dir = vimqq#util#root()
     let prompt_file = root_dir . '/prompts/reviewer_prompt.txt'
     return join(readfile(prompt_file), "\n")
 endfunction
@@ -32,7 +32,7 @@ function! vimqq#prompts#pick_title(message)
     endif
     let filename = filename . '.txt'
 
-    let root_dir = expand('<script>:p:h:h:h')
+    let root_dir = vimqq#util#root()
     let prompt_file = root_dir . '/prompts/' . filename
     return join(readfile(prompt_file), "\n")
 endfunction
@@ -50,7 +50,7 @@ function! vimqq#prompts#pick(message, for_ui=v:false)
     endif
     let filename = filename . '.txt'
 
-    let root_dir = expand('<script>:p:h:h:h')
+    let root_dir = vimqq#util#root()
     let prompt_file = root_dir . '/prompts/' . filename
     return join(readfile(prompt_file), "\n")
 endfunction
