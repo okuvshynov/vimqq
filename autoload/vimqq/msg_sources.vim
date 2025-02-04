@@ -28,7 +28,7 @@ function! s:prepare_index_lines()
     endif
 
     let res = []
-    let index_json = json_decode(join(index_lines, "\n"))
+    let index = json_decode(join(index_lines, "\n"))
     for [filepath, data] in items(index.files)
         call add(res, filepath)
         call add(res, data.processing_result)

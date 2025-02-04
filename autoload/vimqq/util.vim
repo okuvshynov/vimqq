@@ -4,6 +4,10 @@ endif
 
 let g:autoloaded_vimqq_util_module = 1
 
+function! vimqq#util#root() abort
+    return expand('<script>:p:h:h:h')
+endfunction
+
 function! vimqq#util#merge(d1, d2) abort
   let result = {}
   
