@@ -19,8 +19,6 @@ function! vimqq#metrics#first_token(chat_id) abort
             call vimqq#log#info(printf('TTFT %.3f s', latency))
             unlet s:latencies[a:chat_id]
         else
-            " TODO: this tracking is wrong in case of non-empty queue
-            " as we would unlet the start point for both messages
             call vimqq#log#warning('token for chat with no start point.')
         endif
     endif
