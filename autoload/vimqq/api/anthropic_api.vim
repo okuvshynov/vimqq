@@ -111,7 +111,8 @@ function! vimqq#api#anthropic_api#new() abort
     endfunction
 
     function! api._on_close(params, req_id) dict
-        let response = json_decode(join(self._replies[a:req_id], "\n"))
+        let response_str = join(self._replies[a:req_id], "\n")
+        let response = json_decode(response_str)
         if has_key(response, 'content') && !empty(l:response.content) && has_key(l:response.content[0], 'text')
             call vimqq#log#debug('usage: ' . string(response.usage))
             let self._usage = vimqq#util#merge(self._usage, response.usage)
@@ -124,8 +125,11 @@ function! vimqq#api#anthropic_api#new() abort
             endif
         else
             call vimqq#log#error('Unable to process response')
-            call vimqq#log#error(json_encode(response))
+            call vimqq#log#error(response_str)
             " TODO: still need to call on_complete with error?
+            if has_key(a:params, 'on_sys_msg')
+                call a:params.on_sys_msg('error', response_str)
+            endif
         endif
     endfunction
 
