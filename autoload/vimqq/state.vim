@@ -9,10 +9,8 @@ function! vimqq#state#new(db) abort
     
     let state._db = a:db
     
-    " this is the active chat id. 
     " New queries would go to this chat by default
-    " 'active' means 'in the chat view buffer', even 
-    " if buffer is not visible
+    " 'active' means 'in the chat view buffer', even if buffer is not visible
     let state._curr_chat_id = -1
 
     function state.get_chat_id() dict
