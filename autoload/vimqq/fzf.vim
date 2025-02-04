@@ -38,7 +38,7 @@ function! vimqq#fzf#show(db) abort
     " Check if fzf is available
     if !exists('*fzf#run')
         echohl ErrorMsg
-        echomsg 'FZF is not installed. Please install junegunn/fzf.vim plugin first.'
+        echomsg 'FZF is not installed. Please install junegunn/fzf.vim plugin.'
         echomsg 'You can install it with your plugin manager, e.g.:'
         echomsg '  Plug ''junegunn/fzf'', { ''do'': { -> fzf#install() } }'
         echomsg '  Plug ''junegunn/fzf.vim'''
@@ -46,7 +46,7 @@ function! vimqq#fzf#show(db) abort
         return
     endif
 
-    let chats = a:db.get_ordered_chats_with_messages()
+    let chats = a:db.get_ordered_chats()
     
     let formatted_chats = map(chats, 'vimqq#fzf#format(v:val)')
 

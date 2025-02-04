@@ -9,6 +9,23 @@ let g:autoloaded_vimqq_chatdb_module = 1
 " file to store all message history
 let g:vqq_chats_file = get(g:, 'vqq_chats_file', vimqq#platform#path#data('vqq_chats.json'))
 
+function! s:max_seq_id(chat)
+    let res = 0
+
+    if has_key(a:chat, 'seq_id')
+        let res = max([res, a:chat.seq_id])
+    endif
+    if has_key(a:chat.partial_message, 'seq_id')
+        let res = max([res, a:chat.partial_message.seq_id])
+    endif
+    for message in a:chat.messages
+        if has_key(message, 'seq_id')
+            let res = max([res, message.seq_id])
+        endif
+    endfor
+    return res
+endfunction
+
 function! vimqq#chatsdb#new() abort
     let db = {}
     let db._file = g:vqq_chats_file
@@ -17,23 +34,6 @@ function! vimqq#chatsdb#new() abort
     " seq_id is autoincremented value assigned to chats, messages
     " and partial messages.
     let db._seq_id = 0
-
-    function! db._max_seq_id(chat) dict
-        let res = 0
-
-        if has_key(a:chat, 'seq_id')
-            let res = max([res, a:chat.seq_id])
-        endif
-        if has_key(a:chat.partial_message, 'seq_id')
-            let res = max([res, a:chat.partial_message.seq_id])
-        endif
-        for message in a:chat.messages
-            if has_key(message, 'seq_id')
-                let res = max([res, message.seq_id])
-            endif
-        endfor
-        return res
-    endfunction
 
     if filereadable(db._file)
         let data = json_decode(join(readfile(db._file), ''))
@@ -47,7 +47,7 @@ function! vimqq#chatsdb#new() abort
             let db._chats = data
             " Compute max_seq_id from chats
             for [key, chat] in items(db._chats)
-                let db._seq_id = max([db._seq_id, db._max_seq_id(chat)])
+                let db._seq_id = max([db._seq_id, s:max_seq_id(chat)])
             endfor
         endif
     endif
@@ -149,15 +149,12 @@ function! vimqq#chatsdb#new() abort
     function! db.get_ordered_chats() dict
         let chat_list = []
         for [key, chat] in items(self._chats)
-            let chat_list += [{'title': chat.title, 'id': chat.id, 'time': self._max_seq_id(chat)}]
-        endfor
-        return sort(chat_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
-    endfunction
-
-    function! db.get_ordered_chats_with_messages() dict
-        let chat_list = []
-        for [key, chat] in items(self._chats)
-            let chat_list += [{'title': chat.title, 'id': chat.id, 'time': self._max_seq_id(chat), 'messages' : chat.messages}]
+            let chat_list += [{
+                \ 'title': chat.title, 
+                \ 'id': chat.id,
+                \ 'time': s:max_seq_id(chat),
+                \ 'messages' : chat.messages
+            \ }]
         endfor
         return sort(chat_list, {a, b -> a.time > b.time ? - 1 : a.time < b.time ? 1 : 0})
     endfunction
