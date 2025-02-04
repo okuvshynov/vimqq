@@ -129,32 +129,6 @@ function! vimqq#api#anthropic_api#new() abort
         endif
     endfunction
 
-    function! api._count_tokens(messages, tools, model, system_msg) dict
-        let req = {
-            \ 'model': a:model,
-            \ 'messages': a:messages,
-            \ 'tools': a:tools
-        \ }
-        if a:system_msg isnot v:null
-            let req['system'] = a:system_msg
-        endif
-
-        let headers = {
-            \ 'Content-Type': 'application/json',
-            \ 'x-api-key': self._api_key,
-            \ 'anthropic-version': '2023-06-01'
-        \ }
-        let json_req = json_encode(req)
-		let job_conf = {
-		\   'out_cb': {channel, msg -> vimqq#log#debug('token count: ' . msg)}
-		\ }
-        return vimqq#platform#http#post(
-            \ 'https://api.anthropic.com/v1/messages/count_tokens',
-            \ headers,
-            \ json_req,
-            \ job_conf)
-    endfunction
-
     function! api.chat(params) dict
         let messages = a:params.messages
         let tools = get(a:params, 'tools', [])
@@ -164,10 +138,6 @@ function! vimqq#api#anthropic_api#new() abort
             let system_msg = l:messages[0].content
             call remove(messages, 0)
         endif
-
-        " Count tokens before proceeding
-        " call self._count_tokens(messages, tools, a:params.model, system_msg)
-        
 
         let req = {
         \   'messages' : messages,
