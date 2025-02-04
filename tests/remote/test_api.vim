@@ -64,18 +64,6 @@ function s:suite.test_deepseek_stream()
     call s:run_chat_test(impl, model, v:true)
 endfunction
 
-function s:suite.test_groq()
-    let impl = vimqq#api#groq_api#new()
-    let model = 'llama-3.1-8b-instant'
-    call s:run_chat_test(impl, model)
-endfunction
-
-function s:suite.test_groq_stream()
-    let impl = vimqq#api#groq_api#new()
-    let model = 'llama-3.1-8b-instant'
-    call s:run_chat_test(impl, model, v:true)
-endfunction
-
 function s:suite.test_llama_cpp()
     let impl = vimqq#api#llama_api#new('http://localhost:8080/v1/chat/completions')
     let model = ''
@@ -87,16 +75,3 @@ function s:suite.test_llama_cpp_stream()
     let model = ''
     call s:run_chat_test(impl, model, v:true)
 endfunction
-
-function s:suite.test_mistral()
-    let impl = vimqq#api#mistral_api#new()
-    let model = 'mistral-small-latest'
-    call s:run_chat_test(impl, model)
-endfunction
-
-function s:suite.test_mistral_stream()
-    let impl = vimqq#api#mistral_api#new()
-    let model = 'mistral-small-latest'
-    call s:run_chat_test(impl, model, v:true)
-endfunction
-

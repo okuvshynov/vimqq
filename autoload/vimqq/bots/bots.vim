@@ -6,8 +6,6 @@ let g:autoloaded_vimqq_bots = 1
 " configuration
 let g:vqq_llama_servers = get(g:, 'vqq_llama_servers', [])
 let g:vqq_claude_models = get(g:, 'vqq_claude_models', [])
-let g:vqq_groq_models = get(g:, 'vqq_groq_models', [])
-let g:vqq_mistral_models = get(g:, 'vqq_mistral_models', [])
 let g:vqq_deepseek_models = get(g:, 'vqq_deepseek_models', [])
 let g:vqq_reviewer_models = get(g:, 'vqq_reviewer_models', [])
 let g:vqq_local_reviewer_models = get(g:, 'vqq_local_reviewer_models', [])
@@ -60,8 +58,6 @@ function! vimqq#bots#bots#new() abort
 
     let config_lists = [
           \ [g:vqq_llama_servers, {conf -> vimqq#bots#llama#new(conf)}],
-          \ [g:vqq_groq_models, {conf -> vimqq#bots#groq#new(conf)}],
-          \ [g:vqq_mistral_models, {conf -> vimqq#bots#mistral#new(conf)}],
           \ [g:vqq_deepseek_models, {conf -> vimqq#bots#deepseek#new(conf)}],
           \ [g:vqq_reviewer_models, {conf -> vimqq#bots#deepseek_reviewer#new(conf)}],
           \ [g:vqq_local_reviewer_models, {conf -> vimqq#bots#local_reviewer#new(conf)}],

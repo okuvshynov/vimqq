@@ -58,12 +58,6 @@ function s:suite.test_deepseek()
     call s:run_bot_test(client)
 endfunction
 
-function s:suite.test_groq()
-    let impl = vimqq#api#groq_api#new()
-    let client = vimqq#bots#bot#new(impl, {'model': 'llama-3.1-8b-instant'})
-    call s:run_bot_test(client)
-endfunction
-
 function s:suite.test_llama()
     let impl = vimqq#api#llama_api#new('http://localhost:8080/v1/chat/completions')
 
@@ -77,10 +71,4 @@ function s:suite.test_llama_warmup()
 
     let client = vimqq#bots#bot#new(impl, {'send_warmup': v:true})
     call s:run_bot_test(client, ['warmup_done', 'chunk_done', 'reply_done', 'title_done'])
-endfunction
-
-function s:suite.test_mistral()
-    let impl = vimqq#api#mistral_api#new()
-    let client = vimqq#bots#bot#new(impl, {'model': 'mistral-small-latest'})
-    call s:run_bot_test(client)
 endfunction
