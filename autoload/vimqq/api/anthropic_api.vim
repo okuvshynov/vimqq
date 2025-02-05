@@ -23,6 +23,7 @@ function! vimqq#api#anthropic_api#new() abort
     " Not calling any callback as we expect to act on data: [DONE]
     function! api._on_stream_close(params) dict
         call vimqq#log#debug('anthropic stream closed.')
+        " Still need to close in case of error?
     endfunction
 
     function! api._on_stream_out(msg, params, req_id) dict

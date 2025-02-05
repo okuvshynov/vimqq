@@ -2,6 +2,8 @@
 
 VIMQQ ~
 
+*MAJOR CHANGES ONGOING*
+
 AI plugin for Vim/NeoVim with focus on local evaluation, flexible context
 and aggressive cache warmup to hide latency.
 Version: 0.0.7

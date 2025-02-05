@@ -1,5 +1,7 @@
 # Vim quick question (vim-qq)
 
+## Undergoing major experimental changes for now
+
 AI plugin for Vim/NeoVim with focus on local evaluation, flexible context
 and aggressive cache warmup to hide latency.
 
