@@ -73,9 +73,6 @@ function! vimqq#tools#edit_file#new(root) abort
                 call add(res, path)
                 call add(res, 'ERROR: Multiple instances of pattern found.')
             else
-                " Perform the replacement
-                " TODO: vim is doing some magic with substitute.
-
                 let new_content = vimqq#util#replace(content, needle, replacement)
                 
                 " Write back to file

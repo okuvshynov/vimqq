@@ -43,7 +43,6 @@ function! vimqq#crawl#run(root, conf, current_index, ProcFn, CompleteFn) abort
         if wait_for == 0 && all_enqueued && !returned
             let returned = v:true
             call timer_start(0, { -> call(CompleteFn, [new_index])})
-            "call call(CompleteFn, [new_index])
         endif
     endfunction
 
@@ -77,4 +76,33 @@ function! vimqq#crawl#run(root, conf, current_index, ProcFn, CompleteFn) abort
         let returned = v:true
         call timer_start(0, { -> call(CompleteFn, [new_index])})
     endif
+endfunction
+
+function! vimqq#crawl#loop(ProcFn)
+    let root = vimqq#util#root()
+    let conf_path = root . '/.vqq'
+    let index_path = root . '/.vqq_index'
+    let conf = []
+    let index = {}
+
+    let ProcFn = a:ProcFn
+
+    if filereadable(conf_path)
+        let conf_lines = readfile(conf_path)
+        let conf = json_decode(join(conf_lines, "\n"))
+    endif
+    if filereadable(index_path)
+        let index_lines = readfile(index_path)
+        let index = json_decode(join(index_lines, "\n"))
+    endif
+
+    function! OnComplete(new_index) closure
+        let index_lines = split(json_encode(a:new_index), "\n")
+        call writefile(index_lines, index_path)
+        " scheduling next iteration
+        call timer_start(60 * 1000, { -> vimqq#crawl#loop(ProcFn)})
+    endfunction
+
+    call vimqq#crawl#run(root, conf, index, a:ProcFn, OnComplete)
+
 endfunction
