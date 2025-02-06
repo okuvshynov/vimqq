@@ -35,7 +35,7 @@ function! s:suite.test_ls()
     let result = json_decode(s:async_result)
 
     call s:assert.equals(result.stderr, "")
-    call s:assert.equals(result.stdout, "a.txt")
+    call s:assert.equals(result.stdout, "a.txt\nb.txt")
     call s:assert.equals(result.returncode, 0)
 endfunction
 
