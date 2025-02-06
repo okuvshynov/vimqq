@@ -21,38 +21,60 @@ let g:autoloaded_vimqq_crawl = 1
 "   * If old checksum is different or there's no entry in index for that file,
 "       call ProcFn
 function! vimqq#crawl#run(root, conf, current_index, ProcFn, CompleteFn) abort
-    let l:new_index = {}
+    let new_index = {}
     
     " TODO: this might be not very efficient
     " Get all files matching patterns
-    let l:all_files = []
-    for l:pattern in a:conf
-        let l:glob_pattern = a:root . '/**/' . l:pattern
-        let l:matched_files = glob(l:glob_pattern, 0, 1)
-        call extend(l:all_files, l:matched_files)
+    let all_files = []
+    for pattern in a:conf
+        let glob_pattern = a:root . '/**/' . pattern
+        let matched_files = glob(glob_pattern, 0, 1)
+        call extend(all_files, matched_files)
     endfor
 
+    let wait_for = 0
+    let all_enqueued = v:false
+    let returned = v:false
+    let CompleteFn = a:CompleteFn
+
+    function! OnProcFnDone(file_rel_path, data) closure
+        let new_index[a:file_rel_path]['data'] = a:data
+        let wait_for -= 1
+        if wait_for == 0 && all_enqueued && !returned
+            let returned = v:true
+            call timer_start(0, { -> call(CompleteFn, [new_index])})
+            "call call(CompleteFn, [new_index])
+        endif
+    endfunction
+
     " Process each file
-    for l:file in l:all_files
+    for file in all_files
         " Get relative path from root
-        let l:rel_path = substitute(l:file, '^' . a:root . '/', '', '')
+        let rel_path = substitute(file, '^' . a:root . '/', '', '')
         
         " Calculate checksum using sha256
-        let l:file_content = join(readfile(l:file), "\n")
-        let l:checksum = sha256(l:file_content)
+        let file_content = join(readfile(file), "\n")
+        let checksum = sha256(file_content)
         
         " Check if file exists in current index with same checksum
-        if has_key(a:current_index, l:rel_path) && get(a:current_index[l:rel_path], 'checksum', '') ==# l:checksum
+        if has_key(a:current_index, rel_path) && get(a:current_index[rel_path], 'checksum', '') ==# checksum
             " Reuse old data
-            let l:new_index[l:rel_path] = a:current_index[l:rel_path]
+            let new_index[rel_path] = a:current_index[rel_path]
         else
             " Process new/changed file
-            let l:new_index[l:rel_path] = {
-                        \ 'checksum': l:checksum,
-                        \ 'data': call(a:ProcFn, [l:file])
-                        \ }
+            let wait_for += 1
+            let new_index[rel_path] = {
+                        \ 'checksum': checksum,
+            \ }
+
+            call call(a:ProcFn, [rel_path, function('OnProcFnDone')])
         endif
     endfor
 
-    call call(a:CompleteFn, [l:new_index])
+    let all_enqueued = v:true
+
+    if wait_for == 0 && all_enqueued && !returned
+        let returned = v:true
+        call timer_start(0, { -> call(CompleteFn, [new_index])})
+    endif
 endfunction

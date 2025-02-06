@@ -1,9 +1,10 @@
 let s:suite = themis#suite('vimqq#crawl')
 let s:assert = themis#helper('assert')
 
-function! s:format_file(filepath) abort
+function! s:format_file(filepath, CompleteFn) abort
     " Simple test procedure function that returns file content
-    return join(readfile(a:filepath), "\n")
+    let full_path = s:get_test_dir() . "/" . a:filepath
+    call call(a:CompleteFn, [a:filepath, join(readfile(full_path), "\n")])
 endfunction
 
 function! s:get_test_dir() abort
@@ -12,44 +13,58 @@ function! s:get_test_dir() abort
 endfunction
 
 function! s:suite.test_empty_index() abort
-    let l:root = s:get_test_dir()
-    let l:patterns = ['*.txt']
-    let l:current_index = {}
+    let root = s:get_test_dir()
+    let patterns = ['a.txt']
+    let current_index = {}
 
-    function OnCompleteEmpty(new_index)
+    let n_called = 0
+
+    function OnCompleteEmpty(new_index) closure
         call s:assert.length_of(keys(a:new_index), 1)
         call s:assert.has_key(a:new_index, 'a.txt')
         call s:assert.has_key(a:new_index['a.txt'], 'checksum')
         call s:assert.has_key(a:new_index['a.txt'], 'data')
+        let n_called += 1
     endfunction
 
-    call vimqq#crawl#run(l:root, l:patterns, l:current_index, function('s:format_file'), function('OnCompleteEmpty'))
+    call vimqq#crawl#run(root, patterns, current_index, function('s:format_file'), function('OnCompleteEmpty'))
 
+    :sleep 10m
+    call s:assert.equals(n_called, 1)
 endfunction
 
 function! s:suite.test_matching_checksum() abort
     let root = s:get_test_dir()
-    let patterns = ['*.txt']
+    let patterns = ['a.txt']
+
+    let n_called = 0
 
     " First create an index
     function OnCompleteMatched(first_index) closure
         " Run again with same index
         let l_first_index = deepcopy(a:first_index)
+        let n_called += 1
+        let n_called_in = 0
 
         function OnCompleteMatchedSecond(second_index) closure
+            let n_called_in += 1
             call s:assert.equals(l_first_index, a:second_index)
         endfunction
 
         call vimqq#crawl#run(root, patterns, a:first_index, function('s:format_file'), function('OnCompleteMatchedSecond'))
+        :sleep 10m
+        call s:assert.equals(n_called_in, 1)
 
     endfunction
 
-    call vimqq#crawl#run(l:root, l:patterns, {}, function('s:format_file'), function('OnCompleteMatched'))
+    call vimqq#crawl#run(root, patterns, {}, function('s:format_file'), function('OnCompleteMatched'))
+    :sleep 10m
+    call s:assert.equals(n_called, 1)
 endfunction
 
 function! s:suite.test_mismatched_checksum() abort
     let root = s:get_test_dir()
-    let patterns = ['*.txt']
+    let patterns = ['a.txt']
     
     " Create initial index with a fake checksum
     let current_index = {
@@ -59,7 +74,10 @@ function! s:suite.test_mismatched_checksum() abort
         \ }
     \ }
 
+    let n_called = 0
+
     function OnCompleteMismatched(new_index) closure
+        let n_called += 1
         call s:assert.not_equals(current_index['a.txt']['checksum'], a:new_index['a.txt']['checksum'])
         call s:assert.not_equals(current_index['a.txt']['data'], a:new_index['a.txt']['data'])
 
@@ -67,4 +85,30 @@ function! s:suite.test_mismatched_checksum() abort
 
     call vimqq#crawl#run(root, patterns, current_index, function('s:format_file'), function('OnCompleteMismatched'))
     
+    :sleep 10m
+    call s:assert.equals(n_called, 1)
+endfunction
+
+function! s:suite.test_two_files() abort
+    let root = s:get_test_dir()
+    let patterns = ['*.txt']
+    let current_index = {}
+
+    let n_called = 0
+
+    function OnTestTwoComplete(new_index) closure
+        call s:assert.length_of(keys(a:new_index), 2)
+        call s:assert.has_key(a:new_index, 'a.txt')
+        call s:assert.has_key(a:new_index, 'b.txt')
+        call s:assert.has_key(a:new_index['a.txt'], 'checksum')
+        call s:assert.has_key(a:new_index['a.txt'], 'data')
+        call s:assert.has_key(a:new_index['b.txt'], 'checksum')
+        call s:assert.has_key(a:new_index['b.txt'], 'data')
+        let n_called += 1
+    endfunction
+
+    call vimqq#crawl#run(root, patterns, current_index, function('s:format_file'), function('OnTestTwoComplete'))
+
+    :sleep 10m
+    call s:assert.equals(n_called, 1)
 endfunction
