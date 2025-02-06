@@ -16,43 +16,55 @@ function! s:suite.test_empty_index() abort
     let l:patterns = ['*.txt']
     let l:current_index = {}
 
-    let l:new_index = vimqq#crawl#run(l:root, l:patterns, l:current_index, function('s:format_file'))
+    function OnCompleteEmpty(new_index)
+        call s:assert.length_of(keys(a:new_index), 1)
+        call s:assert.has_key(a:new_index, 'a.txt')
+        call s:assert.has_key(a:new_index['a.txt'], 'checksum')
+        call s:assert.has_key(a:new_index['a.txt'], 'data')
+    endfunction
 
-    call s:assert.length_of(keys(l:new_index), 1)
-    call s:assert.has_key(l:new_index, 'a.txt')
-    call s:assert.has_key(l:new_index['a.txt'], 'checksum')
-    call s:assert.has_key(l:new_index['a.txt'], 'data')
+    call vimqq#crawl#run(l:root, l:patterns, l:current_index, function('s:format_file'), function('OnCompleteEmpty'))
+
 endfunction
 
 function! s:suite.test_matching_checksum() abort
-    let l:root = s:get_test_dir()
-    let l:patterns = ['*.txt']
-    
-    " First create an index
-    let l:current_index = vimqq#crawl#run(l:root, l:patterns, {}, function('s:format_file'))
-    
-    " Run again with same index
-    let l:new_index = vimqq#crawl#run(l:root, l:patterns, l:current_index, function('s:format_file'))
+    let root = s:get_test_dir()
+    let patterns = ['*.txt']
 
-    " Should be exactly the same
-    call s:assert.equals(l:current_index, l:new_index)
+    " First create an index
+    function OnCompleteMatched(first_index) closure
+        " Run again with same index
+        let l_first_index = deepcopy(a:first_index)
+
+        function OnCompleteMatchedSecond(second_index) closure
+            call s:assert.equals(l_first_index, a:second_index)
+        endfunction
+
+        call vimqq#crawl#run(root, patterns, a:first_index, function('s:format_file'), function('OnCompleteMatchedSecond'))
+
+    endfunction
+
+    call vimqq#crawl#run(l:root, l:patterns, {}, function('s:format_file'), function('OnCompleteMatched'))
 endfunction
 
 function! s:suite.test_mismatched_checksum() abort
-    let l:root = s:get_test_dir()
-    let l:patterns = ['*.txt']
+    let root = s:get_test_dir()
+    let patterns = ['*.txt']
     
     " Create initial index with a fake checksum
-    let l:current_index = {
+    let current_index = {
         \ 'a.txt': {
         \   'checksum': 'fake_checksum',
         \   'data': 'fake_data'
         \ }
     \ }
-    
-    " Run with mismatched index
-    let l:new_index = vimqq#crawl#run(l:root, l:patterns, l:current_index, function('s:format_file'))
 
-    call s:assert.not_equals(l:current_index['a.txt']['checksum'], l:new_index['a.txt']['checksum'])
-    call s:assert.not_equals(l:current_index['a.txt']['data'], l:new_index['a.txt']['data'])
+    function OnCompleteMismatched(new_index) closure
+        call s:assert.not_equals(current_index['a.txt']['checksum'], a:new_index['a.txt']['checksum'])
+        call s:assert.not_equals(current_index['a.txt']['data'], a:new_index['a.txt']['data'])
+
+    endfunction
+
+    call vimqq#crawl#run(root, patterns, current_index, function('s:format_file'), function('OnCompleteMismatched'))
+    
 endfunction

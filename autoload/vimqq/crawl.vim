@@ -20,7 +20,7 @@ let g:autoloaded_vimqq_crawl = 1
 "   * If old checksum equals new checksum, reuse old data
 "   * If old checksum is different or there's no entry in index for that file,
 "       call ProcFn
-function! vimqq#crawl#run(root, conf, current_index, ProcFn) abort
+function! vimqq#crawl#run(root, conf, current_index, ProcFn, CompleteFn) abort
     let l:new_index = {}
     
     " TODO: this might be not very efficient
@@ -54,5 +54,5 @@ function! vimqq#crawl#run(root, conf, current_index, ProcFn) abort
         endif
     endfor
 
-    return l:new_index
+    call call(a:CompleteFn, [l:new_index])
 endfunction
