@@ -1,8 +1,8 @@
-if exists('g:autoloaded_vimqq_model')
+if exists('g:autoloaded_vimqq_events')
     finish
 endif
 
-let g:autoloaded_vimqq_model = 1
+let g:autoloaded_vimqq_events = 1
 
 let s:observers = []
 
