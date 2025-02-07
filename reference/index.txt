@@ -3,40 +3,4 @@
 ## Overview
 This documentation provides technical reference materials for engineers working on the project. It serves as a comprehensive guide to understand the project's architecture, implementation details, and development practices.
 
-## Documentation Structure
-The reference documentation is organized into the following sections:
-
-1. Architecture/
-   - High-level system architecture
-   - Component interactions
-   - Design decisions and rationale
-
-2. Implementation/
-   - Code organization
-   - Key abstractions
-   - Critical subsystems
-
-3. Development/
-   - Development setup
-   - Build system
-   - Testing framework
-   - Common workflows
-
-4. APIs/
-   - Internal APIs
-   - External interfaces
-   - Integration points
-
-## How to Use This Documentation
-1. Start with the relevant section based on your current task
-2. Follow references to specific implementation details
-3. Consult the appropriate guides for development workflows
-
-## Contributing to Documentation
-When contributing to this documentation:
-1. Maintain technical accuracy
-2. Include relevant code references
-3. Update section indexes when adding new content
-4. Follow the established documentation format
-
 Note: This documentation is continuously evolving. If you find areas that need improvement or have questions, please contribute or reach out to the development team.
