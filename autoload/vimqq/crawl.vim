@@ -4,7 +4,9 @@ endif
 
 let g:autoloaded_vimqq_crawl = 1
 
-" 
+" Async function
+" TODO: this is messy, we need futures for vimscript
+"
 " root : root directory to start crawl from
 " conf : list of patterns of files to include in the crawl. 
 "        Example: ["*.vim", "*.py", "*.txt", "*.md"]
@@ -15,13 +17,16 @@ let g:autoloaded_vimqq_crawl = 1
 "                   "foo/baz.txt": {"checksum": 234, "data": "... baz ..."},
 "                }
 "
-" Returns new index structure formatted the same way. Construction logic:
+" Returns new index structure formatted the same way in CompleteFn. Construction logic:
 "   * Walks over all files in root which match conf
 "   * If old checksum equals new checksum, reuse old data
 "   * If old checksum is different or there's no entry in index for that file,
 "       call ProcFn
 function! vimqq#crawl#run(root, conf, current_index, ProcFn, CompleteFn) abort
     let new_index = {}
+
+    call vimqq#log#debug('index: root = ' . a:root)
+    call vimqq#log#debug('index: conf = ' . string(a:conf))
     
     " TODO: this might be not very efficient
     " Get all files matching patterns
@@ -31,6 +36,8 @@ function! vimqq#crawl#run(root, conf, current_index, ProcFn, CompleteFn) abort
         let matched_files = glob(glob_pattern, 0, 1)
         call extend(all_files, matched_files)
     endfor
+
+    call vimqq#log#debug('index: all_files: ' . string(all_files))
 
     let wait_for = 0
     let all_enqueued = v:false
@@ -79,8 +86,9 @@ function! vimqq#crawl#run(root, conf, current_index, ProcFn, CompleteFn) abort
 endfunction
 
 function! vimqq#crawl#loop(ProcFn)
-    let root = vimqq#util#root()
+    let root = vimqq#util#project_root()
     let conf_path = root . '/.vqq'
+    call vimqq#log#debug('index: conf_path = ' . conf_path)
     let index_path = root . '/.vqq_index'
     let conf = []
     let index = {}
@@ -103,6 +111,11 @@ function! vimqq#crawl#loop(ProcFn)
         call timer_start(60 * 1000, { -> vimqq#crawl#loop(ProcFn)})
     endfunction
 
-    call vimqq#crawl#run(root, conf, index, a:ProcFn, OnComplete)
+    call vimqq#crawl#run(root, conf, index, ProcFn, function('OnComplete'))
+endfunction
 
+function! vimqq#crawl#loop_local_indexer()
+    let indexer = vimqq#bots#local_indexer#new()
+    let ProcFn = {file_path, OnDone -> indexer.enqueue(file_path, OnDone)}
+    return vimqq#crawl#loop(ProcFn)
 endfunction

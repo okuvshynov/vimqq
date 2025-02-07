@@ -91,6 +91,7 @@ function! vimqq#api#llama_api#new(endpoint) abort
     endfunction
 
     function! api.chat(params) dict
+        call vimqq#log#debug('llama_api: calling chat')
         let req = {
         \   'messages': get(a:params, 'messages', []),
         \   'n_predict': get(a:params, 'max_tokens', 1024),

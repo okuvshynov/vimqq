@@ -4,8 +4,27 @@ endif
 
 let g:autoloaded_vimqq_util_module = 1
 
+" This is plugin root. Use this to refer to
+" Plugin files, prompts, etc
 function! vimqq#util#root() abort
     return expand('<script>:p:h:h:h')
+endfunction
+
+function! vimqq#util#project_root() abort
+    let current_dir = expand('%:p:h')
+    let prev_dir = ''
+
+    while current_dir !=# prev_dir
+      " Check if .vqq file exists in current dir
+      let file_path = current_dir . '/.vqq'
+      if filereadable(file_path)
+          return current_dir
+      endif
+
+      let prev_dir = current_dir
+      let current_dir = fnamemodify(current_dir, ':h')
+    endwhile
+    return v:null
 endfunction
 
 function! vimqq#util#merge(d1, d2) abort

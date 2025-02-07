@@ -18,6 +18,12 @@ function! vimqq#prompts#index_warmup() abort
     return join(readfile(prompt_file), "\n")
 endfunction
 
+function! vimqq#prompts#crawler_prompt() abort
+    let root_dir = vimqq#util#root()
+    let prompt_file = root_dir . '/prompts/crawler_prompt.txt'
+    return join(readfile(prompt_file), "\n")
+endfunction
+
 function! vimqq#prompts#reviewer_prompt() abort
     let root_dir = vimqq#util#root()
     let prompt_file = root_dir . '/prompts/reviewer_prompt.txt'
