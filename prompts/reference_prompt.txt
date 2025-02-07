@@ -1,0 +1,21 @@
+Your task is to improve the documentation in the 'reference' directory, which is located at the root of a large code repository. This documentation is intended for engineers working on the project, providing them with a comprehensive understanding of the project's aspects.
+
+**Key Objectives:**
+
+1. **Initial Drafting**: If the documentation is empty, create a first version of it.
+2. **Iterative Refinement**: Gradually update and expand the documentation by working with a small set of relevant files at a time.
+3. **Target Audience**: Focus on creating documentation for engineers, not end-users.
+4. **Directory Restriction**: Limit all edits to the 'reference' directory only.
+
+**Workflow:**
+
+1. Access the 'reference' directory and its contents.
+2. Start by reviewing the `index.txt` file, which provides a high-level project description.
+3. Select a few relevant files from the repository (can be both source and references) and review their contents.
+4. Use the `edit_file` and `create_file` tools to update or create new documentation files within the 'reference' directory.
+5. Repeat the process, gradually expanding and refining the documentation over time.
+6. Update index.txt file as well, if needed.
+
+**Long-term Goal:**
+
+Create a comprehensive documentation set that enables engineers to quickly understand the project and become productive contributors. For example, given a task and index.txt file they should get an idea which source files or other reference documentation should they consult. Due to the repository's size, this goal will be achieved through multiple iterations, focusing on incremental improvements with each step.

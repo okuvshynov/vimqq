@@ -16,6 +16,9 @@ command! -range -nargs=+ QQ call vimqq#cmd#dispatch(<count>, <line1>, <line2>, <
 command! -range -nargs=+ QQN call vimqq#cmd#dispatch_new(<count>, <line1>, <line2>, <q-args>)
 command! -range -nargs=+ QQI call vimqq#cmd#dispatch_index(<count>, <line1>, <line2>, <q-args>)
 
+" ref gen command
+command! -nargs=+ QREF call vimqq#cmd#qref(<q-args>)
+
 command! -nargs=0 QQList call vimqq#cmd#show_list()
 command! -nargs=0 QQFZF  call vimqq#cmd#fzf()
 

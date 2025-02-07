@@ -50,6 +50,10 @@ function! vimqq#cmd#qn(message) abort
     call vimqq#main#send_message(v:true, a:message)
 endfunction
 
+function! vimqq#cmd#qref(message) abort
+    call vimqq#main#gen_ref(a:message)
+endfunction
+
 function! vimqq#cmd#dispatch_new(count, line1, line2, args) abort
     if a:count ==# -1
         " No range was provided
