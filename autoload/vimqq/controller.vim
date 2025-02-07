@@ -152,7 +152,7 @@ function! vimqq#controller#new() abort
 
         " always use tools
         " TODO: is this always using anthropic??
-        call self.db.set_tools(chat_id, self.toolset.def(v:true))
+        call self.db.set_tools(chat_id, self.toolset.def())
         if self.run_query(chat_id, bot, message)
             call self.show_chat(chat_id)
         endif
@@ -175,7 +175,7 @@ function! vimqq#controller#new() abort
 
         if a:use_index
             " TODO: this is always setting anthropic tool schema?
-            call self.db.set_tools(chat_id, self.toolset.def(v:true))
+            call self.db.set_tools(chat_id, self.toolset.def())
         endif
 
         if self.run_query(chat_id, bot, message)
