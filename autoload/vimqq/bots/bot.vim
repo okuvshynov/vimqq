@@ -68,6 +68,11 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         return self._impl.chat(req)
     endfunction
 
+    " default behavior is do nothing, claude overrides this
+    function! bot.adapt_tool_def(tools) dict
+        return a:tools
+    endfunction
+
     function! bot.send_chat(chat, stream=v:true) dict
         let chat_id = a:chat.id
 

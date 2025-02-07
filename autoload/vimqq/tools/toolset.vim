@@ -33,14 +33,10 @@ function! vimqq#tools#toolset#new()
         \ vimqq#tools#run_cmd#new(root)
     \ ]
 
-    function! res.def(is_claude) dict
+    function! res.def() dict
         let res = []
         for tool in self.tools
-            let schema = tool.schema()
-            if a:is_claude
-                let schema = vimqq#tools#schema#to_claude(schema)
-            endif
-            call add(res, schema)
+            call add(res, tool.schema())
         endfor
         return res
     endfunction

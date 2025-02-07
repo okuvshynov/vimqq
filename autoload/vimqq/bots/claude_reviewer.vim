@@ -8,9 +8,17 @@ let g:autoloaded_vimqq_claude_reviwer = 1
 
 function! vimqq#bots#claude_reviewer#new(config = {}) abort
     let impl = vimqq#api#anthropic_api#new()
-    let client = vimqq#bots#bot#new(impl, a:config)
+    let bot = vimqq#bots#bot#new(impl, a:config)
 
-    function! client._format(messages) dict
+    function! bot.adapt_tool_def(tools) dict
+        let res = []
+        for tool in a:tools
+            call add(res, vimqq#tools#schema#to_claude(tool))
+        endfor
+        return res
+    endfunction
+
+    function! bot._format(messages) dict
         let res = [{"role": "system", "content" : vimqq#prompts#reviewer_prompt()}]
         let lines = []
         for message in a:messages
@@ -26,5 +34,5 @@ function! vimqq#bots#claude_reviewer#new(config = {}) abort
         return res
     endfunction
 
-    return client
+    return bot
 endfunction
