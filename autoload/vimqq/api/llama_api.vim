@@ -4,13 +4,14 @@ endif
 
 let g:autoloaded_vimqq_api_llama_module = 1
 
-function! vimqq#api#llama_api#new(endpoint) abort
+function! vimqq#api#llama_api#new(endpoint, jinja=v:false) abort
     let api = {}
 
     let api._endpoint = a:endpoint
     " stores partial responses
     let api._replies = {}
     let api._req_id = 0
+    let api._jinja = a:jinja
 
     function! api._on_stream_out(msg, params) dict
         let messages = split(a:msg, '\n')
@@ -115,15 +116,17 @@ function! vimqq#api#llama_api#new(endpoint) abort
 
         " llama.cpp with jinja needs content : "text itself", not content :
         " [{type: text, }] format
-        for message in req.messages
-            if type(message.content) == type([])
-                try
-                    let message.content = message.content[0].text
-                catch
-                    call vimqq#log#error('llama_api: error adapting: ' . string(message.content))
-                endtry
-            endif
-        endfor
+        if self._jinja
+            for message in req.messages
+                if type(message.content) == type([])
+                    try
+                        let message.content = message.content[0].text
+                    catch
+                        call vimqq#log#error('llama_api: error adapting: ' . string(message.content))
+                    endtry
+                endif
+            endfor
+        endif
 
         let req_id = self._req_id
         let self._req_id = self._req_id + 1

@@ -12,7 +12,8 @@ let s:default_conf = {
     \ 'bot_name'      : 'llama',
     \ 'system_prompt' : 'You are a helpful assistant.',
     \ 'send_warmup'   : v:true,
-    \ 'do_autowarm'   : v:true
+    \ 'do_autowarm'   : v:true,
+    \ 'jinja'         : v:false
 \ }
 
 function vimqq#bots#llama#new(config = {}) abort
@@ -21,7 +22,7 @@ function vimqq#bots#llama#new(config = {}) abort
     let server = substitute(config.addr, '/*$', '', '')
     let endpoint = server . '/v1/chat/completions'
 
-    let impl = vimqq#api#llama_api#new(endpoint)
+    let impl = vimqq#api#llama_api#new(endpoint, config.jinja)
 
     return vimqq#bots#bot#new(impl, config)
 endfunction
