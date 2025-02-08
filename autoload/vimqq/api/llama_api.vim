@@ -56,6 +56,7 @@ function! vimqq#api#llama_api#new(endpoint) abort
         " while neovim would error.
         try
             let response = json_decode(l:response)
+            "call vimqq#log#debug(l:response)
         catch
             call vimqq#log#error(string(response))
             call vimqq#log#error('llama_api: Unable to process response')
@@ -69,10 +70,24 @@ function! vimqq#api#llama_api#new(endpoint) abort
                 \ has_key(response, 'choices') && 
                 \ !empty(response.choices) && 
                 \ has_key(response.choices[0], 'message')
-            let message  = l:response.choices[0].message.content
+            let message = l:response.choices[0].message
+            let content = message.content
             if has_key(a:params, 'on_chunk')
-                call a:params.on_chunk(a:params, message)
+                call a:params.on_chunk(a:params, content)
             endif
+
+            if has_key(message, 'tool_calls')
+                if message.tool_calls isnot v:null
+                    if has_key(a:params, 'on_sys_msg')
+                        call a:params.on_sys_msg('info', string(message.tool_calls))
+                    endif
+                    " TODO: just calling one tool first
+                    let function_call = message.tool_calls[0].function
+                    let function_call.input = json_decode(function_call.arguments)
+                    call a:params.on_tool_use(function_call)
+                endif
+            endif
+
             if has_key(a:params, 'on_complete')
                 call a:params.on_complete(v:null, a:params)
             endif
@@ -95,15 +110,43 @@ function! vimqq#api#llama_api#new(endpoint) abort
         let req = {
         \   'messages': get(a:params, 'messages', []),
         \   'n_predict': get(a:params, 'max_tokens', 1024),
-        \   'stream': get(a:params, 'stream', v:false),
         \   'cache_prompt': get(a:params, 'cache_prompt', v:true)
         \ }
+
+        " llama.cpp with jinja needs content : "text itself", not content :
+        " [{type: text, }] format
+        for message in req.messages
+            if type(message.content) == type([])
+                try
+                    let message.content = message.content[0].text
+                catch
+                    call vimqq#log#error('llama_api: error adapting: ' . string(message.content))
+                endtry
+            endif
+        endfor
 
         let req_id = self._req_id
         let self._req_id = self._req_id + 1
         let self._replies[req_id] = []
 
-        if req.stream
+        let stream = get(a:params, 'stream', v:false)
+
+        if has_key(a:params, 'tools')
+            " llama.cpp server doesn't support streaming with tools
+            if stream
+                let warning = 'llama_api: not using streaming as it is not compatible with tools'
+                call vimqq#log#warning(warning)
+                if has_key(a:params, 'on_sys_msg')
+                    call a:params.on_sys_msg('warning', warning)
+                endif
+            endif
+            let stream = v:false
+            let req['tools'] = a:params['tools']
+        endif
+        
+        let req['stream'] = stream
+
+        if stream
             let job_conf = {
             \   'out_cb': {channel, msg -> self._on_stream_out(msg, a:params)},
             \   'err_cb': {channel, msg -> self._on_error(msg, a:params)},
