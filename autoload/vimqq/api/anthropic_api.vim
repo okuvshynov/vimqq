@@ -134,6 +134,14 @@ function! vimqq#api#anthropic_api#new() abort
         endif
     endfunction
 
+    function! api.adapt_tool_def(tools) dict
+        let res = []
+        for tool in a:tools
+            call add(res, vimqq#tools#schema#to_claude(tool))
+        endfor
+        return res
+    endfunction
+
     function! api.chat(params) dict
         let messages = a:params.messages
         let tools = get(a:params, 'tools', [])
@@ -149,7 +157,7 @@ function! vimqq#api#anthropic_api#new() abort
         \   'model': a:params.model,
         \   'max_tokens' : get(a:params, 'max_tokens', 1024),
         \   'stream': get(a:params, 'stream', v:false),
-        \   'tools': get(a:params, 'tools', [])
+        \   'tools': self.adapt_tool_def(get(a:params, 'tools', []))
         \}
 
         let first_message_json = json_encode(messages[0])
