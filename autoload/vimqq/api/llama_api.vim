@@ -85,6 +85,7 @@ function! vimqq#api#llama_api#new(endpoint, jinja=v:false) abort
                     " TODO: just calling one tool first
                     let function_call = message.tool_calls[0].function
                     let function_call.input = json_decode(function_call.arguments)
+                    let function_call.id = message.tool_calls[0].id
                     call a:params.on_tool_use(function_call)
                 endif
             endif
@@ -114,13 +115,23 @@ function! vimqq#api#llama_api#new(endpoint, jinja=v:false) abort
         \   'cache_prompt': get(a:params, 'cache_prompt', v:true)
         \ }
 
-        " llama.cpp with jinja needs content : "text itself", not content :
-        " [{type: text, }] format
+        " llama.cpp with jinja needs 
+        "   content : 'hello', not 
+        "   content : [{type: text, text: 'hello'}] format
         if self._jinja
             for message in req.messages
                 if type(message.content) == type([])
                     try
-                        let message.content = message.content[0].text
+                        let content = message.content[0]
+                        if content.type ==# 'text'
+                            let message.content = message.content[0].text
+                        endif
+                        if content.type ==# 'tool_result'
+                            let message.tool_call_id = content.tool_use_id
+                            let message.content = content.content
+                            let message.role = 'tool'
+                            call vimqq#log#debug('tool reply ' . string(message))
+                        endif
                     catch
                         call vimqq#log#error('llama_api: error adapting: ' . string(message.content))
                     endtry
