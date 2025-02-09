@@ -68,11 +68,6 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         return self._impl.chat(req)
     endfunction
 
-    " default behavior is do nothing, claude overrides this
-    function! bot.adapt_tool_def(tools) dict
-        return a:tools
-    endfunction
-
     function! bot.send_chat(chat, stream=v:true) dict
         let chat_id = a:chat.id
 
@@ -87,7 +82,7 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         \ }
 
         if has_key(a:chat, 'tools_allowed')
-            let req['tools'] = self.adapt_tool_def(a:chat.toolset)
+            let req['tools'] = a:chat.toolset
             let req['on_tool_use'] = {tool_call -> vimqq#events#notify('tool_use_recv', {'chat_id': chat_id, 'tool_use': tool_call})}
         endif
 
