@@ -12,10 +12,11 @@ function! vimqq#api#deepseek_api#new(conf) abort
 
     " stores partial responses
     let api._replies = {}
+    let api._tool_uses = {}
     let api._req_id = 0
     let api._api_key = g:vqq_deepseek_api_key
 
-    function! api._on_stream_out(msg, params) dict
+    function! api._on_stream_out(msg, params, req_id) dict
         call vimqq#log#debug('deepseek msg ' . a:msg)
         let messages = split(a:msg, '\n')
         for message in messages
@@ -32,13 +33,40 @@ function! vimqq#api#deepseek_api#new(conf) abort
             if has_key(response.choices[0].delta, 'content')
                 let chunk = response.choices[0].delta.content
                 if chunk isnot v:null
-                  call a:params.on_chunk(a:params, chunk)
+                    call a:params.on_chunk(a:params, chunk)
                 endif
             endif
             if has_key(response.choices[0].delta, 'reasoning_content')
                 let chunk = response.choices[0].delta.reasoning_content
                 if chunk isnot v:null
-                  call a:params.on_chunk(a:params, chunk)
+                    call a:params.on_chunk(a:params, chunk)
+                endif
+            endif
+            " deepseek API returns streamed tools like this:
+            "  - first message is function name
+            "  - next messages are arguments
+            "
+            "  How does it work with many calls?
+            if has_key(response.choices[0].delta, 'tool_calls')
+                let tool_calls = response.choices[0].delta.tool_calls
+                if has_key(self._tool_uses, a:req_id)
+                    let args_delta = tool_calls[0]['function'].arguments
+                    let self._tool_uses[a:req_id].input .= args_delta
+                else
+                    let self._tool_uses[a:req_id] = {
+                        \ 'name': tool_calls[0]['function'].name,
+                        \ 'input': tool_calls[0]['function'].arguments,
+                        \ 'id': tool_calls[0].id
+                    \}
+                endif
+            endif
+
+            if response.choices[0].finish_reason ==# 'tool_calls'
+                if has_key(self._tool_uses, a:req_id)
+                    let self._tool_uses[a:req_id]['input'] = json_decode(self._tool_uses[a:req_id]['input'])
+                    call a:params.on_tool_use(self._tool_uses[a:req_id])
+                else
+                    call vimqq#log#error('deepseek api: trying to use tools but none were passed')
                 endif
             endif
         endfor
@@ -83,20 +111,26 @@ function! vimqq#api#deepseek_api#new(conf) abort
     endfunction
 
     function! api.chat(params) dict
+        let tools = get(a:params, 'tools', [])
         let req = {
         \   'messages': get(a:params, 'messages', []),
         \   'model': a:params.model,
         \   'max_tokens': get(a:params, 'max_tokens', 1024),
-        \   'stream': get(a:params, 'stream', v:false)
+        \   'stream': get(a:params, 'stream', v:false),
         \ }
+
+        if len(tools) > 1
+            let req.tools = tools
+        endif
 
         let req_id = self._req_id
         let self._req_id = self._req_id + 1
         let self._replies[req_id] = []
+        let self._tool_uses[req_id] = []
 
         if req.stream
             let job_conf = {
-            \   'out_cb': {channel, msg -> self._on_stream_out(msg, a:params)},
+            \   'out_cb': {channel, msg -> self._on_stream_out(msg, a:params, req_id)},
             \   'err_cb': {channel, msg -> self._on_error(msg, a:params)},
             \   'close_cb': {channel -> self._on_stream_close(a:params)},
             \ }
