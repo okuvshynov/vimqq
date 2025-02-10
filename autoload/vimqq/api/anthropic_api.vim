@@ -7,7 +7,8 @@ let g:autoloaded_vimqq_api_anthropic_module = 1
 let g:vqq_claude_api_key = get(g:, 'vqq_claude_api_key', $ANTHROPIC_API_KEY)
 let g:vqq_claude_cache_above = get(g:, 'vqq_claude_cache_above', 5000)
 
-function! vimqq#api#anthropic_api#new() abort
+" config is unused for now
+function! vimqq#api#anthropic_api#new(conf) abort
     let api = {}
 
     let api._req_id = 0

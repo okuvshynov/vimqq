@@ -4,14 +4,14 @@ endif
 
 let g:autoloaded_vimqq_api_llama_module = 1
 
-function! vimqq#api#llama_api#new(endpoint, jinja=v:false) abort
+function! vimqq#api#llama_api#new(conf) abort
     let api = {}
 
-    let api._endpoint = a:endpoint
+    let api._endpoint = a:conf.endpoint
     " stores partial responses
     let api._replies = {}
     let api._req_id = 0
-    let api._jinja = a:jinja
+    let api._jinja = get(a:conf, 'jinja', v:false)
 
     function! api._on_stream_out(msg, params) dict
         let messages = split(a:msg, '\n')

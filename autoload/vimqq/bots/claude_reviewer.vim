@@ -7,7 +7,7 @@ endif
 let g:autoloaded_vimqq_claude_reviwer = 1
 
 function! vimqq#bots#claude_reviewer#new(config = {}) abort
-    let impl = vimqq#api#anthropic_api#new()
+    let impl = vimqq#api#anthropic_api#new({})
     let bot = vimqq#bots#bot#new(impl, a:config)
 
     function! bot._format(messages) dict

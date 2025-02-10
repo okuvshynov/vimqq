@@ -47,19 +47,19 @@ function s:run_bot_test(client, expected_events = ['chunk_done', 'reply_done', '
 endfunction
 
 function s:suite.test_anthropic()
-    let impl = vimqq#api#anthropic_api#new()
+    let impl = vimqq#api#anthropic_api#new({})
     let client = vimqq#bots#bot#new(impl, {'model': 'claude-3-5-haiku-latest'})
     call s:run_bot_test(client)
 endfunction
 
 function s:suite.test_deepseek()
-    let impl = vimqq#api#deepseek_api#new()
+    let impl = vimqq#api#deepseek_api#new({})
     let client = vimqq#bots#bot#new(impl, {'model': 'deepseek-chat'})
     call s:run_bot_test(client)
 endfunction
 
 function s:suite.test_llama()
-    let impl = vimqq#api#llama_api#new('http://localhost:8080/v1/chat/completions')
+    let impl = vimqq#api#llama_api#new({'endpoint' : 'http://localhost:8080/v1/chat/completions'})
 
     "let client = vimqq#bots#bot#new(impl, {'send_warmup': v:true})
     let client = vimqq#bots#bot#new(impl)
@@ -67,7 +67,7 @@ function s:suite.test_llama()
 endfunction
 
 function s:suite.test_llama_warmup()
-    let impl = vimqq#api#llama_api#new('http://localhost:8080/v1/chat/completions')
+    let impl = vimqq#api#llama_api#new({'endpoint' : 'http://localhost:8080/v1/chat/completions'})
 
     let client = vimqq#bots#bot#new(impl, {'send_warmup': v:true})
     call s:run_bot_test(client, ['warmup_done', 'chunk_done', 'reply_done', 'title_done'])

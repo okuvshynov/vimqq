@@ -11,9 +11,11 @@ let g:vqq_local_indexer_addr = get(g:, 'vqq_local_indexer_addr', '')
 function! vimqq#bots#local_indexer#new() abort
     let indexer = {}
     let server = substitute(g:vqq_local_indexer_addr, '/*$', '', '')
-    let endpoint = server . '/v1/chat/completions'
+    let config = {}
+    let config.endpoint = server . '/v1/chat/completions'
+    let config.jinja = v:false
 
-    let indexer.api = vimqq#api#llama_api#new(endpoint)
+    let indexer.api = vimqq#api#llama_api#new(config)
     let indexer.jobs = []
 
     function! indexer.run(file_path, OnDone) abort dict

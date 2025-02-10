@@ -6,7 +6,8 @@ let g:autoloaded_vimqq_api_deepseek_module = 1
 
 let g:vqq_deepseek_api_key = get(g:, 'vqq_deepseek_api_key', $DEEPSEEK_API_KEY)
 
-function! vimqq#api#deepseek_api#new() abort
+" conf is unused for now
+function! vimqq#api#deepseek_api#new(conf) abort
     let api = {}
 
     " stores partial responses

@@ -20,9 +20,9 @@ function vimqq#bots#llama#new(config = {}) abort
     let config = deepcopy(s:default_conf)
     call extend(config, a:config)
     let server = substitute(config.addr, '/*$', '', '')
-    let endpoint = server . '/v1/chat/completions'
+    let config.endpoint = server . '/v1/chat/completions'
 
-    let impl = vimqq#api#llama_api#new(endpoint, config.jinja)
+    let impl = vimqq#api#llama_api#new(config)
 
     return vimqq#bots#bot#new(impl, config)
 endfunction

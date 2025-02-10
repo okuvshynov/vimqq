@@ -41,37 +41,37 @@ function s:run_chat_test(impl, model, stream = v:false)
 endfunction
 
 function s:suite.test_anthropic()
-    let impl = vimqq#api#anthropic_api#new()
+    let impl = vimqq#api#anthropic_api#new({})
     let model = 'claude-3-5-haiku-latest'
     call s:run_chat_test(impl, model)
 endfunction
 
 function s:suite.test_anthropic_stream()
-    let impl = vimqq#api#anthropic_api#new()
+    let impl = vimqq#api#anthropic_api#new({})
     let model = 'claude-3-5-haiku-latest'
     call s:run_chat_test(impl, model, v:true)
 endfunction
 
 function s:suite.test_deepseek()
-    let impl = vimqq#api#deepseek_api#new()
+    let impl = vimqq#api#deepseek_api#new({})
     let model = 'deepseek-chat'
     call s:run_chat_test(impl, model)
 endfunction
 
 function s:suite.test_deepseek_stream()
-    let impl = vimqq#api#deepseek_api#new()
+    let impl = vimqq#api#deepseek_api#new({})
     let model = 'deepseek-chat'
     call s:run_chat_test(impl, model, v:true)
 endfunction
 
 function s:suite.test_llama_cpp()
-    let impl = vimqq#api#llama_api#new('http://localhost:8080/v1/chat/completions')
+    let impl = vimqq#api#llama_api#new({'endpoint': 'http://localhost:8080/v1/chat/completions'})
     let model = ''
     call s:run_chat_test(impl, model)
 endfunction
 
 function s:suite.test_llama_cpp_stream()
-    let impl = vimqq#api#llama_api#new('http://localhost:8080/v1/chat/completions')
+    let impl = vimqq#api#llama_api#new({'endpoint': 'http://localhost:8080/v1/chat/completions'})
     let model = ''
     call s:run_chat_test(impl, model, v:true)
 endfunction

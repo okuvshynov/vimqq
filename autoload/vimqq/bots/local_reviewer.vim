@@ -12,16 +12,17 @@ let s:default_conf = {
     \ 'bot_name'      : 'llama',
     \ 'system_prompt' : 'You are a helpful assistant.',
     \ 'send_warmup'   : v:true,
-    \ 'do_autowarm'   : v:true
+    \ 'do_autowarm'   : v:true,
+    \ 'jinja'         : v:false
 \ }
 
 function vimqq#bots#local_reviewer#new(config = {}) abort
     let config = deepcopy(s:default_conf)
     call extend(config, a:config)
     let server = substitute(config.addr, '/*$', '', '')
-    let endpoint = server . '/v1/chat/completions'
+    let config.endpoint = server . '/v1/chat/completions'
 
-    let impl = vimqq#api#llama_api#new(endpoint)
+    let impl = vimqq#api#llama_api#new(config)
 
     let base_client = vimqq#bots#bot#new(impl, config)
 
