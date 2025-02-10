@@ -19,8 +19,6 @@ function! vimqq#bots#deepseek_reviewer#new(config = {}) abort
 
         let content = join(lines, "\n")
 
-        call vimqq#log#debug('REVIEW CONTENT: ' . content)
-
         call add(res, {'role': 'user', 'content': content})
 
         return res
