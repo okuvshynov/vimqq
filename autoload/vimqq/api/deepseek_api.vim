@@ -51,7 +51,7 @@ function! vimqq#api#deepseek_api#new(conf) abort
                 let tool_calls = response.choices[0].delta.tool_calls
                 if has_key(self._tool_uses, a:req_id)
                     let args_delta = tool_calls[0]['function'].arguments
-                    let self._tool_uses[a:req_id].input .= args_delta
+                    let self._tool_uses[a:req_id].input = self._tool_uses[a:req_id].input . args_delta
                 else
                     let self._tool_uses[a:req_id] = {
                         \ 'name': tool_calls[0]['function'].name,
@@ -123,10 +123,45 @@ function! vimqq#api#deepseek_api#new(conf) abort
             let req.tools = tools
         endif
 
+
+        "" {'role': 'assistant', 'content': [{'id': 'call_0_cf2fea93-8237-4bf3-92da-8480fac9352f', 'name': 'run_cmd', 'type': 'tool_use', 'input': {'command': 'cd tests/local && themis'}}]}
+        "" {'role': 'user', 'content': [{'tool_use_id': 'call_0_2e2d052b-af89-44c9-b721-c3c03fbfbc88', 'type': 'tool_result', 'content': '{"stderr":"ERROR: Target file not found.","stdout":"","returncode":1}'}]}
+
+        for message in req.messages
+            let mstr = string(message)
+            call vimqq#log#debug('!!! ' . mstr[0:200])
+            if type(message.content) == type([])
+                try
+                    let content = message.content[0]
+
+                    if content['type'] ==# 'tool_use'
+                        let message.tool_calls = [{
+                           \ 'id': content['id'],
+                           \ 'type': 'function',
+                           \ 'function': {
+                           \    'name': content['name'],
+                           \    'arguments': json_encode(content['input'])
+                           \ }
+                        \ }]
+                        let message.content = ""
+                        call vimqq#log#debug('adapted tool call: ' . string(message))
+                    endif
+
+                    if content['type'] ==# 'tool_result'
+                        let message['role'] = 'tool'
+                        let message['tool_call_id'] = content['tool_use_id']
+                        let message['content'] = content.content
+                        call vimqq#log#debug('adapted tool result: ' . string(message))
+                    endif
+                catch
+                    call vimqq#log#error('llama_api: error adapting: ' . string(message.content))
+                endtry
+            endif
+        endfor
+
         let req_id = self._req_id
         let self._req_id = self._req_id + 1
         let self._replies[req_id] = []
-        let self._tool_uses[req_id] = []
 
         if req.stream
             let job_conf = {
