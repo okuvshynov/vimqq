@@ -124,12 +124,7 @@ function! vimqq#api#deepseek_api#new(conf) abort
         endif
 
 
-        "" {'role': 'assistant', 'content': [{'id': 'call_0_cf2fea93-8237-4bf3-92da-8480fac9352f', 'name': 'run_cmd', 'type': 'tool_use', 'input': {'command': 'cd tests/local && themis'}}]}
-        "" {'role': 'user', 'content': [{'tool_use_id': 'call_0_2e2d052b-af89-44c9-b721-c3c03fbfbc88', 'type': 'tool_result', 'content': '{"stderr":"ERROR: Target file not found.","stdout":"","returncode":1}'}]}
-
         for message in req.messages
-            let mstr = string(message)
-            call vimqq#log#debug('!!! ' . mstr[0:200])
             if type(message.content) == type([])
                 try
                     let content = message.content[0]

@@ -120,17 +120,33 @@ function! vimqq#api#llama_api#new(conf) abort
         "   content : [{type: text, text: 'hello'}] format
         if self._jinja
             for message in req.messages
+                let mstr = string(message)
+                call vimqq#log#debug('!!! ' . mstr[0:200])
                 if type(message.content) == type([])
                     try
                         let content = message.content[0]
                         if content.type ==# 'text'
                             let message.content = message.content[0].text
                         endif
+
                         if content.type ==# 'tool_result'
                             let message.tool_call_id = content.tool_use_id
                             let message.content = content.content
                             let message.role = 'tool'
                             call vimqq#log#debug('tool reply ' . string(message))
+                        endif
+
+                        if content['type'] ==# 'tool_use'
+                            let message.tool_calls = [{
+                               \ 'id': content['id'],
+                               \ 'type': 'function',
+                               \ 'function': {
+                               \    'name': content['name'],
+                               \    'arguments': json_encode(content['input'])
+                               \ }
+                            \ }]
+                            let message.content = ""
+                            call vimqq#log#debug('adapted tool call: ' . string(message))
                         endif
                     catch
                         call vimqq#log#error('llama_api: error adapting: ' . string(message.content))
