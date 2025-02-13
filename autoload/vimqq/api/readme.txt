@@ -8,6 +8,7 @@ Example differences:
  - anthropic has a separate field for system prompt
  - there are more differences in tool calling APIs, which we'll also include here
  - deepseek has 'content' and 'reasoning_content' as part of the output
+ - anthropic has different tool calling convensions, especially with streaming
 
 API consists of a single call chat(params), which is similar to chat.completions.create.
 

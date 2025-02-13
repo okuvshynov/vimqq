@@ -97,6 +97,9 @@ function! vimqq#api#llama_api#new(conf) abort
             " TODO: still need to close/complete
             call vimqq#log#error('llama_api: Unable to process response')
             call vimqq#log#error(json_encode(response))
+            if has_key(a:params, 'on_sys_msg')
+                call a:params.on_sys_msg('error', string(response))
+            endif
             if has_key(a:params, 'on_complete')
                 call a:params.on_complete("Unable to process response", a:params)
             endif
