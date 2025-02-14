@@ -36,6 +36,17 @@ function! vimqq#api#anthropic_api#new(conf) abort
                     let error_json = json_decode(message)
                     if error_json['type'] == 'error'
                         let err = string(error_json['error'])
+                        if get(error_json['error'], 'type', '') ==# 'rate_limit_error'
+                            if has_key(a:params, 'on_sys_msg')
+                                call a:params.on_sys_msg(
+                                    \ 'warning',
+                                    \ 'Reached rate limit. Waiting 60s before retry'
+                                \ )
+
+                                call timer_start(60000, { timer_id -> self.chat(a:params)})
+                                return
+                            endif
+                        endif
                         if has_key(a:params, 'on_sys_msg')
                             call a:params.on_sys_msg('error', err)
                         endif
@@ -144,8 +155,9 @@ function! vimqq#api#anthropic_api#new(conf) abort
     endfunction
 
     function! api.chat(params) dict
-        let messages = a:params.messages
-        let tools = get(a:params, 'tools', [])
+        let params = deepcopy(a:params)
+        let messages = params.messages
+        let tools = get(params, 'tools', [])
         
         let system_msg = v:null
         if messages[0].role ==# 'system'
@@ -155,10 +167,10 @@ function! vimqq#api#anthropic_api#new(conf) abort
 
         let req = {
         \   'messages' : messages,
-        \   'model': a:params.model,
-        \   'max_tokens' : get(a:params, 'max_tokens', 1024),
-        \   'stream': get(a:params, 'stream', v:false),
-        \   'tools': self.adapt_tool_def(get(a:params, 'tools', []))
+        \   'model': params.model,
+        \   'max_tokens' : get(params, 'max_tokens', 1024),
+        \   'stream': get(params, 'stream', v:false),
+        \   'tools': self.adapt_tool_def(get(params, 'tools', []))
         \}
 
         let first_message_json = json_encode(messages[0])
@@ -177,15 +189,15 @@ function! vimqq#api#anthropic_api#new(conf) abort
 
         if req.stream
             let job_conf = {
-            \   'out_cb': {channel, msg -> self._on_stream_out(msg, a:params, req_id)},
-            \   'err_cb': {channel, msg -> self._on_error(msg, a:params)},
-            \   'close_cb': {channel -> self._on_stream_close(a:params)},
+            \   'out_cb': {channel, msg -> self._on_stream_out(msg, params, req_id)},
+            \   'err_cb': {channel, msg -> self._on_error(msg, params)},
+            \   'close_cb': {channel -> self._on_stream_close(params)},
             \ }
         else
             let job_conf = {
-            \   'out_cb': {channel, msg -> self._on_out(msg, a:params, req_id)},
-            \   'err_cb': {channel, msg -> self._on_error(msg, a:params, req_id)},
-            \   'close_cb': {channel -> self._on_close(a:params, req_id)}
+            \   'out_cb': {channel, msg -> self._on_out(msg, params, req_id)},
+            \   'err_cb': {channel, msg -> self._on_error(msg, params, req_id)},
+            \   'close_cb': {channel -> self._on_close(params, req_id)}
             \ }
         endif
 
