@@ -4,10 +4,12 @@ endif
 
 let g:autoloaded_vimqq_util_module = 1
 
+let s:root = expand('<sfile>:p:h:h:h')
+
 " This is plugin root. Use this to refer to
 " Plugin files, prompts, etc
 function! vimqq#util#root() abort
-    return expand('<script>:p:h:h:h')
+    return s:root
 endfunction
 
 function! vimqq#util#project_root() abort

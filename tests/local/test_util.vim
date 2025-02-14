@@ -78,7 +78,7 @@ function! s:suite.test_root() abort
   let current = getcwd()
   let root = vimqq#util#root()
   
-  call s:assert.equals(current, root)
+  call s:assert.equals(root, current)
 endfunction
 
 function! s:suite.test_merge_non_existent() abort
