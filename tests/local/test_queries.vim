@@ -72,7 +72,7 @@ function s:suite.test_list_one()
     :'<,'>QQ @mock hello
 
     " sleep to get the reply
-    :sleep 1
+    :sleep 5
 
     " go to list
     :QQList

@@ -17,7 +17,10 @@ function s:suite.before()
 		return
 	endif
 
-    let s:success = vimqq#platform#jobs#start([python_cmd, s:serv_path, '--port', '8888', '--logs', '/tmp/'], {'on_job': {job -> OnMock(job)}})
+    let s:success = vimqq#platform#jobs#start(
+        \ [python_cmd, s:serv_path, '--port', '8888', '--logs', '/tmp/'],
+        \ {'on_job': {job -> OnMock(job)}}
+    \ )
     execute 'sleep 5'
 endfunction
 
