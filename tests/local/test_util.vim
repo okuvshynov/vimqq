@@ -73,6 +73,14 @@ function! s:suite.test_merge_empty() abort
   call s:assert.equals(result['a'], 1)
 endfunction
 
+function! s:suite.test_root() abort
+  " the way we run it, project root should be current dir?
+  let current = getcwd()
+  let root = vimqq#util#root()
+  
+  call s:assert.equals(current, root)
+endfunction
+
 function! s:suite.test_merge_non_existent() abort
   let d1 = {'a': 1}
   let d2 = {'b': 2}
