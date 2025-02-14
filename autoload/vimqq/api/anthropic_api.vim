@@ -7,6 +7,17 @@ let g:autoloaded_vimqq_api_anthropic_module = 1
 let g:vqq_claude_api_key = get(g:, 'vqq_claude_api_key', $ANTHROPIC_API_KEY)
 let g:vqq_claude_cache_above = get(g:, 'vqq_claude_cache_above', 5000)
 
+" Translates tool definition schema to Claude-compatible format
+function! vimqq#api#anthropic_api#to_claude(schema)
+    let fn = a:schema['function']
+    let res = {
+    \   'name': fn['name'],
+    \   'description' : fn['description'],
+    \   'input_schema' : fn['parameters']
+    \} 
+    return res
+endfunction
+
 " config is unused for now
 function! vimqq#api#anthropic_api#new(conf) abort
     let api = {}
@@ -149,7 +160,7 @@ function! vimqq#api#anthropic_api#new(conf) abort
     function! api.adapt_tool_def(tools) dict
         let res = []
         for tool in a:tools
-            call add(res, vimqq#tools#schema#to_claude(tool))
+            call add(res, vimqq#api#anthropic_api#to_claude(tool))
         endfor
         return res
     endfunction
