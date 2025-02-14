@@ -7,16 +7,30 @@ function OnMock(server_job)
     let s:server_job = a:server_job
 endfunction
 
+let s:skip_all = v:false
+
 function s:suite.before()
+	let python_cmd = vimqq#util#has_python()
+	if python_cmd ==# ''
+		let s:skip_all = v:true
+		let s:skip_msg = 'python not found or flask package not installed'
+		return
+	endif
+
     let s:success = vimqq#platform#jobs#start(['python', s:serv_path, '--port', '8888', '--logs', '/tmp/'], {'on_job': {job -> OnMock(job)}})
     execute 'sleep 1'
 endfunction
 
 function s:suite.after()
-    call job_stop(s:server_job)
+	if !s:skip_all
+    	call job_stop(s:server_job)
+	endif
 endfunction
 
 function s:suite.test_http_get()
+	if s:skip_all
+		call s:assert.skip(s:skip_msg)
+	endif
     let reply_received = v:null
     function! OnOut(msg) closure
         let reply_received = a:msg
@@ -31,6 +45,9 @@ function s:suite.test_http_get()
 endfunction
 
 function s:suite.test_http_get_404()
+	if s:skip_all
+		call s:assert.skip(s:skip_msg)
+	endif
     let status_code = 0
     function! OnOut(msg) closure
         let status_code = a:msg
@@ -45,6 +62,9 @@ function s:suite.test_http_get_404()
 endfunction
 
 function s:suite.test_http_get_na()
+	if s:skip_all
+		call s:assert.skip(s:skip_msg)
+	endif
     let status_code = 0
     function! OnOut(msg) closure
         let status_code = a:msg
@@ -59,6 +79,9 @@ function s:suite.test_http_get_na()
 endfunction
 
 function s:suite.test_http_get_na_body()
+	if s:skip_all
+		call s:assert.skip(s:skip_msg)
+	endif
     let reply_received = []
     function! OnOut(msg) closure
         call add(reply_received, a:msg)

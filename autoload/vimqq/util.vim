@@ -59,3 +59,36 @@ function! vimqq#util#replace(source, from, to)
     endif
     return prefix . a:to . a:source[pos_bytes : ]
 endfunction
+
+" Needed for unit tests only
+function! vimqq#util#has_flask(python_cmd)
+    if empty(a:python_cmd)
+        return 0
+    endif
+    
+    " Use pip to check if flask is installed
+    let flask_check = system(a:python_cmd . ' -m pip list | grep -i flask')
+    return v:shell_error == 0
+endfunction
+
+" Needed for unit tests only
+function! vimqq#util#has_python()
+    " Try python3 first
+    let python3_version = system('python3 --version 2>&1')
+    if v:shell_error == 0
+		if vimqq#util#has_flask('python3')
+        	return 'python3'
+		endif
+    endif
+    
+    " Then try python (which might be python3 on some systems)
+    let python_version = system('python --version 2>&1')
+    if v:shell_error == 0
+		if vimqq#util#has_flask('python')
+        	return 'python'
+		endif
+    endif
+    
+    return ''
+endfunction
+

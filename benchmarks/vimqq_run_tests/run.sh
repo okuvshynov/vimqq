@@ -14,4 +14,7 @@ git clone https://github.com/okuvshynov/vimqq.git
 
 # run tests
 cd vimqq
-themis tests/local
+
+python tests/mock_llama.py --port 8888 --logs /tmp/
+
+#themis tests/local
