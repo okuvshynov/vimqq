@@ -24,10 +24,6 @@ function! vimqq#main#send_warmup(force_new_chat, question, context=v:null)
     call s:controller.send_warmup(a:force_new_chat, a:question, a:context)
 endfunction
 
-function! vimqq#main#gen_ref(question)
-    call s:controller.send_crawl_ref(a:question)
-endfunction
-
 function! vimqq#main#show_list()
     call s:controller.show_list()
 endfunction

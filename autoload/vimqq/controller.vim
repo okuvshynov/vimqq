@@ -139,27 +139,6 @@ function! vimqq#controller#new() abort
         endif
     endfunction
 
-    " One iteration of crawl
-    function! controller.send_crawl_ref(question) dict
-        let [bot, question] = self.bots.select(a:question)
-        let message = {
-            \ "role": "user",
-            \ "sources": {"text": vimqq#prompts#reference_prompt()},
-            \ "bot_name": bot.name()
-        \ }
-        " always new chat
-        let chat_id = self.state.pick_chat_id(v:true)
-
-        " always use tools
-        " TODO: is this always using anthropic??
-        call self.db.set_tools(chat_id, self.toolset.def())
-        if self.run_query(chat_id, bot, message)
-            call self.show_chat(chat_id)
-        endif
-
-        call self.ui.update_queue_size(len(self._in_flight))
-    endfunction
-
     function! controller.send_message(force_new_chat, question, context, use_index) dict
         let [bot, question] = self.bots.select(a:question)
 

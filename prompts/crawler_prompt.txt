@@ -1,7 +1,0 @@
-Summarize the file provided in <file></file> tag. If it is a source file, mention overall
-idea, main functions and responsibilities.
-
-Your job is to provide a description of each provided file.
-Description for each file should be detailed, contain both high level description and every important detail. Include relationships between files if you have identified them.
-
-Reply only with the summary itself.
