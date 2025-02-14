@@ -78,7 +78,6 @@ function! vimqq#chatsdb#new() abort
         let self._chats[a:chat_id].partial_message.tool_use = a:tool_use
         let self._chats[a:chat_id].partial_message.seq_id = self.seq_id()
         call self._save()
-
     endfunction
 
     function! db.set_tools(chat_id, toolset) dict
