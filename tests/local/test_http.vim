@@ -22,7 +22,7 @@ function s:suite.test_http_get()
         let reply_received = a:msg
     endfunction
 
-    let addr = g:vqq_llama_servers[0]['addr']
+    let addr = g:vqq_llama_cpp_servers[0]['addr']
     let job_conf = {'out_cb': {channel, msg -> OnOut(msg)}}
     call vimqq#platform#http#get(addr . '/alive', ["--max-time", "5"], job_conf)
 
@@ -36,7 +36,7 @@ function s:suite.test_http_get_404()
         let status_code = a:msg
     endfunction
 
-    let addr = g:vqq_llama_servers[0]['addr']
+    let addr = g:vqq_llama_cpp_servers[0]['addr']
     let job_conf = {'out_cb': {channel, msg -> OnOut(msg)}}
     call vimqq#platform#http#get(addr . '/non_existent', ["--max-time", "5", "-w", "%{http_code}", "-o", "/dev/null"], job_conf)
 
@@ -50,7 +50,7 @@ function s:suite.test_http_get_na()
         let status_code = a:msg
     endfunction
 
-    let addr = g:vqq_llama_servers[0]['addr'] . '5'
+    let addr = g:vqq_llama_cpp_servers[0]['addr'] . '5'
     let job_conf = {'out_cb': {channel, msg -> OnOut(msg)}}
     call vimqq#platform#http#get(addr . '/non_existent', ["--max-time", "5", "-w", "%{http_code}", "-o", "/dev/null"], job_conf)
 
@@ -64,7 +64,7 @@ function s:suite.test_http_get_na_body()
         call add(reply_received, a:msg)
     endfunction
 
-    let addr = g:vqq_llama_servers[0]['addr'] . '5'
+    let addr = g:vqq_llama_cpp_servers[0]['addr'] . '5'
     let job_conf = {'out_cb': {channel, msg -> OnOut(msg)}}
     call vimqq#platform#http#get(addr . '/non_existent', ["--max-time", "5"], job_conf)
 

@@ -1,10 +1,10 @@
 " Copyright 2024 Oleksandr Kuvshynov
 " -----------------------------------------------------------------------------
-if exists('g:autoloaded_vimqq_local_reviewer_module')
+if exists('g:autoloaded_vimqq_llama_cpp_reviewer_module')
     finish
 endif
 
-let g:autoloaded_vimqq_local_reviewer_module = 1
+let g:autoloaded_vimqq_llama_cpp_reviewer_module = 1
 
 let s:default_conf = {
     \ 'title_tokens'  : 32,
@@ -16,7 +16,7 @@ let s:default_conf = {
     \ 'jinja'         : v:false
 \ }
 
-function vimqq#bots#local_reviewer#new(config = {}) abort
+function vimqq#bots#llama_cpp_reviewer#new(config = {}) abort
     let config = deepcopy(s:default_conf)
     call extend(config, a:config)
     let server = substitute(config.addr, '/*$', '', '')

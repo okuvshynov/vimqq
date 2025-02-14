@@ -10,7 +10,7 @@ function s:normtime(chat)
 endfunction
 
 function s:server_stats()
-    let addr = g:vqq_llama_servers[0]['addr']
+    let addr = g:vqq_llama_cpp_servers[0]['addr']
     let res = v:null
     function! OnOut(msg) closure
         let res = json_decode(a:msg)
@@ -42,7 +42,7 @@ function s:suite.before_each()
     :bufdo! bd! | enew
     call delete(g:vqq_chats_file)
     call vimqq#main#setup()
-    let addr = g:vqq_llama_servers[0]['addr']
+    let addr = g:vqq_llama_cpp_servers[0]['addr']
     call vimqq#platform#http#get(addr . '/reset', ["--max-time", "5"], {})
 endfunction
 

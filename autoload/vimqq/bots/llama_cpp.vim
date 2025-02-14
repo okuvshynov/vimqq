@@ -1,10 +1,10 @@
 " Copyright 2024 Oleksandr Kuvshynov
 " -----------------------------------------------------------------------------
-if exists('g:autoloaded_vimqq_llama_module')
+if exists('g:autoloaded_vimqq_llama_cpp_module')
     finish
 endif
 
-let g:autoloaded_vimqq_llama_module = 1
+let g:autoloaded_vimqq_llama_cpp_module = 1
 
 let s:default_conf = {
     \ 'title_tokens'  : 32,
@@ -16,7 +16,7 @@ let s:default_conf = {
     \ 'jinja'         : v:false
 \ }
 
-function vimqq#bots#llama#new(config = {}) abort
+function vimqq#bots#llama_cpp#new(config = {}) abort
     let config = deepcopy(s:default_conf)
     call extend(config, a:config)
     let server = substitute(config.addr, '/*$', '', '')
