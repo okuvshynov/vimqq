@@ -1,9 +1,10 @@
 let s:suite = themis#suite('Tool run_cmd')
 let s:assert = themis#helper('assert')
 
+let s:path = expand('<sfile>:p:h')
+
 function! s:suite.test_echo()
-    let path = expand('<script>:p:h')
-    let tool = vimqq#tools#run_cmd#new(path)
+    let tool = vimqq#tools#run_cmd#new(s:path)
 
     function! OnComplete(result)
         let s:async_result = a:result
@@ -21,8 +22,7 @@ function! s:suite.test_echo()
 endfunction
 
 function! s:suite.test_ls()
-    let path = expand('<script>:p:h')
-    let tool = vimqq#tools#run_cmd#new(path)
+    let tool = vimqq#tools#run_cmd#new(s:path)
 
     function! OnComplete(result)
         let s:async_result = a:result
@@ -40,8 +40,7 @@ function! s:suite.test_ls()
 endfunction
 
 function! s:suite.test_nonexistent_dir()
-    let path = expand('<script>:p:h')
-    let tool = vimqq#tools#run_cmd#new(path)
+    let tool = vimqq#tools#run_cmd#new(s:path)
 
     function! OnComplete(result)
         let s:async_result = a:result
