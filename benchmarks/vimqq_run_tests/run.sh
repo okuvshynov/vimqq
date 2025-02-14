@@ -12,8 +12,6 @@ export PATH="~/.vim/pack/plugins/start/vim-themis/bin:$PATH"
 # clone vimqq
 git clone https://github.com/okuvshynov/vimqq.git
 
-vim --version
-
 # run tests
 cd vimqq
-themis tests/local/test_util.vim
+themis tests/local

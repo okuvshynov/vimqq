@@ -1,8 +1,9 @@
 let s:suite = themis#suite('tools')
 let s:assert = themis#helper('assert')
 
+let s:path = expand('<sfile>:p:h')
+
 function s:suite.test_get_files()
-    let s:path = expand('<script>:p:h')
     let s:tool = vimqq#tools#get_files#new(s:path)
 
     let s:content = s:tool.run({'filepaths': ['tools_get_files.txt']})
@@ -13,7 +14,6 @@ function s:suite.test_get_files()
 endfunction
 
 function s:suite.test_get_files_not_found()
-    let s:path = expand('<script>:p:h')
     let s:tool = vimqq#tools#get_files#new(s:path)
 
     let s:content = s:tool.run({'filepaths': ['non_existent_file.txt']})
@@ -24,7 +24,6 @@ function s:suite.test_get_files_not_found()
 endfunction
 
 function s:suite.test_get_files_async()
-    let s:path = expand('<script>:p:h')
     let s:tool = vimqq#tools#get_files#new(s:path)
 
     " Define expected value from synchronous run
@@ -49,7 +48,6 @@ function s:suite.test_get_files_async()
 endfunction
 
 function s:suite.test_get_files_async_not_found()
-    let s:path = expand('<script>:p:h')
     let s:tool = vimqq#tools#get_files#new(s:path)
 
     " Define expected value from synchronous run 

@@ -1,6 +1,8 @@
 let s:suite = themis#suite('mock_server_queries')
 let s:assert = themis#helper('assert')
 
+let s:serv_path = expand('<script>:p:h:h') . '/mock_llama.py'
+
 function s:normtime(chat)
     let res = []
     for i in range(len(a:chat))
@@ -27,10 +29,10 @@ function s:on_mock(server_job)
 endfunction
 
 function s:suite.before()
-    let l:path = expand('<script>:p:h:h')
-    let l:mock_serv = l:path . '/mock_llama.py'
-    "echoe l:mock_serv
-    let s:success = vimqq#platform#jobs#start(['python', l:mock_serv, '--port', '8888', '--logs', '/tmp/'], {'on_job': {job -> s:on_mock(job)}})
+    let s:success = vimqq#platform#jobs#start(
+        \ ['python', s:serv_path, '--port', '8888', '--logs', '/tmp/'],
+        \ {'on_job': {job -> s:on_mock(job)}}
+    \ )
     execute 'sleep 1'
 endfunction
 
