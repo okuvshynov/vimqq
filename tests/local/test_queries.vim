@@ -1,7 +1,7 @@
 let s:suite = themis#suite('mock_server_queries')
 let s:assert = themis#helper('assert')
 
-let s:serv_path = expand('<script>:p:h:h') . '/mock_llama.py'
+let s:serv_path = expand('<sfile>:p:h:h') . '/mock_llama.py'
 let s:skip_all = v:false
 
 function s:normtime(chat)

@@ -1,7 +1,7 @@
 let s:suite = themis#suite('platform_http_client')
 let s:assert = themis#helper('assert')
 
-let s:serv_path = expand('<script>:p:h:h') . '/mock_llama.py'
+let s:serv_path = expand('<sfile>:p:h:h') . '/mock_llama.py'
 
 function OnMock(server_job)
     let s:server_job = a:server_job
@@ -18,7 +18,7 @@ function s:suite.before()
 	endif
 
     let s:success = vimqq#platform#jobs#start([python_cmd, s:serv_path, '--port', '8888', '--logs', '/tmp/'], {'on_job': {job -> OnMock(job)}})
-    execute 'sleep 1'
+    execute 'sleep 5'
 endfunction
 
 function s:suite.after()
