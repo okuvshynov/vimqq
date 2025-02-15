@@ -14,5 +14,4 @@ git clone https://github.com/okuvshynov/vimqq.git
 
 # run tests
 cd vimqq
-
 themis tests/local
