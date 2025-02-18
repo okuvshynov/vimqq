@@ -7,4 +7,13 @@ We need to configure the following as input:
 3. bot configuration (including passing API keys)
 4. validation steps.
 
-docker build -t vimqq_vs_refactor0 . && docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY -it vimqq_vs_refactor0
+How do we generalize for different bots? 
+
+We need to change:
+1. Bot definition in vimrc
+2. API key passed in env
+3. The actual query string? No need, just use same name
+
+docker build -t vimqq_vs_refactor0 . && docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY -e VQQ_ENG_BOT=sonnet -it vimqq_vs_refactor0
+
+docker build -t vimqq_vs_refactor0 . && docker run -e DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY -e VQQ_ENG_BOT=dschat -it vimqq_vs_refactor0
