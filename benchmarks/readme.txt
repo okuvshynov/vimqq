@@ -16,6 +16,8 @@ Swebench uses something like this as input:
 4. test to run to verify correctness
 5. tests to run to detect regressions
 
+In many cases SWEBench is making a bug fix. What if we need feature implementation or code quality improvement, how do we measure that?
+
 We can use similar structure, except:
 1. running tests must be more custom - it's not python-only (both success and failure)
 2. how do we configure bots? just do in vimrc in docker? 
