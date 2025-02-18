@@ -19,5 +19,10 @@ Swebench uses something like this as input:
 We can use similar structure, except:
 1. running tests must be more custom - it's not python-only (both success and failure)
 2. how do we configure bots? just do in vimrc in docker? 
+3. we need to test entire combination of bot config + vimqq implementation. So one more 'parameter' becomes:
+    - vimqq version
+    - bot config (model, version, settings, etc)
+4. We need to tell the difference between infra failure (API overloaded, etc) and actual model output failure.
 
+Let's start with a single issue and see how we can make it work.
 
