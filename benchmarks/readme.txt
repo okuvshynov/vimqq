@@ -27,4 +27,4 @@ We can use similar structure, except:
 4. We need to tell the difference between infra failure (API overloaded, etc) and actual model output failure.
 
 Let's start with a single issue and see how we can make it work.
-
+Index is part of the input.

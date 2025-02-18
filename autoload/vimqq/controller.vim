@@ -4,6 +4,9 @@ endif
 
 let g:autoloaded_vimqq_controller = 1
 
+" for situations when we use it in benchmarks/tests
+let s:vqq_dbg_exit_on_turn_end = get(g:, 'vqq_dbg_exit_on_turn_end', v:false)
+
 function! vimqq#controller#new() abort
     let controller = {}
 
@@ -110,6 +113,11 @@ function! vimqq#controller#new() abort
             if !self.db.has_title(chat_id)
                 call self.db.set_title(chat_id, 'generating title...')
                 call bot.send_gen_title(chat_id, self.db.get_first_message(chat_id))
+            endif
+
+            " Getting here means 'conversation turn end'
+            if s:vqq_dbg_exit_on_turn_end
+                cquit 0
             endif
 
             call self.show_chat(chat_id)

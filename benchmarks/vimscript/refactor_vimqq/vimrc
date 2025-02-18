@@ -1,0 +1,8 @@
+set nocompatible
+
+let g:vqq_claude_models = [
+      \  {'bot_name': 'sonnet', 'model': 'claude-3-5-sonnet-20241022', 'max_tokens' : 8192}
+\]
+
+" VQQ DEBUG
+let g:vqq_dbg_exit_on_turn_end = v:true
