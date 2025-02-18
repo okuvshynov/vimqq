@@ -6,3 +6,5 @@ We need to configure the following as input:
 2. version of vimqq 'making change' (also some commit)
 3. bot configuration (including passing API keys)
 4. validation steps.
+
+docker build -t vimqq_vs_refactor0 . && docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY -it vimqq_vs_refactor0

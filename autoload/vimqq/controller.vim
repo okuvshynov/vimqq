@@ -97,12 +97,15 @@ function! vimqq#controller#new() abort
             else
                 vimqq#log#error('got a reply from non-enqueued query')
             endif
+
+            let turn_end = v:true
             
             let messages = self.db.get_messages(chat_id)
             if len(messages) > 0 
                 let last_message = messages[len(messages) - 1]
                 if has_key(last_message, 'tool_use') 
                     let tool_use_id = last_message.tool_use['id']
+                    let turn_end = v:false
                     call self.toolset.run_async(
                         \ last_message.tool_use,
                         \ {res -> self.on_tool_result(bot, tool_use_id, res, chat_id)}
@@ -111,12 +114,13 @@ function! vimqq#controller#new() abort
             endif
     
             if !self.db.has_title(chat_id)
+                let turn_end = v:false
                 call self.db.set_title(chat_id, 'generating title...')
                 call bot.send_gen_title(chat_id, self.db.get_first_message(chat_id))
             endif
 
             " Getting here means 'conversation turn end'
-            if s:vqq_dbg_exit_on_turn_end
+            if s:vqq_dbg_exit_on_turn_end && turn_end
                 cquit 0
             endif
 
