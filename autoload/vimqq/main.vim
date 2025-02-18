@@ -13,9 +13,7 @@ function! vimqq#main#setup()
     call s:controller.init()
 endfunction
 
-" These functions are called from vimqq#cmd module.
-" They forward the commands to current s:controller instance.
-
+" Core controller functions
 function! vimqq#main#send_message(force_new_chat, question, context=v:null, use_index=v:false)
     call s:controller.send_message(a:force_new_chat, a:question, a:context, a:use_index)
 endfunction
@@ -38,6 +36,67 @@ endfunction
 
 function! vimqq#main#fzf() abort
     call s:controller.fzf()
+endfunction
+
+" Command handlers
+function! vimqq#main#qq(message) abort range
+    let lines = getline(a:firstline, a:lastline)
+    let context = join(lines, '\n')
+    call vimqq#main#send_message(v:false, a:message, context)
+endfunction
+
+function! vimqq#main#qqn(message) abort range
+    let lines = getline(a:firstline, a:lastline)
+    let context = join(lines, '\n')
+    call vimqq#main#send_message(v:true, a:message, context)
+endfunction
+
+function! vimqq#main#qqi(message) abort range
+    let lines = getline(a:firstline, a:lastline)
+    let context = join(lines, '\n')
+    call vimqq#main#send_message(v:true, a:message, context, v:true)
+endfunction
+
+function! vimqq#main#qi(message) abort
+    call vimqq#main#send_message(v:true, a:message, v:null, v:true)
+endfunction
+
+function! vimqq#main#q(message) abort
+    call vimqq#main#send_message(v:false, a:message)
+endfunction
+
+function! vimqq#main#qn(message) abort
+    call vimqq#main#send_message(v:true, a:message)
+endfunction
+
+function! vimqq#main#dispatch_new(count, line1, line2, args) abort
+    if a:count ==# -1
+        " No range was provided
+        call vimqq#main#qn(a:args)
+    else
+        " Range was provided, pass the line numbers
+        execute a:line1 . ',' . a:line2 . 'call vimqq#main#qqn(a:args)'
+    endif
+endfunction
+
+function! vimqq#main#dispatch(count, line1, line2, args) abort
+    if a:count ==# -1
+        " No range was provided
+        call vimqq#main#q(a:args)
+    else
+        " Range was provided, pass the line numbers
+        execute a:line1 . ',' . a:line2 . 'call vimqq#main#qq(a:args)'
+    endif
+endfunction
+
+function! vimqq#main#dispatch_index(count, line1, line2, args) abort
+    if a:count ==# -1
+        " No range was provided
+        call vimqq#main#qi(a:args)
+    else
+        " Range was provided, pass the line numbers
+        execute a:line1 . ',' . a:line2 . 'call vimqq#main#qqi(a:args)'
+    endif
 endfunction
 
 call vimqq#main#setup()
