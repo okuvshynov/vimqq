@@ -15,7 +15,7 @@ WORKDIR /app
 # vimqq version to be benchmarked
 RUN mkdir -p ~/.vim/pack/plugins/start/vimqq
 RUN git clone https://github.com/okuvshynov/vimqq.git ~/.vim/pack/plugins/start/vimqq
-RUN cd ~/.vim/pack/plugins/start/vimqq && git checkout 9598c55de2c8954beb4af5b01c8632b3ff051e50
+RUN cd ~/.vim/pack/plugins/start/vimqq && git checkout 165bf6e99c60301ffe70edb58e80da5fe7ae948e
 # vimrc file with bot definition
 COPY vimrc /app/vimrc
 

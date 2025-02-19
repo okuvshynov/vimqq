@@ -11,3 +11,4 @@ let g:vqq_deepseek_models = [
 
 " VQQ DEBUG
 let g:vqq_dbg_exit_on_turn_end = v:true
+let g:vqq_log_level = 'DEBUG'
