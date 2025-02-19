@@ -13,6 +13,8 @@ let g:autoloaded_vimqq_http_module = 1
 "   body: string - request body (JSON)
 "   job_conf: dict - job configuration for response handling
 function! vimqq#platform#http#post(url, headers, body, job_conf) abort
+    call vimqq#log#debug('HTTP POST: ' . a:url)
+    call vimqq#log#debug('HTTP POST: ' . a:body)
     let headers_file = tempname()
     let curl_args = ['curl', '-s', '--no-buffer', '-X', 'POST', '-D', headers_file]
     call vimqq#log#debug('http_headers: ' . headers_file)
