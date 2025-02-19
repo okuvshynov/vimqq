@@ -28,3 +28,9 @@ We can use similar structure, except:
 
 Let's start with a single issue and see how we can make it work.
 Index is part of the input.
+
+for eng, input is commit + index + custom validation.
+
+for reviewer, same + chat + patch
+
+for indexer, commit + list of 'eng benchmarks' to verify
