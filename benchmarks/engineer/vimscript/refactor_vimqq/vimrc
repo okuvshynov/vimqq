@@ -9,6 +9,16 @@ let g:vqq_deepseek_models = [
       \  {'bot_name': 'dsreason', 'model': 'deepseek-reasoner', 'max_tokens': 8192}
 \]
 
+let g:vqq_llama_cpp_servers = [{
+      \ 'bot_name': 'local',
+      \ 'addr': 'http://studio.local:8080',
+      \ 'healthcheck_ms': 60000,
+      \ 'do_autowarm': v:true,
+      \ 'send_warmup': v:true,
+      \ 'max_tokens' : 8192,
+      \ 'jinja'      : v:true
+\ }]
+
 " VQQ DEBUG
 let g:vqq_dbg_exit_on_turn_end = v:true
 let g:vqq_log_level = 'DEBUG'

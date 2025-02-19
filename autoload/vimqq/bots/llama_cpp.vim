@@ -7,8 +7,6 @@ endif
 let g:autoloaded_vimqq_llama_cpp_module = 1
 
 let s:default_conf = {
-    \ 'title_tokens'  : 32,
-    \ 'max_tokens'    : 1024,
     \ 'bot_name'      : 'llama',
     \ 'system_prompt' : 'You are a helpful assistant.',
     \ 'send_warmup'   : v:true,

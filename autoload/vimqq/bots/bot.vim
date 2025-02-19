@@ -10,7 +10,6 @@ let s:default_conf = {
     \ 'system_prompt' : 'You are a helpful assistant.',
     \ 'send_warmup'   : v:false,
     \ 'do_autowarm'   : v:false,
-    \ 'index_warmup'  : v:false,
     \ 'model'         : ''
 \ }
 
