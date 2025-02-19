@@ -6,13 +6,6 @@ themis tests/local
 ```
 These tests do not depend on remote API calls. Requires python + flask for mock server.
 
-To run all remote tests:
-```
-themis tests/remote
-```
-These tests call remote APIs or local llama.cpp server.
-Require API keys and cost balance to run.
-
 To run individual test files:
 ```
 themis path/to/test_file.vim
