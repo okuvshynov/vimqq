@@ -95,13 +95,14 @@ function! s:StartCommandTimer()
         \ {'repeat': -1})  " -1 means repeat indefinitely
 endfunction
 
+" This function handles auto warmup on title gen or chat selection
 function! vimqq#warmup#new(bots, db) abort
     let w = {}
 
     let w._bots = []
     let w._db = a:db
     for bot in a:bots.bots()
-        if bot.do_autowarm()
+        if bot.warmup_on_select()
             call add(w._bots, bot)
         endif
     endfor

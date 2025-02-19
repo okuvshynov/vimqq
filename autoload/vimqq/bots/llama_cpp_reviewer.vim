@@ -11,8 +11,8 @@ let s:default_conf = {
     \ 'max_tokens'    : 1024,
     \ 'bot_name'      : 'llama',
     \ 'system_prompt' : 'You are a helpful assistant.',
-    \ 'send_warmup'   : v:true,
-    \ 'do_autowarm'   : v:true,
+    \ 'warmup_on_typing' : v:true,
+    \ 'warmup_on_select' : v:true,
     \ 'jinja'         : v:false
 \ }
 

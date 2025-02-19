@@ -60,15 +60,12 @@ endfunction
 
 function s:suite.test_llama()
     let impl = vimqq#api#llama_api#new({'endpoint' : 'http://localhost:8080/v1/chat/completions'})
-
-    "let client = vimqq#bots#bot#new(impl, {'send_warmup': v:true})
     let client = vimqq#bots#bot#new(impl)
     call s:run_bot_test(client)
 endfunction
 
 function s:suite.test_llama_warmup()
     let impl = vimqq#api#llama_api#new({'endpoint' : 'http://localhost:8080/v1/chat/completions'})
-
-    let client = vimqq#bots#bot#new(impl, {'send_warmup': v:true})
+    let client = vimqq#bots#bot#new(impl, {'warmup_on_typing': v:true})
     call s:run_bot_test(client, ['warmup_done', 'chunk_done', 'reply_done', 'title_done'])
 endfunction

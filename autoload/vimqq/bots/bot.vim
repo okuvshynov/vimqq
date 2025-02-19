@@ -8,8 +8,8 @@ let s:default_conf = {
     \ 'max_tokens'    : 1024,
     \ 'bot_name'      : 'ai',
     \ 'system_prompt' : 'You are a helpful assistant.',
-    \ 'send_warmup'   : v:false,
-    \ 'do_autowarm'   : v:false,
+    \ 'warmup_on_typing'   : v:false,
+    \ 'warmup_on_select'   : v:false,
     \ 'model'         : ''
 \ }
 
@@ -25,8 +25,8 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         return self._conf.bot_name
     endfunction
     
-    function! bot.do_autowarm() dict
-        return self._conf.do_autowarm
+    function! bot.warmup_on_select() dict
+        return self._conf.warmup_on_select
     endfunction
 
     function! bot._on_warmup_complete(error, params) dict
@@ -37,15 +37,13 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
     endfunction
 
     function! bot.send_warmup(messages) dict
-        if self._conf.send_warmup
-            let req = {
-            \   'messages' : self._format(a:messages),
-            \   'max_tokens' : 0,
-            \   'model' : self._conf.model,
-            \   'on_complete' : {err, p -> self._on_warmup_complete(err, p)}
-            \ }
-            return self._impl.chat(req)
-        endif
+        let req = {
+        \   'messages' : self._format(a:messages),
+        \   'max_tokens' : 0,
+        \   'model' : self._conf.model,
+        \   'on_complete' : {err, p -> self._on_warmup_complete(err, p)}
+        \ }
+        return self._impl.chat(req)
     endfunction
 
     function! bot.send_gen_title(chat_id, message) dict

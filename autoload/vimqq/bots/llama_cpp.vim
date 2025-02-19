@@ -9,8 +9,8 @@ let g:autoloaded_vimqq_llama_cpp_module = 1
 let s:default_conf = {
     \ 'bot_name'      : 'llama',
     \ 'system_prompt' : 'You are a helpful assistant.',
-    \ 'send_warmup'   : v:true,
-    \ 'do_autowarm'   : v:true,
+    \ 'warmup_on_typing' : v:true,
+    \ 'warmup_on_select' : v:true,
     \ 'jinja'         : v:false
 \ }
 
