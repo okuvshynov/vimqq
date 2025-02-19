@@ -13,22 +13,16 @@ let g:autoloaded_vimqq_warmup = 1
 
 let s:check_timer = -1
 let s:warmup_in_progress = v:false
-
-function! s:GetCurrentCommand()
-  if getcmdtype() ==# ':'
-    return getcmdline()
-  endif
-  return ''
-endfunction
-
 let s:current_message = ''
+
 function! s:ranged_warmup(new_chat) range
     let lines = getline(a:firstline, a:lastline)
     let context = join(lines, '\n')
     call vimqq#main#send_warmup(a:new_chat, s:current_message, context)
 endfunction
 
-function! s:parse_command_line(cmd)
+" public for unit testing
+function! vimqq#warmup#parse(cmd)
     " Q doesn't receive range. This is the only way to invoke it.
     if a:cmd =~# '^QQ\s'
         let message = a:cmd[2:]
@@ -78,9 +72,9 @@ function! s:CheckCommandLine(timer_id)
             call vimqq#log#debug('not issuing second warmup')
             return
         endif
-        let cmd = s:GetCurrentCommand()
-        " TODO: here we are actually missing the range.
-        let s:warmup_in_progress = s:parse_command_line(cmd)
+        if getcmdtype() ==# ':'
+            let s:warmup_in_progress = vimqq#warmup#parse(getcmdline())
+        endif
     endif
 endfunction
 
@@ -130,10 +124,10 @@ function! vimqq#warmup#new(bots, db) abort
 endfunction
 
 augroup VQQCommandLinePrefetch
-  autocmd!
-  " Start timer when entering command line mode
-  autocmd CmdlineEnter : call s:StartCommandTimer()
-  " Stop timer when leaving command line mode
-  autocmd CmdlineLeave : call timer_stop(s:check_timer)
+    autocmd!
+    " Start timer when entering command line mode
+    autocmd CmdlineEnter : call s:StartCommandTimer()
+    " Stop timer when leaving command line mode
+    autocmd CmdlineLeave : call timer_stop(s:check_timer)
 augroup END
 
