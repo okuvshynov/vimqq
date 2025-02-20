@@ -11,7 +11,6 @@ let g:vqq_log_level = get(g:, 'vqq_log_level', 'INFO')
 let g:vqq_log_format = get(g:, 'vqq_log_format', '%Y-%m-%d %H:%M:%S ')
 
 let s:log_levels = {
-    \ 'VERBOSE': -1,
     \ 'DEBUG': 0,
     \ 'INFO': 1,
     \ 'WARNING': 2,
@@ -23,14 +22,18 @@ let s:log_levels = {
 "   - lambdas can have line off by one
 "   - calling from script might not work at all
 
-function s:_log_impl(level, message)
+function s:log_impl(level, message)
+    if s:log_levels[a:level] < s:log_levels[g:vqq_log_level]
+        return
+    endif
+
     let stack = split(expand('<stack>'), '\.\.')
     " stack will look like this:
     " 0: ...
     " ...
     " n - 3: callsite we care about
     " n - 2: vimqq#log#...
-    " n - 1: s:_log_impl
+    " n - 1: s:log_impl
     let callsite = ''
     if len(stack) > 2
         let [file_path, line_num] = s:parse_function(stack[len(stack) - 3])
@@ -40,36 +43,27 @@ function s:_log_impl(level, message)
         endif
     endif
 
-    if s:log_levels[a:level] >= s:log_levels[g:vqq_log_level]
-        let message = a:level[0] . strftime(g:vqq_log_format) . callsite . a:message
-        call writefile([message], g:vqq_log_file, "a")
-        let level_log_file = g:vqq_log_file . "." . a:level
-        call writefile([message], level_log_file, "a")
-    endif
+    let message = a:level[0] . strftime(g:vqq_log_format) . callsite . a:message
+    call writefile([message], g:vqq_log_file, "a")
+    let level_log_file = g:vqq_log_file . "." . a:level
+    call writefile([message], level_log_file, "a")
 endfunction
 
 function! vimqq#log#error(message)
-    call s:_log_impl('ERROR', a:message)
+    call s:log_impl('ERROR', a:message)
 endfunction
 
 function! vimqq#log#info(message)
-    call s:_log_impl('INFO', a:message)
+    call s:log_impl('INFO', a:message)
 endfunction
 
 function! vimqq#log#debug(message)
-    call s:_log_impl('DEBUG', a:message)
+    call s:log_impl('DEBUG', a:message)
 endfunction
 
 function! vimqq#log#warning(message)
-    call s:_log_impl('WARNING', a:message)
+    call s:log_impl('WARNING', a:message)
 endfunction
-
-function! vimqq#log#verbose(message)
-    let l:stack = expand('<stack>')
-    let l:trace = "\n  Stack trace:\n    " . substitute(l:stack, '\.\.', "\n    ", 'g')
-    call s:_log_impl('VERBOSE', a:message . l:trace)
-endfunction
-
 
 function! s:get_callsite()
     let l:stack = split(expand('<stack>'), '\.\.')
