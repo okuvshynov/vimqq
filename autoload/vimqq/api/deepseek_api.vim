@@ -22,6 +22,14 @@ function! vimqq#api#deepseek_api#new(conf) abort
         for message in messages
             if message !~# '^data: '
                 call vimqq#log#warning('Unexpected reply: ' . message)
+                if has_key(a:params, 'chat_id')
+                    if has_key(a:params, 'on_sys_msg')
+                        call a:params.on_sys_msg(
+                            \ 'warning',
+                            \ 'DeepSeek API: unexpected message: ' . message
+                        \ )
+                    endif
+                endif
                 continue
             endif
             if message ==# 'data: [DONE]'
