@@ -19,6 +19,10 @@ let s:log_levels = {
     \ 'NONE': 4
 \ }
 
+" TODO: For file:line tracking
+"   - lambdas can have line off by one
+"   - calling from script might not work at all
+
 function s:_log_impl(level, message)
     let stack = split(expand('<stack>'), '\.\.')
     " stack will look like this:

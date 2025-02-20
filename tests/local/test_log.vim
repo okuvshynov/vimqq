@@ -36,3 +36,13 @@ function s:suite.test_local_fn_call()
     call s:assert.equals(len(lines), 1)
     call s:assert.includes(lines[0], 'test_log.vim:30')
 endfunction
+
+function s:suite.test_closure_call()
+    function VQQTestLogClosureCallsite() closure
+        call vimqq#log#info('hello, world')
+    endfunction
+    call VQQTestLogClosureCallsite()
+    let lines = readfile(g:vqq_log_file)
+    call s:assert.equals(len(lines), 1)
+    call s:assert.includes(lines[0], 'test_log.vim:42')
+endfunction
