@@ -6,7 +6,7 @@ endif
 
 let g:autoloaded_vimqq_llama_cpp_reviewer_module = 1
 
-let s:default_conf = {
+let s:DEFAULT_CONF = {
     \ 'title_tokens'  : 32,
     \ 'max_tokens'    : 1024,
     \ 'bot_name'      : 'llama',
@@ -17,7 +17,7 @@ let s:default_conf = {
 \ }
 
 function vimqq#bots#llama_cpp_reviewer#new(config = {}) abort
-    let config = deepcopy(s:default_conf)
+    let config = deepcopy(s:DEFAULT_CONF)
     call extend(config, a:config)
     let server = substitute(config.addr, '/*$', '', '')
     let config.endpoint = server . '/v1/chat/completions'

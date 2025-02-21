@@ -10,7 +10,7 @@ let g:vqq_log_file = get(g:, 'vqq_log_file', vimqq#platform#path#log('vimqq.log'
 let g:vqq_log_level = get(g:, 'vqq_log_level', 'INFO')
 let g:vqq_log_format = get(g:, 'vqq_log_format', '%Y-%m-%d %H:%M:%S ')
 
-let s:log_levels = {
+let s:LOG_LEVELS = {
     \ 'DEBUG': 0,
     \ 'INFO': 1,
     \ 'WARNING': 2,
@@ -23,7 +23,7 @@ let s:log_levels = {
 "   - calling from script might not work at all
 
 function s:log_impl(level, message)
-    if s:log_levels[a:level] < s:log_levels[g:vqq_log_level]
+    if s:LOG_LEVELS[a:level] < s:LOG_LEVELS[g:vqq_log_level]
         return
     endif
 

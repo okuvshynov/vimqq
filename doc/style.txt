@@ -1,0 +1,10 @@
+functions:
+    snake_case
+    'private' functions are just s: functions
+    'private' dict functions/methods start with _
+
+variables:
+    don't use l:
+    use CAPITAL_CASE for constants
+
+avoid putting mutable script-level variables anywhere except controller.

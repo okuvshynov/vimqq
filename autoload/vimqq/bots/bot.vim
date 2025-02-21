@@ -3,7 +3,7 @@ if exists('g:autoloaded_vimqq_bot_module')
 endif
 let g:autoloaded_vimqq_bot_module = 1
 
-let s:default_conf = {
+let s:DEFAULT_CONF = {
     \ 'title_tokens'  : 32,
     \ 'max_tokens'    : 1024,
     \ 'bot_name'      : 'ai',
@@ -16,7 +16,7 @@ let s:default_conf = {
 function! vimqq#bots#bot#new(impl, config = {}) abort
     let bot = {}
 
-    let bot._conf = deepcopy(s:default_conf)
+    let bot._conf = deepcopy(s:DEFAULT_CONF)
     call extend(bot._conf, a:config)
     
     let bot._impl = a:impl

@@ -1,8 +1,8 @@
-if exists('g:autoloaded_vimqq_ctx')
+if exists('g:autoloaded_vimqq_msg_sources')
     finish
 endif
 
-let g:autoloaded_vimqq_ctx = 1
+let g:autoloaded_vimqq_msg_sources = 1
 
 function! s:load_index_lines()
     let current_dir = expand('%:p:h')

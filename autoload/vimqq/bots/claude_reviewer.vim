@@ -4,7 +4,7 @@ if exists('g:autoloaded_vimqq_claude_reviewer_module')
     finish
 endif
 
-let g:autoloaded_vimqq_claude_reviwer = 1
+let g:autoloaded_vimqq_claude_reviewer_module = 1
 
 function! vimqq#bots#claude_reviewer#new(config = {}) abort
     let impl = vimqq#api#anthropic_api#new({})

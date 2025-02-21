@@ -4,11 +4,11 @@ endif
 
 let g:autoloaded_vimqq_util_module = 1
 
-let s:root = expand('<sfile>:p:h:h:h')
+let s:ROOT = expand('<sfile>:p:h:h:h')
 
 " This is plugin root. Use this to refer to plugin files, prompts, etc
 function! vimqq#util#root() abort
-    return s:root
+    return s:ROOT
 endfunction
 
 function! vimqq#util#merge(d1, d2) abort

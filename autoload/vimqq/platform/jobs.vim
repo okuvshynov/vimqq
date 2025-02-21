@@ -3,10 +3,10 @@ if exists('g:autoloaded_vimqq_utils')
 endif
 let g:autoloaded_vimqq_utils = 1
 
-let s:n_jobs_cleanup = 32
+let s:N_JOBS_CLEANUP = 32
 let s:active_jobs    = []
 
-function! s:_is_empty_list(v)
+function! s:is_empty_list(v)
     if type(a:v) == type([])
         if len(a:v) == 1 && a:v[0] ==# ''
             return v:true
@@ -18,9 +18,9 @@ function! s:_is_empty_list(v)
     endif
 endfunction
 
-function! s:_keep_job(job)
+function! s:keep_job(job)
     let s:active_jobs += [a:job]
-    if len(s:active_jobs) > s:n_jobs_cleanup
+    if len(s:active_jobs) > s:N_JOBS_CLEANUP
         for job in s:active_jobs[:]
             if job_info(job)['status'] ==# 'dead'
                 call remove(s:active_jobs, index(s:active_jobs, job))
@@ -41,7 +41,7 @@ endfunction
 
 function! vimqq#platform#jobs#start(command, config)
     if has('nvim')
-        return s:_start_nvim(a:command, a:config)
+        return s:start_nvim(a:command, a:config)
     endif
     let OnJob = v:null
     if has_key(a:config, 'on_job')
@@ -58,11 +58,11 @@ function! vimqq#platform#jobs#start(command, config)
         call vimqq#log#error('Job ' . a:command . 'failed to start.')
         return v:false
     endif
-    call s:_keep_job(job)
+    call s:keep_job(job)
     return v:true
 endfunction
 
-function! s:_start_nvim(command, config)
+function! s:start_nvim(command, config)
     " need to transform config
     let conf = {}
     let OnOut = {c,d,n -> {}}
@@ -76,10 +76,10 @@ function! s:_start_nvim(command, config)
         let OnClose = {c, d, n -> CloseCb(c)}
     endif
 
-    let conf["on_stdout"] = {c,d,n -> s:_is_empty_list(d) ? OnClose(c,d,n) : OnOut(c,d,n)}
+    let conf["on_stdout"] = {c,d,n -> s:is_empty_list(d) ? OnClose(c,d,n) : OnOut(c,d,n)}
     if has_key(a:config, "err_cb")
         let StderrCb = a:config["err_cb"]
-        let conf["on_stderr"] = {c, d, n -> s:_is_empty_list(d) ? {c,d,n -> {}} : StderrCb(c, join(d, "\n"))}
+        let conf["on_stderr"] = {c, d, n -> s:is_empty_list(d) ? {c,d,n -> {}} : StderrCb(c, join(d, "\n"))}
     endif
     if has_key(a:config, "exit_cb")
         let ExitCb = a:config["exit_cb"]

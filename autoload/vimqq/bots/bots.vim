@@ -16,7 +16,7 @@ let g:vqq_deepseek_reviewer_models = get(g:, 'vqq_deepseek_reviewer_models', [])
 let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
 
 " Validate a bot name to ensure it's unique and follows naming conventions
-function! s:_validate_name(name, bots)
+function! s:validate_name(name, bots)
     if a:name ==# 'You'
         call vimqq#log#error("Bot name 'You' is not allowed")
         return v:false
@@ -39,7 +39,7 @@ function! s:_validate_name(name, bots)
 endfunction
 
 " Create a list of bot instances from configuration lists
-function! s:_create(config_lists)
+function! s:create(config_lists)
     let res = []
     for [config_list, BotFactory] in a:config_lists
         for config in config_list
@@ -47,7 +47,7 @@ function! s:_create(config_lists)
                 call vimqq#log#error("Each bot must have a 'bot_name' field")
                 continue
             endif
-            if s:_validate_name(config.bot_name, res)
+            if s:validate_name(config.bot_name, res)
                 call add(res, BotFactory(config))
             endif
         endfor
@@ -68,7 +68,7 @@ function! vimqq#bots#bots#new() abort
           \ [g:vqq_claude_models, {conf -> vimqq#bots#claude#new(conf)}]
     \]
 
-    let bots._bots = s:_create(config_lists)
+    let bots._bots = s:create(config_lists)
     if empty(bots._bots)
         let err = 'No bots defined.'
         echoe err

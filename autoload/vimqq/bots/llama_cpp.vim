@@ -6,7 +6,7 @@ endif
 
 let g:autoloaded_vimqq_llama_cpp_module = 1
 
-let s:default_conf = {
+let s:DEFAULT_CONF = {
     \ 'bot_name'      : 'llama',
     \ 'system_prompt' : 'You are a helpful assistant.',
     \ 'warmup_on_typing' : v:true,
@@ -15,7 +15,7 @@ let s:default_conf = {
 \ }
 
 function vimqq#bots#llama_cpp#new(config = {}) abort
-    let config = deepcopy(s:default_conf)
+    let config = deepcopy(s:DEFAULT_CONF)
     call extend(config, a:config)
     let server = substitute(config.addr, '/*$', '', '')
     let config.endpoint = server . '/v1/chat/completions'
