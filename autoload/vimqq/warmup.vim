@@ -66,7 +66,7 @@ function! vimqq#warmup#parse(cmd)
 endfunction
 
 " Timer callback function
-function! s:CheckCommandLine(timer_id)
+function! s:check_command_line(timer_id)
     if mode() ==# 'c'  " Check if we're in command mode
         if s:warmup_in_progress 
             call vimqq#log#debug('not issuing second warmup')
@@ -78,14 +78,14 @@ function! s:CheckCommandLine(timer_id)
     endif
 endfunction
 
-function! s:StartCommandTimer()
+function! s:start_command_timer()
   " Stop existing timer if any
   if s:check_timer != -1
     call timer_stop(s:check_timer)
   endif
   
   " Start new timer that runs every 500ms
-  let s:check_timer = timer_start(500, function('s:CheckCommandLine'), 
+  let s:check_timer = timer_start(500, function('s:check_command_line'), 
         \ {'repeat': -1})  " -1 means repeat indefinitely
 endfunction
 
@@ -126,7 +126,7 @@ endfunction
 augroup VQQCommandLinePrefetch
     autocmd!
     " Start timer when entering command line mode
-    autocmd CmdlineEnter : call s:StartCommandTimer()
+    autocmd CmdlineEnter : call s:start_command_timer()
     " Stop timer when leaving command line mode
     autocmd CmdlineLeave : call timer_stop(s:check_timer)
 augroup END

@@ -14,8 +14,8 @@ let g:vqq_width = get(g:, 'vqq_width', 80)
 " format to use in chat list
 let g:vqq_time_format = get(g:, 'vqq_time_format', "%b %d %H:%M ")
 
-let s:buffer_name_list = 'vimqq_chatlist'
-let s:buffer_name_chat = 'vimqq_chat'
+let s:LIST_BUF_NAME = 'vimqq_chatlist'
+let s:CHAT_BUF_NAME = 'vimqq_chat'
 
 " buffer strict name match
 function! s:bnrs(name)
@@ -32,11 +32,11 @@ function vimqq#ui#new() abort
     " {{{ private:
     function! ui._open_list_window() dict
         " Check if the buffer already exists
-        let bufnum = s:bnrs(s:buffer_name_list)
+        let bufnum = s:bnrs(s:LIST_BUF_NAME)
         if bufnum == -1
             " Create a new buffer in a vertical split
             silent! execute 'topleft vertical ' . (g:vqq_width) . ' new'
-            silent! execute 'edit ' . s:buffer_name_list
+            silent! execute 'edit ' . s:LIST_BUF_NAME
             setlocal buftype=nofile
             setlocal bufhidden=hide
             setlocal noswapfile
@@ -56,11 +56,11 @@ function vimqq#ui#new() abort
 
     function! ui._open_chat_window() dict
         " Check if the buffer already exists
-        let bufnum = s:bnrs(s:buffer_name_chat)
+        let bufnum = s:bnrs(s:CHAT_BUF_NAME)
         if bufnum == -1
             " Create a new buffer in a vertical split
             silent! execute 'rightbelow vertical new'
-            silent! execute 'edit ' . s:buffer_name_chat
+            silent! execute 'edit ' . s:CHAT_BUF_NAME
             setlocal buftype=nofile
             setlocal bufhidden=hide
             setlocal noswapfile
@@ -116,7 +116,7 @@ function vimqq#ui#new() abort
     endfunction
 
     function! ui.append_partial(token) dict
-        let bufnum = s:bnrs(s:buffer_name_chat)
+        let bufnum = s:bnrs(s:CHAT_BUF_NAME)
         if bufnum != -1
             let curr_line = getbufline(bufnum, '$')[0]
             let lines     = split(curr_line . a:token . "\n", '\n')
@@ -194,8 +194,8 @@ function vimqq#ui#new() abort
     endfunction
 
     function! ui.hide_list() dict
-        let list_bufnum = s:bnrs(s:buffer_name_list)
-        let list_winid = bufwinid(s:buffer_name_list)
+        let list_bufnum = s:bnrs(s:LIST_BUF_NAME)
+        let list_winid = bufwinid(s:LIST_BUF_NAME)
         if list_winid != -1
             call win_gotoid(list_winid)
             silent! execute 'hide'
@@ -256,5 +256,5 @@ endfunction
 
 augroup VQQSyntax
   autocmd!
-  execute 'autocmd BufRead,BufNewFile *' . s:buffer_name_chat . ' call s:setup_syntax()'
+  execute 'autocmd BufRead,BufNewFile *' . s:CHAT_BUF_NAME . ' call s:setup_syntax()'
 augroup END
