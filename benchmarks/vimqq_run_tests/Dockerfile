@@ -5,7 +5,6 @@ RUN apt-get update && apt-get install -y \
     vim \
     git \
     curl \
-    patch \
     python3 \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*

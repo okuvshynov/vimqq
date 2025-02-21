@@ -104,10 +104,6 @@ function! vimqq#chatsdb#new() abort
         return self._chats[a:chat_id].title_computed
     endfunction
 
-    function! db.is_empty(chat_id) dict
-        return empty(self._chats[a:chat_id].messages)
-    endfunction
-
     function! db.get_title(chat_id) dict
         return self._chats[a:chat_id].title
     endfunction
