@@ -168,7 +168,6 @@ function! vimqq#controller#new() abort
         let chat_id = self.state.pick_chat_id(a:force_new_chat)
 
         if a:use_index
-            " TODO: this is always setting anthropic tool schema?
             call self.db.set_tools(chat_id, self.toolset.def())
         endif
 
