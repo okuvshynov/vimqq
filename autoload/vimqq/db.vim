@@ -6,9 +6,6 @@ endif
 
 let g:autoloaded_vimqq_chatdb_module = 1
 
-" file to store all message history
-let g:vqq_chats_file = get(g:, 'vqq_chats_file', vimqq#platform#path#data('vqq_chats.json'))
-
 function! s:max_seq_id(chat)
     let res = 0
 
@@ -26,9 +23,9 @@ function! s:max_seq_id(chat)
     return res
 endfunction
 
-function! vimqq#chatsdb#new() abort
+function! vimqq#db#new(db_file) abort
     let db = {}
-    let db._file = g:vqq_chats_file
+    let db._file = a:db_file
     let db._chats = {}
 
     " seq_id is autoincremented value assigned to chats, messages
