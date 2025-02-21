@@ -1,4 +1,4 @@
-let s:suite = themis#suite('mock_server_queries')
+let s:suite = themis#suite('test_queries.vim')
 let s:assert = themis#helper('assert')
 
 let s:serv_path = expand('<sfile>:p:h:h') . '/mock_llama.py'

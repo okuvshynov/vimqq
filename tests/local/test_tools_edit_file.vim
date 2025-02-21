@@ -1,4 +1,4 @@
-let s:suite = themis#suite('tools')
+let s:suite = themis#suite('test_tools_edit_file.vim')
 let s:assert = themis#helper('assert')
 
 function s:suite.test_edit_file()

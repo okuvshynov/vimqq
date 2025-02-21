@@ -1,4 +1,4 @@
-let s:suite = themis#suite('fmt one')
+let s:suite = themis#suite('test_fmt_one.vim')
 let s:assert = themis#helper('assert')
 
 function! s:suite.test_fmt_user_message()

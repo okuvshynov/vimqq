@@ -1,4 +1,4 @@
-let s:suite = themis#suite('fmt_content')
+let s:suite = themis#suite('test_fmt.vim')
 let s:assert = themis#helper('assert')
 
 function s:suite.test_content_with_prompt()

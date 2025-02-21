@@ -1,4 +1,4 @@
-let s:suite = themis#suite('util')
+let s:suite = themis#suite('test_util.vim')
 let s:assert = themis#helper('assert')
 
 function s:suite.test_basic()

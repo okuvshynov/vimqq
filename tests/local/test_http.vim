@@ -1,4 +1,4 @@
-let s:suite = themis#suite('platform_http_client')
+let s:suite = themis#suite('test_http.vim')
 let s:assert = themis#helper('assert')
 
 let s:serv_path = expand('<sfile>:p:h:h') . '/mock_llama.py'

@@ -1,4 +1,4 @@
-let s:suite = themis#suite('Tool run_cmd')
+let s:suite = themis#suite('test_tools_run_cmd.vim')
 let s:assert = themis#helper('assert')
 
 let s:path = expand('<sfile>:p:h')

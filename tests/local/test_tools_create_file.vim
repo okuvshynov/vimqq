@@ -1,4 +1,4 @@
-let s:suite = themis#suite('Tool create_file')
+let s:suite = themis#suite('test_tools_create_file.vim')
 
 function! s:suite.test_create_file()
     let path = expand('%:p:h')

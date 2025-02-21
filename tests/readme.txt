@@ -16,3 +16,5 @@ themis tests/local/test_str.vim    # run string manipulation tests
 themis tests/local/test_fmt.vim    # run formatting tests
 ```
 All test files follow the pattern test_*.vim and can be run individually.
+
+Suite name should match file name for easier lookup.

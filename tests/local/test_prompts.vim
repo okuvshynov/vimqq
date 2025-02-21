@@ -1,4 +1,4 @@
-let s:suite = themis#suite('prompts')
+let s:suite = themis#suite('test_prompts.vim')
 let s:assert = themis#helper('assert')
 
 function! s:suite.test_pick_basic()

@@ -1,4 +1,4 @@
-let s:suite = themis#suite('tools_formatting')
+let s:suite = themis#suite('test_tools_schema.vim')
 let s:assert = themis#helper('assert')
 
 let s:tool_def = {
