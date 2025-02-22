@@ -100,7 +100,7 @@ def chat():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run mock llama server')
     parser.add_argument('--port', type=int, help='Port to run the server on', required=True)
-    parser.add_argument('--logs', help='directory for log files')
+    parser.add_argument('--logs', help='directory for log files', required=True)
     args = parser.parse_args()
     logging.basicConfig(
         level=logging.INFO,

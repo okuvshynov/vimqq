@@ -1,7 +1,7 @@
 let s:suite = themis#suite('test_queries.vim')
 let s:assert = themis#helper('assert')
 
-let s:serv_path = expand('<sfile>:p:h:h') . '/mock_llama.py'
+let s:serv_path = expand('<sfile>:p:h:h') . '/mocks/mock_llama_cpp.py'
 let s:skip_all = v:false
 
 function s:normtime(chat)
@@ -30,12 +30,12 @@ function s:on_mock(server_job)
 endfunction
 
 function s:suite.before()
-	let python_cmd = vimqq#util#has_python()
-	if python_cmd ==# ''
-		let s:skip_all = v:true
-		let s:skip_msg = 'python not found or flask package not installed'
-		return
-	endif
+    let python_cmd = vimqq#util#has_python()
+    if python_cmd ==# ''
+        let s:skip_all = v:true
+        let s:skip_msg = 'python not found or flask package not installed'
+        return
+    endif
     let s:success = vimqq#platform#jobs#start(
         \ [python_cmd, s:serv_path, '--port', '8888', '--logs', '/tmp/'],
         \ {'on_job': {job -> s:on_mock(job)}}
@@ -44,25 +44,25 @@ function s:suite.before()
 endfunction
 
 function s:suite.after()
-	if !s:skip_all
-    	call job_stop(s:server_job)
-	endif
+    if !s:skip_all
+        call job_stop(s:server_job)
+    endif
 endfunction
 
 function s:suite.before_each()
-	if !s:skip_all
-		:bufdo! bd! | enew
-		call delete(g:vqq_chats_file)
-		call vimqq#main#setup()
-		let addr = g:vqq_llama_cpp_servers[0]['addr']
-		call vimqq#platform#http#get(addr . '/reset', ["--max-time", "5"], {})
-	endif
+    if !s:skip_all
+        :bufdo! bd! | enew
+        call delete(g:vqq_chats_file)
+        call vimqq#main#setup()
+        let addr = g:vqq_llama_cpp_servers[0]['addr']
+        call vimqq#platform#http#get(addr . '/reset', ["--max-time", "5"], {})
+    endif
 endfunction
 
 function s:suite.test_list_one()
-	if s:skip_all
-		call s:assert.skip(s:skip_msg)
-	endif
+    if s:skip_all
+        call s:assert.skip(s:skip_msg)
+    endif
     " 5 lines with 1, 2, 3, 4, 5
     :put!=range(1,5)
     " visual select them
@@ -86,9 +86,9 @@ function s:suite.test_list_one()
 endfunction
 
 function s:suite.test_new_chat()
-	if s:skip_all
-		call s:assert.skip(s:skip_msg)
-	endif
+    if s:skip_all
+        call s:assert.skip(s:skip_msg)
+    endif
     :QQ @mock hello
     :sleep 500m
     :QQN @mock world!
@@ -103,9 +103,9 @@ function s:suite.test_new_chat()
 endfunction
 
 function s:suite.test_new_chat_nodelay()
-	if s:skip_all
-		call s:assert.skip(s:skip_msg)
-	endif
+    if s:skip_all
+        call s:assert.skip(s:skip_msg)
+    endif
     :QQ @mock hello
     :QQN @mock world!
     :sleep 2000m
@@ -126,9 +126,9 @@ function s:suite.test_new_chat_nodelay()
 endfunction
 
 function s:suite.test_query()
-	if s:skip_all
-		call s:assert.skip(s:skip_msg)
-	endif
+    if s:skip_all
+        call s:assert.skip(s:skip_msg)
+    endif
     :QQ @mock hello
     :sleep 500m
     let content = s:normtime(getline(1, '$'))
@@ -146,9 +146,9 @@ function s:suite.test_query()
 endfunction
 
 function s:suite.test_query_twice()
-	if s:skip_all
-		call s:assert.skip(s:skip_msg)
-	endif
+    if s:skip_all
+        call s:assert.skip(s:skip_msg)
+    endif
     :QQ @mock hello
     :sleep 500m
     :QQ @mock world!
@@ -173,9 +173,9 @@ function s:suite.test_query_twice()
 endfunction
 
 function s:suite.test_queue()
-	if s:skip_all
-		call s:assert.skip(s:skip_msg)
-	endif
+    if s:skip_all
+        call s:assert.skip(s:skip_msg)
+    endif
     :QQ @mock hello
     :QQ @mock world!
     :sleep 1000m
@@ -195,9 +195,9 @@ function s:suite.test_queue()
 endfunction
 
 function s:suite.test_selection()
-	if s:skip_all
-		call s:assert.skip(s:skip_msg)
-	endif
+    if s:skip_all
+        call s:assert.skip(s:skip_msg)
+    endif
     :put!=range(1,5)
     :normal ggV5j
     :execute "normal! \<Esc>"

@@ -19,9 +19,10 @@ function! vimqq#api#anthropic_api#to_claude(schema)
 endfunction
 
 " config is unused for now
-function! vimqq#api#anthropic_api#new(conf) abort
+function! vimqq#api#anthropic_api#new(conf = {}) abort
     let api = {}
 
+    let api._base_url = get(a:conf, 'base_url', 'https://api.anthropic.com')
     let api._req_id = 0
     let api._replies = {}
     let api._tool_uses = {}
@@ -220,7 +221,7 @@ function! vimqq#api#anthropic_api#new(conf) abort
             \ 'anthropic-version': '2023-06-01'
         \ }
         return vimqq#platform#http#post(
-            \ 'https://api.anthropic.com/v1/messages',
+            \ self._base_url . '/v1/messages',
             \ headers,
             \ json_req,
             \ job_conf)

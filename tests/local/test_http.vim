@@ -1,7 +1,7 @@
 let s:suite = themis#suite('test_http.vim')
 let s:assert = themis#helper('assert')
 
-let s:serv_path = expand('<sfile>:p:h:h') . '/mock_llama.py'
+let s:serv_path = expand('<sfile>:p:h:h') . '/mocks/mock_llama_cpp.py'
 
 function OnMock(server_job)
     let s:server_job = a:server_job

@@ -1,7 +1,7 @@
 let s:suite = themis#suite('test_warmup.vim')
 let s:assert = themis#helper('assert')
 
-let s:serv_path = expand('<sfile>:p:h:h') . '/mock_llama.py'
+let s:serv_path = expand('<sfile>:p:h:h') . '/mocks/mock_llama_cpp.py'
 let s:skip_all = v:false
 
 function s:server_stats()
