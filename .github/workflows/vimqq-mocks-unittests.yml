@@ -1,0 +1,29 @@
+name: vimqq mocks unit tests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install Vim
+      run: sudo apt-get update && sudo apt-get install -y vim
+
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Install Test requirements
+      run: pip install -r requirements.txt
+    
+    - name: Run tests for mock servers
+      run: pytest ./tests/mocks

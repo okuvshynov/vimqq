@@ -4,7 +4,6 @@ set -e  # Exit on any error
 # clone vimqq
 git clone https://github.com/okuvshynov/vimqq.git
 
-
 cd vimqq
 
 # install test requirements

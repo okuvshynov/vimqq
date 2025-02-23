@@ -1,4 +1,4 @@
-name: Local Tests
+name: vimqq unit tests
 on:
   push:
     branches: [ main ]
@@ -14,16 +14,13 @@ jobs:
     - name: Install Vim
       run: sudo apt-get update && sudo apt-get install -y vim
 
-    - name: Install jq
-      run: sudo apt-get update && sudo apt-get install -y jq
-    
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
     
-    - name: Install Flask
-      run: pip install flask
+    - name: Install Test requirements
+      run: pip install -r requirements.txt
     
     - name: Install themis
       uses: actions/checkout@v2
@@ -31,5 +28,5 @@ jobs:
         repository: thinca/vim-themis
         path: vim-themis
     
-    - name: Run all integration tests
+    - name: Run vimqq unit tests
       run: ./vim-themis/bin/themis ./tests/local

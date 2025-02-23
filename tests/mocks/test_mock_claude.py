@@ -33,7 +33,8 @@ class TestMockServer(unittest.TestCase):
 
     def test_server_response(self):
         client = anthropic.Anthropic(
-            base_url=self.base_url
+            base_url=self.base_url,
+            api_key='no_key_for_mock',
         )
 
         expected = 'Hello! How can I help you today?'
