@@ -1,0 +1,10 @@
+# these requirements are only needed for unit tests.
+# python is not required for plugin to work
+
+# requirements for plugin tests (tests/vimqq)
+Flask
+requests
+
+# requirements for python tests for mock servers (tests/mocks)
+pytest
+anthropic

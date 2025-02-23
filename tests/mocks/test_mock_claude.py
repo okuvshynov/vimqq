@@ -1,8 +1,9 @@
-import anthropic
-import unittest
+import socket
 import threading
 import time
-import socket
+import unittest
+
+import anthropic
 import requests
 
 from mock_claude import app
