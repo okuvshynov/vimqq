@@ -50,6 +50,25 @@ class TestMockServer(unittest.TestCase):
 
         self.assertEqual(''.join(observed), expected)
 
+    def test_server_response(self):
+        client = anthropic.Anthropic(
+            base_url=self.base_url,
+            api_key='no_key_for_mock',
+        )
+
+        expected = 'Hello! How can I help you today?'
+        observed = []
+
+        with client.messages.stream(
+            max_tokens=1024,
+            messages=[{"role": "user", "content": "get weather"}],
+            model="claude-3-5-sonnet-20241022",
+        ) as stream:
+            for text in stream.text_stream:
+                observed.append(text)
+
+        self.assertEqual(''.join(observed), expected)
+
     @classmethod
     def tearDownClass(cls):
         #requests.get(f'{cls.base_url}/shutdown')

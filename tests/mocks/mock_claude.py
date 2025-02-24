@@ -56,38 +56,6 @@ def stream_text_content(text, index=0):
         "index": index
     })
 
-def stream_tool_use(tool_name, tool_input, index):
-    """Stream a tool use content block"""
-    tool_id = f"toolu_{hash(tool_name) % 1000000:06d}"
-    
-    yield stream_event("content_block_start", {
-        "type": "content_block_start",
-        "index": index,
-        "content_block": {
-            "type": "tool_use",
-            "id": tool_id,
-            "name": tool_name,
-            "input": {}
-        }
-    })
-
-    # Stream the input JSON in chunks
-    input_json = json.dumps(tool_input)
-    chunk_size = 10
-    for i in range(0, len(input_json), chunk_size):
-        chunk = input_json[i:i + chunk_size]
-        yield stream_event("content_block_delta", {
-            "type": "content_block_delta",
-            "index": index,
-            "delta": {"type": "input_json_delta", "partial_json": chunk}
-        })
-        time.sleep(0.1)
-
-    yield stream_event("content_block_stop", {
-        "type": "content_block_stop",
-        "index": index
-    })
-
 def stream_message_end(stop_reason="end_turn"):
     """Stream message ending events"""
     yield stream_event("message_delta", {
@@ -106,41 +74,6 @@ RESPONSES = {
         "content": "Hello! How can I help you today?",
         "stop_reason": "end_turn"
     },
-    "single_tool": {
-        "tool_name": "get_weather",
-        "tool_input": {"location": "San Francisco, CA"},
-        "stop_reason": "tool_use"
-    },
-    "multiple_text": {
-        "contents": [
-            "Let me break this down into steps.",
-            "First, we need to consider the basics.",
-            "Finally, here's the conclusion."
-        ],
-        "stop_reason": "end_turn"
-    },
-    "multiple_tools": {
-        "tools": [
-            {
-                "tool_name": "get_weather",
-                "tool_input": {"location": "New York, NY"}
-            },
-            {
-                "tool_name": "get_time",
-                "tool_input": {"timezone": "America/New_York"}
-            }
-        ],
-        "stop_reason": "tool_use"
-    },
-    "mixed": {
-        "blocks": [
-            {"type": "text", "content": "Let me check the weather for you."},
-            {"type": "tool", "tool_name": "get_weather", "tool_input": {"location": "London, UK"}},
-            {"type": "text", "content": "Now, let me check the time as well."},
-            {"type": "tool", "tool_name": "get_time", "tool_input": {"timezone": "Europe/London"}}
-        ],
-        "stop_reason": "tool_use"
-    }
 }
 
 @app.route('/v1/messages', methods=['POST'])
@@ -150,20 +83,8 @@ def stream_response():
     if not data.get('stream', False):
         return {"error": "This endpoint only supports streaming responses"}, 400
 
-    # For demo purposes, choose response type based on the content of the first message
     user_message = data['messages'][0]['content'].lower()
     
-    if "weather" in user_message:
-        response_type = "single_tool"
-    elif "multiple tools" in user_message:
-        response_type = "multiple_tools"
-    elif "multiple responses" in user_message:
-        response_type = "multiple_text"
-    elif "mixed" in user_message:
-        response_type = "mixed"
-    else:
-        response_type = "single_text"
-
     def generate():
         # Start message
         yield stream_event("message_start", create_message_start(f"msg_{hash(user_message) % 1000000:06d}"))
@@ -171,29 +92,10 @@ def stream_response():
         # Occasional ping
         yield stream_event("ping", {"type": "ping"})
 
-        response = RESPONSES[response_type]
+        response = RESPONSES['single_text']
         
-        if response_type == "single_text":
-            yield from stream_text_content(response["content"])
+        yield from stream_text_content(response["content"])
             
-        elif response_type == "single_tool":
-            yield from stream_tool_use(response["tool_name"], response["tool_input"], 0)
-            
-        elif response_type == "multiple_text":
-            for idx, content in enumerate(response["contents"]):
-                yield from stream_text_content(content, idx)
-                
-        elif response_type == "multiple_tools":
-            for idx, tool in enumerate(response["tools"]):
-                yield from stream_tool_use(tool["tool_name"], tool["tool_input"], idx)
-                
-        elif response_type == "mixed":
-            for idx, block in enumerate(response["blocks"]):
-                if block["type"] == "text":
-                    yield from stream_text_content(block["content"], idx)
-                else:
-                    yield from stream_tool_use(block["tool_name"], block["tool_input"], idx)
-
         # End message
         yield from stream_message_end(response["stop_reason"])
 
