@@ -8,6 +8,7 @@ let g:vqq_claude_api_key = get(g:, 'vqq_claude_api_key', $ANTHROPIC_API_KEY)
 let g:vqq_claude_cache_above = get(g:, 'vqq_claude_cache_above', 5000)
 
 " Translates tool definition schema to Claude-compatible format
+" Public for unit testing
 function! vimqq#api#anthropic_api#to_claude(schema)
     let fn = a:schema['function']
     let res = {
@@ -41,7 +42,12 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
 
     function! api._on_stream_out(msg, params, req_id) dict
         let messages = split(a:msg, '\n')
+        let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
         for message in messages
+            if message =~# '^event: '
+                call vimqq#log#debug(message)
+                continue
+            endif
             if message !~# '^data: '
                 " Likely an error, let's try deserialize it
                 try
@@ -49,19 +55,15 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                     if error_json['type'] == 'error'
                         let err = string(error_json['error'])
                         if get(error_json['error'], 'type', '') ==# 'rate_limit_error'
-                            if has_key(a:params, 'on_sys_msg')
-                                call a:params.on_sys_msg(
-                                    \ 'warning',
-                                    \ 'Reached rate limit. Waiting 60s before retry'
-                                \ )
+                            call SysMessage(
+                                \ 'warning',
+                                \ 'Reached rate limit. Waiting 60s before retry'
+                            \ )
 
-                                call timer_start(60000, { timer_id -> self.chat(a:params)})
-                                return
-                            endif
+                            call timer_start(60000, { timer_id -> self.chat(a:params)})
+                            return
                         endif
-                        if has_key(a:params, 'on_sys_msg')
-                            call a:params.on_sys_msg('error', err)
-                        endif
+                        call SysMessage('error', err)
                         call vimqq#log#error(err)
                     else
                         let warn = 'Unexpected message received: ' . message
@@ -74,7 +76,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                 continue
             endif
             let json_string = substitute(message, '^data: ', '', '')
-            call vimqq#log#debug('ANTHROPIC REPLY: ' . json_string)
+            call vimqq#log#debug('reply: ' . json_string)
             let response = json_decode(json_string)
 
             if response['type'] ==# 'content_block_start'
@@ -105,9 +107,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                 " Here we get usage for output
                 call vimqq#log#debug('usage: ' . string(response.usage))
                 let self._usage = vimqq#util#merge(self._usage, response.usage)
-                if has_key(a:params, 'on_sys_msg')
-                    call a:params.on_sys_msg('info', string(self._usage))
-                endif
+                call SysMessage('info', string(self._usage))
                 if response['delta']['stop_reason'] ==# 'tool_use'
                     let self._tool_uses[a:req_id]['input'] = json_decode(self._tool_uses[a:req_id]['input'])
                     call a:params.on_tool_use(self._tool_uses[a:req_id])
@@ -152,9 +152,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
             call vimqq#log#error('Unable to process response')
             call vimqq#log#error(response_str)
             " TODO: still need to call on_complete with error?
-            if has_key(a:params, 'on_sys_msg')
-                call a:params.on_sys_msg('error', response_str)
-            endif
+            call SysMessage('error', response_str)
         endif
     endfunction
 

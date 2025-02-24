@@ -126,3 +126,10 @@ function! s:parse_function(frame)
     endtry
     return ['', 0]
 endfunction
+
+" we need this function so that for debugging purposes we can get it and
+" force this module to be loaded, thus using the default value if 
+" it wasn't configured
+function! vimqq#log#file()
+    return g:vqq_log_file
+endfunction
