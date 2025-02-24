@@ -67,6 +67,10 @@ function! vimqq#db#new(db_file) abort
     function! db.append_partial(chat_id, part) dict
         let self._chats[a:chat_id].partial_message.sources.text .= a:part
         let self._chats[a:chat_id].partial_message.seq_id = self.seq_id()
+        if !has_key(self._chats[a:chat_id].partial_message, 'seq_id_first')
+            let self._chats[a:chat_id].partial_message.seq_id_first = self._chats[a:chat_id].partial_message.seq_id
+        endif
+
         call self._save()
     endfunction
 
@@ -130,9 +134,19 @@ function! vimqq#db#new(db_file) abort
             let message['timestamp'] = localtime()
         endif
 
-        let message.seq_id = self.seq_id()
+        if !has_key(message, 'seq_id')
+            let message.seq_id = self.seq_id()
+        endif
+        let messages = self._chats[a:chat_id].messages
+        let index = 0
+        while index < len(messages)
+            if messages[index].seq_id > message.seq_id
+                break
+            endif
+            let index += 1
+        endwhile
 
-        call add(self._chats[a:chat_id].messages, message)
+        call insert(messages, message, index)
         call self._save()
 
         return message
@@ -182,6 +196,7 @@ function! vimqq#db#new(db_file) abort
 
     function! db.partial_done(chat_id) dict
         let message = deepcopy(self._chats[a:chat_id].partial_message)
+        let message.seq_id = message.seq_id_first
         call self.append_message(a:chat_id, message)
         call self.clear_partial(a:chat_id)
         call self._save()

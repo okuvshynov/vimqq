@@ -29,6 +29,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
     let api._tool_uses = {}
     let api._api_key = g:vqq_claude_api_key
     let api._usage = {}
+    let api._last_turn_usage = {}
 
     function! api._on_error(msg, params) dict
         call vimqq#log#error('API error')
@@ -95,6 +96,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                 " Here we get usage for input tokens
                 call vimqq#log#debug('usage: ' . string(response.message.usage))
                 let self._usage = vimqq#util#merge(self._usage, response.message.usage)
+                let self._last_turn_usage = response.message.usage
 
                 continue
             endif
@@ -107,7 +109,21 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                 " Here we get usage for output
                 call vimqq#log#debug('usage: ' . string(response.usage))
                 let self._usage = vimqq#util#merge(self._usage, response.usage)
-                call SysMessage('info', string(self._usage))
+
+                let in_tokens = get(self._last_turn_usage, 'cache_creation_input_tokens', 0) +
+                            \ get(self._last_turn_usage, 'cache_read_input_tokens', 0) +
+                            \ get(self._last_turn_usage, 'input_tokens', 0)
+
+                let out_tokens = get(response.usage, 'output_tokens', 0)
+                call SysMessage('info', 'Turn: in = ' . in_tokens . ', out = ' . out_tokens)
+
+                let in_tokens = get(self._usage, 'cache_creation_input_tokens', 0) +
+                            \ get(self._usage, 'cache_read_input_tokens', 0) +
+                            \ get(self._usage, 'input_tokens', 0)
+
+                let out_tokens = get(self._usage, 'output_tokens', 0)
+
+                call SysMessage('info', 'Conversation: in = ' . in_tokens . ', out = ' . out_tokens)
                 if response['delta']['stop_reason'] ==# 'tool_use'
                     let self._tool_uses[a:req_id]['input'] = json_decode(self._tool_uses[a:req_id]['input'])
                     call a:params.on_tool_use(self._tool_uses[a:req_id])
