@@ -155,7 +155,18 @@ function! vimqq#controller#new() abort
     endfunction
 
     function! controller.send_message(force_new_chat, question, context, use_index) dict
-        let [bot, question] = self.bots.select(a:question)
+        " pick the last used bot when:
+        "   - no tag at the beginning of the message
+        "   - no force_new_chat
+        "   - previous chat exists
+        let current_chat_id = self.state.get_chat_id()
+
+        let current_bot = v:null
+        if current_chat_id != -1 && !a:force_new_chat
+            let current_bot = self.db.get_last_bot(current_chat_id)
+        endif
+
+        let [bot, question] = self.bots.select(a:question, current_bot)
 
         let message = {
               \ "role"     : 'user',

@@ -86,8 +86,16 @@ function! vimqq#bots#bots#new() abort
         return self._bots
     endfunction
 
-    function! bots.select(question) dict
+    " Selects bot to ask based on question and last bot used in converation
+    "   - if there's a tag, use that
+    "   - if there's no tag, and current_bot is not null, use it
+    "   - otherwise, use default bot
+    function! bots.select(question, current_bot_name=v:null) dict
+        let old_bot = v:null
         for bot in self._bots
+            if bot.name() ==# a:current_bot_name
+                let old_bot = bot
+            endif
             let bot_tag = '@' . bot.name()
             if len(a:question) > len(bot_tag)
                 let bot_tag .= ' '
@@ -98,6 +106,9 @@ function! vimqq#bots#bots#new() abort
                 return [bot, strpart(a:question, i)]
             endif
         endfor
+        if old_bot isnot v:null
+            return [old_bot, a:question]
+        endif
         return [self._default_bot, a:question]
     endfunction
 

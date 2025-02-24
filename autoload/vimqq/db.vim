@@ -152,6 +152,20 @@ function! vimqq#db#new(db_file) abort
         return message
     endfunction
 
+    function! db.get_last_bot(chat_id) dict
+        if has_key(self._chats, a:chat_id)
+            let messages = get(self._chats[a:chat_id], 'messages', [])
+            let i = len(messages) - 1
+            while i >= 0
+                if messages[i].role ==# 'assistant'
+                    return messages[i].bot_name
+                endif
+                let i = i - 1
+            endwhile
+        endif
+        return v:null
+    endfunction
+
     function! db.get_ordered_chats() dict
         let chat_list = []
         for [key, chat] in items(self._chats)
