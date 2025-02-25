@@ -14,16 +14,18 @@ let g:autoloaded_vimqq_msg_builder = 1
 function! vimqq#msg_builder#new(params) abort
     let builder = {}
     " sys message to show in chat
-    let builder.sys_msg  = get(a:params, 'on_sys_msg' , {l, m -> 0})
+    let builder.on_sys_msg  = get(a:params, 'on_sys_msg' , {l, m -> 0})
     " this is complete tool use piece of content
-    let builder.tool_use = get(a:params, 'on_tool_use', {t -> 0})
+    let builder.on_tool_use = get(a:params, 'on_tool_use', {t -> 0})
     " this is text delta
-    let builder.chunk    = get(a:params, 'on_chunk'   , {p, c -> 0})
+    let builder.on_chunk    = get(a:params, 'on_chunk'   , {p, c -> 0})
 
     " this is thinking process. need to do by chunk
-    let builder.thinking = get(a:params, 'on_thinking', {p, t -> 0})
+    let builder.on_thinking = get(a:params, 'on_thinking', {p, t -> 0})
 
-    let builder.complete = get(a:params, 'on_complete', {e, p -> 0})
+    let builder.on_complete = get(a:params, 'on_complete', {e, p -> 0})
+
+    let builder.params = a:params
 
     let builder.msg = {}
     " types of content:
@@ -84,7 +86,7 @@ function! vimqq#msg_builder#new(params) abort
         return self
     endfunction
 
-    function! self.msg.set_src_index(index) dict
+    function! builder.set_src_index(index) dict
         call assert_true(
             \ type(a:index) == type(""),
             \ "index must be a string, found type " . type(a:index)
@@ -95,7 +97,7 @@ function! vimqq#msg_builder#new(params) abort
 
     " """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     " Streaming-like API.
-    function! builder.content_block_start(index, content_block)
+    function! builder.content_block_start(index, content_block) dict
         call vimqq#log#debug(string(a:content_block))
         call assert_true(
             \ a:index == len(self.msg.content),
@@ -107,9 +109,9 @@ function! vimqq#msg_builder#new(params) abort
 
     function! builder.content_block_delta(index, delta) dict
         call assert_true(
-            \ a:index < len(self.content),
+            \ a:index < len(self.msg.content),
             \ 'trying to add content at index = ' . a:index
-            \ . ' to message with content size = ' . len(self.content)
+            \ . ' to message with content size = ' . len(self.msg.content)
         \ )
         if a:delta['type'] ==# 'text_delta'
             call self.text_delta(a:index, a:delta.text)
@@ -137,7 +139,7 @@ function! vimqq#msg_builder#new(params) abort
         else
             let content['text'] .= a:delta
         endif
-        call self.on_chunk(a:delta)
+        call self.on_chunk(self.params, a:delta)
     endfunction
 
     function! builder.partial_json_delta(index, delta) dict
@@ -195,7 +197,11 @@ function! vimqq#msg_builder#new(params) abort
     endfunction
 
     function! builder.message_stop() dict
-        call self.complete(v:null, self.params)
+        call self.on_complete(v:null, self.params)
     endfunction
 
+    " """"""""""""""""""""""""""""""""""""""""""""""""""""
+    " non-streaming API built on top of streaming API
+
+    return builder
 endfunction
