@@ -71,6 +71,5 @@ function! vimqq#fmt_ui#ui(message) abort
         let tstamp = strftime(s:TIME_FORMAT . " ", msg['timestamp'])
     endif
     let prompt = tstamp . msg['author']
-    " TODO: what if there's more than 1 piece of content?
     return split(prompt . msg['text'], '\n')
 endfunction

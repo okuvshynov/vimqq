@@ -10,7 +10,6 @@ let g:autoloaded_vimqq_msg_builder = 1
 " - on_chunk
 " - on_complete
 " - on_thinking
-"
 function! vimqq#msg_builder#new(params) abort
     let builder = {}
     " sys message to show in chat
@@ -28,12 +27,17 @@ function! vimqq#msg_builder#new(params) abort
     let builder.params = a:params
 
     let builder.msg = {}
+
+    " To gradually migrate various places in the codebase
+    " we create a flag to indicate this comes from builder
+    let builder.msg.v2 = 1
+
     " types of content:
-    "  - text
-    "  - tool_use
-    "  - tool_result
-    "  - thinking
-    "  - redacted_thinking
+    "  - text [user, assistant]
+    "  - tool_use [assistant]
+    "  - tool_result [user]
+    "  - thinking [assistant]
+    "  - redacted_thinking [assistant]
     let builder.msg.content = []
     " sources are relevant for user-initiated messages only
     " assistant replies and tool interations are not going to
@@ -44,6 +48,8 @@ function! vimqq#msg_builder#new(params) abort
     "  - index   - repository summary
     "  sources are used to differently render such message 
     "  in UI and send over the wire.
+    "  so for user messages we will NOT have normal content: text
+    "  and will create it on the fly.
     let builder.msg.sources = {}
 
     let builder.msg.timestamp = localtime()
