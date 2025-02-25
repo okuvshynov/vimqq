@@ -29,8 +29,12 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
     let api._tool_uses = {}
     let api._thinking = {}
     let api._api_key = g:vqq_claude_api_key
+    " TODO: !! this is wrong needs to be per request
     let api._usage = {}
+    " TODO: !! this is wrong needs to be per request
     let api._last_turn_usage = {}
+
+    let api._builders = {}
 
     function! api._on_error(msg, params) dict
         call vimqq#log#error('API error')
@@ -42,32 +46,20 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
         " Still need to close in case of error?
     endfunction
 
-    " Expected streamed event sequence (with occasional pings):
-    "  - message_start (includes current input token usage)
-    "     - content_block_start (a single piece of content, can be text,
-    "       tool_use, thinking or redacted_thinking
-    "       - content_block_delta. Can be text_delta, input_json_delta (for tools)
-    "         or thinking_delta. redacted_thinking doesn't have any deltas and will
-    "         be passed as data within content_block_start message
-    "       - ...
-    "     - content_block_stop
-    "     - ...
-    "  - message_delta (can be end_turn or tool use). Includes output token
-    "    usage.
-    "  - message_stop
-    "       
-    function! api._on_stream_out(msg, params, req_id) dict
-        let messages = split(a:msg, '\n')
+    function! api._on_stream_out(data, params, req_id) dict
         let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
-        for message in messages
-            if message =~# '^event: '
-                call vimqq#log#debug(message)
+
+        let builder = self._builders[a:req_id]
+
+        for event in split(a:data, '\n')
+            if event =~# '^event: '
+                call vimqq#log#debug(event)
                 continue
             endif
-            if message !~# '^data: '
+            if event !~# '^data: '
                 " Likely an error, let's try deserialize it
                 try
-                    let error_json = json_decode(message)
+                    let error_json = json_decode(event)
                     if error_json['type'] == 'error'
                         let err = string(error_json['error'])
                         if get(error_json['error'], 'type', '') ==# 'rate_limit_error'
@@ -82,53 +74,37 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                         call SysMessage('error', err)
                         call vimqq#log#error(err)
                     else
-                        let warn = 'Unexpected message received: ' . message
+                        let warn = 'Unexpected event received: ' . event
                         call vimqq#log#warning(warn)
                     endif
                 catch
-                    let warn = 'Unexpected message received: ' . message
+                    let warn = 'Unexpected event received: ' . event
                     call vimqq#log#warning(warn)
                 endtry
                 continue
             endif
-            let json_string = substitute(message, '^data: ', '', '')
-            call vimqq#log#debug('reply: ' . json_string)
+            let json_string = substitute(event, '^data: ', '', '')
             let response = json_decode(json_string)
 
             if response['type'] ==# 'message_start'
-                " Here we get usage for input tokens
-                call vimqq#log#debug('usage: ' . string(response.message.usage))
                 let self._usage = vimqq#util#merge(self._usage, response.message.usage)
                 let self._last_turn_usage = response.message.usage
                 continue
             endif
 
             if response['type'] ==# 'content_block_start'
-                if response['content_block']['type'] ==# 'tool_use'
-                    let tool_name = response['content_block']['name']
-                    let tool_id = response['content_block']['id']
-                    let self._tool_uses[a:req_id] = {
-                        \ 'name': tool_name,
-                        \ 'input': '',
-                        \ 'id': tool_id 
-                    \ }
-                endif
+                call builder.content_block_start(response['index'], response['content_block'])
+                continue
             endif
             
-            " This is where we distinguish text, tool calls and thinking
             if response['type'] ==# 'content_block_delta'
-                if response['delta']['type'] ==# 'text_delta'
-                    let chunk = response.delta.text
-                    call a:params.on_chunk(a:params, chunk)
-                endif
-                if response['delta']['type'] ==# 'input_json_delta'
-                    let chunk = response.delta.partial_json
-                    let self._tool_uses[a:req_id]['input'] .= chunk
-                endif
-                if response['delta']['type'] ==# 'thinking_delta'
-                    let chunk = response.delta.thinking
-                    call vimqq#log#debug('thinking: ' . chunk)
-                endif
+                call builder.content_block_delta(response['index'], response['delta'])
+                continue
+            endif
+
+            if response['type'] ==# 'content_block_stop'
+                call builder.content_block_stop(response['index'])
+                continue
             endif
 
             if response['type'] ==# 'message_delta'
@@ -150,16 +126,11 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                 let out_tokens = get(self._usage, 'output_tokens', 0)
 
                 call SysMessage('info', 'Conversation: in = ' . in_tokens . ', out = ' . out_tokens)
-                if response['delta']['stop_reason'] ==# 'tool_use'
-                    let self._tool_uses[a:req_id]['input'] = json_decode(self._tool_uses[a:req_id]['input'])
-                    call a:params.on_tool_use(self._tool_uses[a:req_id])
-                endif
                 continue
             endif
 
             if response['type'] ==# 'message_stop'
-                " First param is 'error'
-                call a:params.on_complete(v:null, a:params)
+                call builder.message_stop()
                 continue
             endif
         endfor
@@ -245,16 +216,18 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
         let self._replies[req_id] = []
         let self._tool_uses[req_id] = []
 
+        let self._builders[req_id] = vimqq#msg_builder#new(params).set_role('assistant')
+
         if req.stream
             let job_conf = {
-            \   'out_cb': {channel, msg -> self._on_stream_out(msg, params, req_id)},
-            \   'err_cb': {channel, msg -> self._on_error(msg, params)},
+            \   'out_cb': {channel, d -> self._on_stream_out(d, params, req_id)},
+            \   'err_cb': {channel, d -> self._on_error(d, params)},
             \   'close_cb': {channel -> self._on_stream_close(params)},
             \ }
         else
             let job_conf = {
-            \   'out_cb': {channel, msg -> self._on_out(msg, params, req_id)},
-            \   'err_cb': {channel, msg -> self._on_error(msg, params, req_id)},
+            \   'out_cb': {channel, d -> self._on_out(d, params, req_id)},
+            \   'err_cb': {channel, d -> self._on_error(d, params, req_id)},
             \   'close_cb': {channel -> self._on_close(params, req_id)}
             \ }
         endif

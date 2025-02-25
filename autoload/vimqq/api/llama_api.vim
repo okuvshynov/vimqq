@@ -123,8 +123,6 @@ function! vimqq#api#llama_api#new(conf) abort
         "   content : [{type: text, text: 'hello'}] format
         if self._jinja
             for message in req.messages
-                let mstr = string(message)
-                call vimqq#log#debug('!!! ' . mstr[0:200])
                 if type(message.content) == type([])
                     try
                         let content = message.content[0]

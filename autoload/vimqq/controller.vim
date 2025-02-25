@@ -122,7 +122,8 @@ function! vimqq#controller#new() abort
                 call bot.send_gen_title(chat_id, self.db.get_first_message(chat_id))
             endif
 
-            " Getting here means 'conversation turn end'
+            " Getting here means 'conversation turn end', input back to user
+            " test/benchmark only behavior
             if s:vqq_dbg_exit_on_turn_end && turn_end
                 cquit 0
             endif
