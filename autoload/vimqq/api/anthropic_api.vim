@@ -27,6 +27,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
     let api._req_id = 0
     let api._replies = {}
     let api._tool_uses = {}
+    let api._thinking = {}
     let api._api_key = g:vqq_claude_api_key
     let api._usage = {}
     let api._last_turn_usage = {}
@@ -41,6 +42,20 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
         " Still need to close in case of error?
     endfunction
 
+    " Expected streamed event sequence (with occasional pings):
+    "  - message_start (includes current input token usage)
+    "     - content_block_start (a single piece of content, can be text,
+    "       tool_use, thinking or redacted_thinking
+    "       - content_block_delta. Can be text_delta, input_json_delta (for tools)
+    "         or thinking_delta. redacted_thinking doesn't have any deltas and will
+    "         be passed as data within content_block_start message
+    "       - ...
+    "     - content_block_stop
+    "     - ...
+    "  - message_delta (can be end_turn or tool use). Includes output token
+    "    usage.
+    "  - message_stop
+    "       
     function! api._on_stream_out(msg, params, req_id) dict
         let messages = split(a:msg, '\n')
         let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
@@ -80,6 +95,14 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
             call vimqq#log#debug('reply: ' . json_string)
             let response = json_decode(json_string)
 
+            if response['type'] ==# 'message_start'
+                " Here we get usage for input tokens
+                call vimqq#log#debug('usage: ' . string(response.message.usage))
+                let self._usage = vimqq#util#merge(self._usage, response.message.usage)
+                let self._last_turn_usage = response.message.usage
+                continue
+            endif
+
             if response['type'] ==# 'content_block_start'
                 if response['content_block']['type'] ==# 'tool_use'
                     let tool_name = response['content_block']['name']
@@ -91,20 +114,23 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                     \ }
                 endif
             endif
-
-            if response['type'] ==# 'message_start'
-                " Here we get usage for input tokens
-                call vimqq#log#debug('usage: ' . string(response.message.usage))
-                let self._usage = vimqq#util#merge(self._usage, response.message.usage)
-                let self._last_turn_usage = response.message.usage
-
-                continue
+            
+            " This is where we distinguish text, tool calls and thinking
+            if response['type'] ==# 'content_block_delta'
+                if response['delta']['type'] ==# 'text_delta'
+                    let chunk = response.delta.text
+                    call a:params.on_chunk(a:params, chunk)
+                endif
+                if response['delta']['type'] ==# 'input_json_delta'
+                    let chunk = response.delta.partial_json
+                    let self._tool_uses[a:req_id]['input'] .= chunk
+                endif
+                if response['delta']['type'] ==# 'thinking_delta'
+                    let chunk = response.delta.thinking
+                    call vimqq#log#debug('thinking: ' . chunk)
+                endif
             endif
-            if response['type'] ==# 'message_stop'
-                " First param is 'error'
-                call a:params.on_complete(v:null, a:params)
-                continue
-            endif
+
             if response['type'] ==# 'message_delta'
                 " Here we get usage for output
                 call vimqq#log#debug('usage: ' . string(response.usage))
@@ -130,15 +156,11 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                 endif
                 continue
             endif
-            if response['type'] ==# 'content_block_delta'
-                if response['delta']['type'] ==# 'text_delta'
-                    let chunk = response.delta.text
-                    call a:params.on_chunk(a:params, chunk)
-                endif
-                if response['delta']['type'] ==# 'input_json_delta'
-                    let chunk = response.delta.partial_json
-                    let self._tool_uses[a:req_id]['input'] .= chunk
-                endif
+
+            if response['type'] ==# 'message_stop'
+                " First param is 'error'
+                call a:params.on_complete(v:null, a:params)
+                continue
             endif
         endfor
     endfunction
@@ -196,7 +218,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
         \   'model': params.model,
         \   'max_tokens' : get(params, 'max_tokens', 1024),
         \   'stream': get(params, 'stream', v:false),
-        \   'tools': self.adapt_tool_def(get(params, 'tools', []))
+        \   'tools': self.adapt_tool_def(tools)
         \}
 
         let first_message_json = json_encode(messages[0])
@@ -206,6 +228,16 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
 
         if system_msg isnot v:null
             let req['system'] = system_msg
+        endif
+
+        if has_key(params, 'thinking_tokens')
+            let tokens = params['thinking_tokens']
+            if has_key(params, 'on_sys_msg')
+                call params.on_sys_msg(
+                    \ 'info',
+                    \ 'ON: extended thinking with ' . tokens . ' token budget')
+            endif
+            let req['thinking'] = {'type': 'enabled', 'budget_tokens': tokens}
         endif
 
         let req_id = self._req_id

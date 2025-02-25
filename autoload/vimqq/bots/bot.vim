@@ -6,6 +6,7 @@ let g:autoloaded_vimqq_bot_module = 1
 let s:DEFAULT_CONF = {
     \ 'title_tokens'  : 32,
     \ 'max_tokens'    : 1024,
+    \ 'thinking_tokens' : 0,
     \ 'bot_name'      : 'ai',
     \ 'system_prompt' : 'You are a helpful assistant.',
     \ 'warmup_on_typing'   : v:false,
@@ -81,6 +82,10 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         if has_key(a:chat, 'tools_allowed')
             let req['tools'] = a:chat.toolset
             let req['on_tool_use'] = {tool_call -> vimqq#events#notify('tool_use_recv', {'chat_id': chat_id, 'tool_use': tool_call})}
+        endif
+
+        if get(self._conf, 'thinking_tokens', 0) > 0
+            let req['thinking_tokens'] = self._conf['thinking_tokens']
         endif
 
         return self._impl.chat(req)
