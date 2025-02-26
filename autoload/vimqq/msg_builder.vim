@@ -200,10 +200,15 @@ function! vimqq#msg_builder#new(params) abort
             endif
             call self.on_tool_use(content)
         endif
+
+        if content.type ==# 'redacted_thinking'
+            " TODO: do we need to do anything here?
+            " Not for anthropic
+        endif
     endfunction
 
     function! builder.message_stop() dict
-        call self.on_complete(v:null, self.params)
+        call self.on_complete(v:null, self.params, self.msg)
     endfunction
 
     " """"""""""""""""""""""""""""""""""""""""""""""""""""

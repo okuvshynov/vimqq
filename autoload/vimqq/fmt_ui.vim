@@ -65,7 +65,11 @@ function! vimqq#fmt_ui#for_ui(message) abort
 endfunction
 
 function! vimqq#fmt_ui#ui(message) abort
-    let msg = vimqq#fmt_ui#for_ui(a:message)
+    if has_key(a:message, 'v2')
+        let msg = vimqq#msg_render#render(a:message)
+    else
+        let msg = vimqq#fmt_ui#for_ui(a:message)
+    endif
     let tstamp = "        "
     if has_key(msg, 'timestamp')
         let tstamp = strftime(s:TIME_FORMAT . " ", msg['timestamp'])

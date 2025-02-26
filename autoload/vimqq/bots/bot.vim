@@ -69,13 +69,17 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
     function! bot.send_chat(chat, stream=v:true) dict
         let chat_id = a:chat.id
 
+        " This is request we send to API layer. APIs implementation (e.g.
+        " anthropic, llama.cpp, deepseek, together.ai, etc) will reformat
+        " our internal message formatting according to API rules.
+        " The result will be provided through callbacks.
         let req = {
         \   'messages' : self._format(a:chat.messages),
         \   'max_tokens' : self._conf.max_tokens,
         \   'model' : self._conf.model,
         \   'stream' : a:stream,
         \   'on_chunk' : {p, m -> vimqq#events#notify('chunk_done', {'chat_id': chat_id, 'chunk': m})},
-        \   'on_complete' : {err, p -> vimqq#events#notify('reply_done', {'chat_id': chat_id, 'bot' : self})},
+        \   'on_complete' : {err, p, m -> vimqq#events#notify('reply_done', {'chat_id': chat_id, 'bot' : self, 'msg' : m})},
         \   'on_sys_msg' : {lvl, msg -> vimqq#sys_msg#log(lvl, chat_id, msg)}
         \ }
 

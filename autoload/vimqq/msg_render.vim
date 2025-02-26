@@ -59,11 +59,19 @@ endfunction
 " Currently there are two situations we need to handle:
 " 1. It is one or more tool results
 " 2. It is a single text (user input + context)
+" These situations are mutually exclusive currently.
 function! s:render_user(msg) abort
     if s:is_tool_result(a:msg)
         return s:render_tool_results(a:msg)
     endif
 
+    " TODO: this needs to be done just once.
+    " otherwise, if prompt changes, we will
+    " show/send different message, and that will mess up
+    " entire conversation
+    "
+    " Instead, we should just have 2 versions of text
+    " stored inside the message - one for ui and one for wire.
     let prompt = vimqq#prompts#pick(a:msg, v:true)
     let text = vimqq#prompts#apply(a:msg, prompt)
     return {
@@ -93,7 +101,7 @@ function! s:render_assistant(msg) abort
     endfor
     return {
         \ 'timestamp' : a:msg['timestamp'],
-        \ 'author'    : a:msg['bot_name'],
+        \ 'author'    : a:msg['bot_name'] . ': ',
         \ 'text'      : join(res, "\n")
     \ }
 endfunction

@@ -259,8 +259,14 @@ function! vimqq#db#new(db_file) abort
                 call vimqq#log#warning('reply completed for non-existing (likely deleted) chat.')
                 return
             endif
-            call self.partial_done(a:args['chat_id'])
-            call vimqq#events#notify('reply_saved', {'chat_id': a:args['chat_id'], 'bot': a:args['bot']})
+            let chat_id = a:args['chat_id']
+            let msg = a:args['msg']
+            let msg.seq_id = self._chats[chat_id].partial_message.seq_id_first
+            let msg.bot_name = a:args['bot'].name()
+            call self.append_message(chat_id, msg)
+            call self.clear_partial(chat_id)
+            call self._save()
+            call vimqq#events#notify('reply_saved', {'chat_id': chat_id, 'bot': a:args['bot']})
             return
         endif
         if a:event ==# 'title_done'
