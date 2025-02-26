@@ -208,14 +208,6 @@ function! vimqq#db#new(db_file) abort
         call self._save()
     endfunction
 
-    function! db.partial_done(chat_id) dict
-        let message = deepcopy(self._chats[a:chat_id].partial_message)
-        let message.seq_id = message.seq_id_first
-        call self.append_message(a:chat_id, message)
-        call self.clear_partial(a:chat_id)
-        call self._save()
-    endfunction
-
     function! db.new_chat() dict
         let chat = {}
         let chat.id = self.seq_id()
@@ -263,10 +255,10 @@ function! vimqq#db#new(db_file) abort
             let msg = a:args['msg']
             let msg.seq_id = self._chats[chat_id].partial_message.seq_id_first
             let msg.bot_name = a:args['bot'].name()
-            call self.append_message(chat_id, msg)
+            let msg2 = self.append_message(chat_id, msg)
             call self.clear_partial(chat_id)
             call self._save()
-            call vimqq#events#notify('reply_saved', {'chat_id': chat_id, 'bot': a:args['bot']})
+            call vimqq#events#notify('reply_saved', {'chat_id': chat_id, 'bot': a:args['bot'], 'msg': msg2})
             return
         endif
         if a:event ==# 'title_done'

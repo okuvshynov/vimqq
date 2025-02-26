@@ -93,7 +93,7 @@ function! s:render_assistant(msg) abort
             call add(res, vimqq#tools#toolset#format(content))
         endif
         if content.type ==# 'thinking'
-            call add(res, "\n\n{{{ [thinking]\n" content.thinking "\n}}}")
+            call add(res, "\n\n{{{ [thinking]\n" . content.thinking . "\n}}}")
         endif
         if content.type ==# 'redacted_thinking'
             call add(res, "\n\n[hidden thinking]\n")

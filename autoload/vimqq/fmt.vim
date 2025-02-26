@@ -9,8 +9,15 @@ function! s:message_text(message) abort
     return vimqq#prompts#apply(a:message, prompt)
 endfunction
 
+function! vimqq#fmt#v2(message) abort
+    return deepcopy(a:message)
+endfunction
+
 " public only for tests
 function! vimqq#fmt#for_wire(message) abort
+    if has_key(a:message, 'v2')
+        return vimqq#fmt#v2(a:message)
+    endif
     let new_msg = deepcopy(a:message)
 
     " check if this is tool response

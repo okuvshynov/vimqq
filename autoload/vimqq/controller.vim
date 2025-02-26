@@ -58,18 +58,8 @@ function! vimqq#controller#new() abort
         return v:false
     endfunction
 
-    function! controller.on_tool_result(bot, tool_use_id, tool_result, chat_id) dict
-        let tool_reply = {
-        \   "role": "user", 
-        \   "content" : [{
-        \       "type": "tool_result",
-        \       "tool_use_id": a:tool_use_id,
-        \       "content": a:tool_result
-        \   }],
-        \   "bot_name": a:bot.name()
-        \ }
-
-        if self.run_query(a:chat_id, a:bot, tool_reply)
+    function! controller.on_tool_result(bot, tool_result, chat_id) dict
+        if self.run_query(a:chat_id, a:bot, a:tool_result)
             call self.show_chat(a:chat_id)
         endif
 
@@ -93,6 +83,7 @@ function! vimqq#controller#new() abort
         if a:event ==# 'reply_saved'
             let chat_id = a:args['chat_id']
             let bot = a:args['bot']
+            let saved_msg = a:args['msg']
             
             call self.show_chat(chat_id)
             if has_key(self._in_flight, chat_id)
@@ -103,17 +94,10 @@ function! vimqq#controller#new() abort
 
             let turn_end = v:true
             
-            let messages = self.db.get_messages(chat_id)
-            if len(messages) > 0 
-                let last_message = messages[len(messages) - 1]
-                if has_key(last_message, 'tool_use') 
-                    let tool_use_id = last_message.tool_use['id']
-                    let turn_end = v:false
-                    call self.toolset.run_async(
-                        \ last_message.tool_use,
-                        \ {res -> self.on_tool_result(bot, tool_use_id, res, chat_id)}
-                    \ )
-                endif
+            " check if we need to call tools
+            let builder = vimqq#msg_builder#new({}).set_role('user').set_bot_name(bot.name())
+            if self.toolset.run(saved_msg, builder, {m -> self.on_tool_result(bot, m, chat_id)})
+                let turn_end = v:false
             endif
     
             if !self.db.has_title(chat_id)

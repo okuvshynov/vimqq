@@ -182,7 +182,7 @@ function! vimqq#msg_builder#new(params) abort
         else
             let content['thinking'] .= a:delta
         endif
-        call self.on_thinking(a:delta)
+        call self.on_thinking(self.params, a:delta)
     endfunction
 
     " individual piece of content is complete
@@ -197,6 +197,7 @@ function! vimqq#msg_builder#new(params) abort
         if content.type ==# 'tool_use'
             if has_key(content, 'input_part')
                 let content.input = json_decode(content.input_part)
+                unlet content.input_part
             endif
             call self.on_tool_use(content)
         endif
@@ -213,6 +214,9 @@ function! vimqq#msg_builder#new(params) abort
 
     " """"""""""""""""""""""""""""""""""""""""""""""""""""
     " non-streaming API built on top of streaming API
+    function! builder.tool_result(content) dict
+        call add(self.msg.content, a:content)
+    endfunction
 
     return builder
 endfunction

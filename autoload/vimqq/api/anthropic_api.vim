@@ -206,7 +206,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
             if has_key(params, 'on_sys_msg')
                 call params.on_sys_msg(
                     \ 'info',
-                    \ 'ON: extended thinking with ' . tokens . ' token budget')
+                    \ 'extended thinking with ' . tokens . ' token budget: ON')
             endif
             let req['thinking'] = {'type': 'enabled', 'budget_tokens': tokens}
         endif
