@@ -155,13 +155,9 @@ function! vimqq#controller#new() abort
 
         let [bot, question] = self.bots.select(a:question, current_bot)
 
-        let message = {
-              \ "role"     : 'user',
-              \ "sources"  : { "text": question },
-              \ "bot_name" : bot.name()
-        \ }
-
-        let message = vimqq#msg_sources#fill(message, a:context, a:use_index)
+        let builder = vimqq#msg_builder#new({})
+        let builder = builder.set_role('user').set_bot_name(bot.name())
+        let builder = builder.set_sources(question, a:context, a:use_index)
 
         let chat_id = self.state.pick_chat_id(a:force_new_chat)
 
@@ -169,7 +165,7 @@ function! vimqq#controller#new() abort
             call self.db.set_tools(chat_id, self.toolset.def())
         endif
 
-        if self.run_query(chat_id, bot, message)
+        if self.run_query(chat_id, bot, builder.msg)
             call self.show_chat(chat_id)
         endif
 
@@ -178,20 +174,16 @@ function! vimqq#controller#new() abort
 
     function! controller.send_warmup(force_new_chat, question, context) dict
         let [bot, question] = self.bots.select(a:question)
-        let message = {
-              \ "role"     : 'user',
-              \ "sources"  : { "text": question },
-              \ "bot_name" : bot.name()
-        \ }
-
-        let message = vimqq#msg_sources#fill(message, a:context, v:false)
+        let builder = vimqq#msg_builder#new({})
+        let builder = builder.set_role('user').set_bot_name(bot.name())
+        let builder = builder.set_sources(question, a:context, v:false)
 
         let chat_id = self.state.get_chat_id()
 
         if chat_id >= 0 && !a:force_new_chat
-            let messages = self.db.get_messages(chat_id) + [message]
+            let messages = self.db.get_messages(chat_id) + [builder.msg]
         else
-            let messages = [message]
+            let messages = [builder.msg]
         endif
 
         call vimqq#log#debug('Sending warmup with message of ' . len(messages))

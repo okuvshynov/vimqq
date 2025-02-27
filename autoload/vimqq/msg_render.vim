@@ -76,7 +76,7 @@ function! s:render_user(msg) abort
     let text = vimqq#prompts#apply(a:msg, prompt)
     return {
         \ 'timestamp' : a:msg['timestamp'],
-        \ 'author'    : 'You: @' . a:msg['bot_name'],
+        \ 'author'    : 'You: @' . a:msg['bot_name'] . ' ',
         \ 'text'      : text
     \ }
 endfunction

@@ -84,6 +84,9 @@ function! vimqq#msg_builder#new(params) abort
 
     " this is currently 'visual selection'
     function! builder.set_src_context(context) dict
+        if a:context is v:null
+            return self
+        endif
         call assert_true(
             \ type(a:context) == type(""),
             \ "context must be a string, found type " . type(a:context)
@@ -98,6 +101,18 @@ function! vimqq#msg_builder#new(params) abort
             \ "index must be a string, found type " . type(a:index)
         \ )
         let self.msg.sources.index = a:index
+        return self
+    endfunction
+
+    function! builder.set_sources(question, context, use_index)
+        call self.set_src_text(a:question)
+        call self.set_src_context(a:context)
+        if a:use_index
+           call self.set_src_index(vimqq#lucas#load())
+        endif
+        let prompt = vimqq#prompts#pick(self.msg, v:false)
+        let text = vimqq#prompts#apply(self.msg, prompt)
+        call self.add_content({'type': 'text', 'text': text})
         return self
     endfunction
 

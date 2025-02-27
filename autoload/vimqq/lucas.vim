@@ -1,8 +1,8 @@
-if exists('g:autoloaded_vimqq_msg_sources')
+if exists('g:autoloaded_vimqq_lucas')
     finish
 endif
 
-let g:autoloaded_vimqq_msg_sources = 1
+let g:autoloaded_vimqq_lucas = 1
 
 function! s:load_index_lines()
     let current_dir = expand('%:p:h')
@@ -43,21 +43,12 @@ function! s:prepare_index_lines()
     return res
 endfunction
 
-" Fill sources (index, selection) into message object
-function! vimqq#msg_sources#fill(message, context, use_index)
-    let message = deepcopy(a:message)
-
-    if a:context isnot v:null
-        let message.sources.context = a:context
+function! vimqq#lucas#load()
+    let index_lines = s:prepare_index_lines()
+    if index_lines isnot v:null
+        return join(index_lines, "\n")
     endif
-    if a:use_index
-        let index_lines = s:prepare_index_lines()
-        if index_lines isnot v:null
-            let message.sources.index = join(index_lines, "\n")
-        else
-            call vimqq#log#error('Unable to locate lucas.idx file')
-        endif
-    endif
-    return message
+    call vimqq#log#error('Unable to locate lucas.idx file')
+    return v:null
 endfunction
 
