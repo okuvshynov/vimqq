@@ -12,8 +12,10 @@ function! s:max_seq_id(chat)
     if has_key(a:chat, 'seq_id')
         let res = max([res, a:chat.seq_id])
     endif
-    if has_key(a:chat.partial_message, 'seq_id')
-        let res = max([res, a:chat.partial_message.seq_id])
+    if has_key(a:chat, 'partial_message')
+        if has_key(a:chat.partial_message, 'seq_id')
+            let res = max([res, a:chat.partial_message.seq_id])
+        endif
     endif
     for message in a:chat.messages
         if has_key(message, 'seq_id')
@@ -71,13 +73,6 @@ function! vimqq#db#new(db_file) abort
             let self._chats[a:chat_id].partial_message.seq_id_first = self._chats[a:chat_id].partial_message.seq_id
         endif
 
-        call self._save()
-    endfunction
-
-
-    function! db.append_partial_tool_use(chat_id, tool_use) dict
-        let self._chats[a:chat_id].partial_message.tool_use = a:tool_use
-        let self._chats[a:chat_id].partial_message.seq_id = self.seq_id()
         call self._save()
     endfunction
 
@@ -195,17 +190,13 @@ function! vimqq#db#new(db_file) abort
     endfunction
 
     function! db.get_partial(chat_id) dict
-        return self._chats[a:chat_id].partial_message
+        return get(self._chats[a:chat_id], 'partial_message', v:null)
     endfunction
 
     function! db.clear_partial(chat_id) dict
-        let self._chats[a:chat_id].partial_message = {"role": "assistant", "sources": { "text": ""}}
-        call self._save()
-    endfunction
-
-    function! db.reset_partial(chat_id, bot_name) dict
-        let self._chats[a:chat_id].partial_message = {"role": "assistant", "sources": { "text": ""}, "bot_name": a:bot_name, "timestamp": localtime()}
-        call self._save()
+        if has_key(self._chats[a:chat_id], 'partial_message')
+            unlet self._chats[a:chat_id]['partial_message']
+        endif
     endfunction
 
     function! db.new_chat() dict
@@ -218,7 +209,6 @@ function! vimqq#db#new(db_file) abort
         let chat.seq_id = chat.id
 
         let self._chats[chat.id] = chat
-        call self.clear_partial(chat.id)
 
         call self._save()
 
@@ -226,24 +216,30 @@ function! vimqq#db#new(db_file) abort
     endfunction
 
     function! db.handle_event(event, args) dict
-        if a:event ==# 'tool_use_recv'
-            if !self.chat_exists(a:args['chat_id'])
-                call vimqq#log#warning("callback on non-existent chat.")
-                return
-            endif
-            call self.append_partial_tool_use(a:args['chat_id'], a:args['tool_use'])
-            return
-        endif
         if a:event ==# 'chunk_done'
             if !self.chat_exists(a:args['chat_id'])
                 call vimqq#log#warning("callback on non-existent chat.")
                 return
             endif
-            if empty(self.get_partial(a:args['chat_id']).sources.text)
-                call vimqq#metrics#first_token(a:args['chat_id'])
+            let chat_id = a:args['chat_id']
+            let chat = self._chats[chat_id]
+            let first = v:false
+            if !has_key(chat, 'partial_message')
+                let first = v:true
+                call vimqq#metrics#first_token(chat_id)
+                let chat['partial_message'] = a:args['builder'].msg
             endif
-            call self.append_partial(a:args['chat_id'], a:args['chunk'])
-            call vimqq#events#notify('chunk_saved', a:args)
+            let chat.partial_message.bot_name = a:args['bot'].name()
+            let chat.partial_message.seq_id = self.seq_id()
+            if !has_key(chat.partial_message, 'seq_id_first')
+                let chat.partial_message.seq_id_first = chat.partial_message.seq_id
+            endif
+            call self._save()
+            if first
+                call vimqq#events#notify('reply_started', a:args)
+            else
+                call vimqq#events#notify('chunk_saved', a:args)
+            endif
             return
         endif
         if a:event ==# 'reply_done'

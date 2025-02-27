@@ -78,14 +78,13 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         \   'max_tokens' : self._conf.max_tokens,
         \   'model' : self._conf.model,
         \   'stream' : a:stream,
-        \   'on_chunk' : {p, m -> vimqq#events#notify('chunk_done', {'chat_id': chat_id, 'chunk': m})},
+        \   'on_chunk' : {p, m -> vimqq#events#notify('chunk_done', {'chat_id': chat_id, 'chunk': m, 'builder': p._builder, 'bot': self})},
         \   'on_complete' : {err, p, m -> vimqq#events#notify('reply_done', {'chat_id': chat_id, 'bot' : self, 'msg' : m})},
         \   'on_sys_msg' : {lvl, msg -> vimqq#sys_msg#log(lvl, chat_id, msg)}
         \ }
 
         if has_key(a:chat, 'tools_allowed')
             let req['tools'] = a:chat.toolset
-            let req['on_tool_use'] = {tool_call -> vimqq#events#notify('tool_use_recv', {'chat_id': chat_id, 'tool_use': tool_call})}
         endif
 
         if get(self._conf, 'thinking_tokens', 0) > 0

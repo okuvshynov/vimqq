@@ -26,8 +26,6 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
     let api._base_url = get(a:conf, 'base_url', 'https://api.anthropic.com')
     let api._req_id = 0
     let api._replies = {}
-    let api._tool_uses = {}
-    let api._thinking = {}
     let api._api_key = g:vqq_claude_api_key
     " TODO: !! this is wrong needs to be per request
     let api._usage = {}
@@ -214,7 +212,6 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
         let req_id = self._req_id
         let self._req_id = self._req_id + 1
         let self._replies[req_id] = []
-        let self._tool_uses[req_id] = []
 
         let self._builders[req_id] = vimqq#msg_builder#new(params).set_role('assistant')
 

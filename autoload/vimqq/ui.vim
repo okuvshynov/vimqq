@@ -91,7 +91,15 @@ function vimqq#ui#new() abort
     endfunction
 
     function! ui._append_message(message) dict
-        let lines = vimqq#fmt_ui#ui(a:message)
+        let TIME_FORMAT = "%H:%M"
+        let tstamp = "        "
+        let rendered = vimqq#msg_render#render(a:message)
+
+        if has_key(rendered, 'timestamp')
+            let tstamp = strftime(TIME_FORMAT . " ", rendered['timestamp'])
+        endif
+        let prompt = tstamp . rendered['author']
+        let lines = split(prompt . rendered['text'], '\n')
         setlocal modifiable
         for l in lines
             if line('$') == 1 && getline(1) ==# ''
@@ -188,8 +196,10 @@ function vimqq#ui#new() abort
         endfor
 
         " display streamed partial response
-        if has_key(a:partial, 'bot_name') && !empty(a:partial.bot_name)
-            call self._append_message(a:partial)
+        if a:partial isnot v:null
+            if has_key(a:partial, 'bot_name') && !empty(a:partial.bot_name)
+                call self._append_message(a:partial)
+            endif
         endif
     endfunction
 

@@ -47,7 +47,6 @@ function! vimqq#controller#new() abort
         call vimqq#metrics#user_started_waiting(a:chat_id)
         " timestamp and other metadata might get appended here
         call self.db.append_message(a:chat_id, a:message)
-        call self.db.reset_partial(a:chat_id, a:bot.name())
         let chat = self.db.get_chat(a:chat_id)
         if a:bot.send_chat(chat)
             let self._in_flight[a:chat_id] = v:true
@@ -70,6 +69,13 @@ function! vimqq#controller#new() abort
         if a:event ==# 'chat_selected'
             call self.show_chat(a:args['chat_id'])
             return
+        endif
+
+        if a:event ==# 'reply_started'
+            if a:args['chat_id'] ==# a:args['state'].get_chat_id()
+                call self.show_chat(a:args['chat_id'])
+                return
+            endif
         endif
 
         if a:event ==# 'system_message'

@@ -6,7 +6,6 @@ let g:autoloaded_vimqq_msg_builder = 1
 
 " what kind of callbacks we expect? All are optional
 " - on_sys_msg
-" - on_tool_use
 " - on_chunk
 " - on_complete
 " - on_thinking
@@ -14,8 +13,7 @@ function! vimqq#msg_builder#new(params) abort
     let builder = {}
     " sys message to show in chat
     let builder.on_sys_msg  = get(a:params, 'on_sys_msg' , {l, m -> 0})
-    " this is complete tool use piece of content
-    let builder.on_tool_use = get(a:params, 'on_tool_use', {t -> 0})
+
     " this is text delta
     let builder.on_chunk    = get(a:params, 'on_chunk'   , {p, c -> 0})
 
@@ -25,6 +23,8 @@ function! vimqq#msg_builder#new(params) abort
     let builder.on_complete = get(a:params, 'on_complete', {e, p -> 0})
 
     let builder.params = a:params
+
+    let builder.params._builder = builder
 
     let builder.msg = {}
 
@@ -214,7 +214,6 @@ function! vimqq#msg_builder#new(params) abort
                 let content.input = json_decode(content.input_part)
                 unlet content.input_part
             endif
-            call self.on_tool_use(content)
         endif
 
         if content.type ==# 'redacted_thinking'
