@@ -74,8 +74,10 @@ function! vimqq#controller#new() abort
 
         if a:event ==# 'system_message'
             let chat_id = a:args['chat_id']
-            let message = {'role': 'local', 'content' : a:args['content'], 'type': a:args['type']}
-            let message = self.db.append_message(chat_id, message)
+            let builder = vimqq#msg_builder#new({}).set_role('local')
+            let content = {'type': 'text', 'text' : a:args['text'], 'level': a:args['level']}
+            call builder.add_content(content)
+            call self.db.append_message(chat_id, builder.msg)
             call self.show_chat(chat_id)
             return
         endif

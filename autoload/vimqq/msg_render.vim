@@ -17,13 +17,13 @@ let s:TOOL_FOLD_LIMIT = 400
 function! s:render_local(msg) abort
     let text = ""
     for content in a:msg.content
-        if content.type ==# 'text'
+        if content['type'] ==# 'text'
             let text = text . content['text']
         endif
     endfor
     return { 
         \ 'timestamp' : a:msg['timestamp'],
-        \ 'author'    : get(a:msg, 'type', 'info') . ': ',
+        \ 'author'    : get(a:msg, 'level', 'info') . ': ',
         \ 'text'      : text
     \ }
 endfunction

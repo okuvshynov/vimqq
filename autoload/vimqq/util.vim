@@ -73,4 +73,3 @@ function! vimqq#util#has_python()
     
     return ''
 endfunction
-

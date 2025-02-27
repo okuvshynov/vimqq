@@ -218,5 +218,9 @@ function! vimqq#msg_builder#new(params) abort
         call add(self.msg.content, a:content)
     endfunction
 
+    function! builder.add_content(content) dict
+        call add(self.msg.content, a:content)
+    endfunction
+
     return builder
 endfunction
