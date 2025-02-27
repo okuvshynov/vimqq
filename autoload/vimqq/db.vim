@@ -66,16 +66,6 @@ function! vimqq#db#new(db_file) abort
         return self._seq_id
     endfunction
 
-    function! db.append_partial(chat_id, part) dict
-        let self._chats[a:chat_id].partial_message.sources.text .= a:part
-        let self._chats[a:chat_id].partial_message.seq_id = self.seq_id()
-        if !has_key(self._chats[a:chat_id].partial_message, 'seq_id_first')
-            let self._chats[a:chat_id].partial_message.seq_id_first = self._chats[a:chat_id].partial_message.seq_id
-        endif
-
-        call self._save()
-    endfunction
-
     function! db.set_tools(chat_id, toolset) dict
         let self._chats[a:chat_id].tools_allowed = v:true
         let self._chats[a:chat_id].toolset = a:toolset
