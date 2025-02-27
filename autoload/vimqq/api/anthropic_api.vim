@@ -7,18 +7,6 @@ let g:autoloaded_vimqq_api_anthropic_module = 1
 let g:vqq_claude_api_key = get(g:, 'vqq_claude_api_key', $ANTHROPIC_API_KEY)
 let g:vqq_claude_cache_above = get(g:, 'vqq_claude_cache_above', 5000)
 
-" Translates tool definition schema to Claude-compatible format
-" Public for unit testing
-function! vimqq#api#anthropic_api#to_claude(schema)
-    let fn = a:schema['function']
-    let res = {
-    \   'name': fn['name'],
-    \   'description' : fn['description'],
-    \   'input_schema' : fn['parameters']
-    \} 
-    return res
-endfunction
-
 " config is unused for now
 function! vimqq#api#anthropic_api#new(conf = {}) abort
     let api = {}
@@ -144,70 +132,32 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
         call builder.close()
     endfunction
 
-    function! api.adapt_tool_def(tools) dict
-        let res = []
-        for tool in a:tools
-            call add(res, vimqq#api#anthropic_api#to_claude(tool))
-        endfor
-        return res
-    endfunction
-
     function! api.chat(params) dict
-        let params = deepcopy(a:params)
-        let messages = params.messages
-        let tools = get(params, 'tools', [])
-        
-        let system_msg = v:null
-        if messages[0].role ==# 'system'
-            let system_msg = l:messages[0].content
-            call remove(messages, 0)
-        endif
-
-        let req = {
-        \   'messages' : messages,
-        \   'model': params.model,
-        \   'max_tokens' : get(params, 'max_tokens', 1024),
-        \   'stream': get(params, 'stream', v:false),
-        \   'tools': self.adapt_tool_def(tools)
-        \}
+        let req = vimqq#api#anthropic_adapter#run(a:params)
+        let messages = req.messages
 
         let first_message_json = json_encode(messages[0])
         if len(first_message_json) > g:vqq_claude_cache_above
             let req.messages[0]['content'][0]['cache_control'] = {"type": "ephemeral"}
         endif
 
-        if system_msg isnot v:null
-            let req['system'] = system_msg
-        endif
-
-        if has_key(params, 'thinking_tokens')
-            let tokens = params['thinking_tokens']
-            if has_key(params, 'on_sys_msg')
-                call params.on_sys_msg(
-                    \ 'info',
-                    \ 'extended thinking with ' . tokens . ' token budget: ON')
-            endif
-            let req['thinking'] = {'type': 'enabled', 'budget_tokens': tokens}
-        endif
-
         let req_id = self._req_id
         let self._req_id = self._req_id + 1
         let self._replies[req_id] = []
 
-
         if req.stream
-            let self._builders[req_id] = vimqq#msg_builder#streaming(params)
+            let self._builders[req_id] = vimqq#api#anthropic_builder#streaming(a:params)
             let job_conf = {
-            \   'out_cb': {channel, d -> self._on_stream_out(d, params, req_id)},
-            \   'err_cb': {channel, d -> self._on_error(d, params)},
-            \   'close_cb': {channel -> self._on_stream_close(params)},
+            \   'out_cb': {channel, d -> self._on_stream_out(d, a:params, req_id)},
+            \   'err_cb': {channel, d -> self._on_error(d, a:params)},
+            \   'close_cb': {channel -> self._on_stream_close(a:params)},
             \ }
         else
-            let self._builders[req_id] = vimqq#msg_builder#assistant(params)
+            let self._builders[req_id] = vimqq#api#anthropic_builder#plain(a:params)
             let job_conf = {
-            \   'out_cb': {channel, d -> self._on_out(d, params, req_id)},
-            \   'err_cb': {channel, d -> self._on_error(d, params)},
-            \   'close_cb': {channel -> self._on_close(params, req_id)}
+            \   'out_cb': {channel, d -> self._on_out(d, a:params, req_id)},
+            \   'err_cb': {channel, d -> self._on_error(d, a:params)},
+            \   'close_cb': {channel -> self._on_close(a:params, req_id)}
             \ }
         endif
 
