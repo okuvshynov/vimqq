@@ -64,8 +64,6 @@ function! vimqq#tools#toolset#new()
         let builder = a:reply_builder
         let OnComplete = a:callback
 
-        call vimqq#log#debug('tool_chain: ' . string(a:msg))
-
         for content in a:msg.content
             if content['type'] ==# 'tool_use'
                 let tool_uses = tool_uses + 1
@@ -75,12 +73,7 @@ function! vimqq#tools#toolset#new()
         let content = a:msg.content
 
         function! s:SaveResult(result, idx) closure
-            let content = {
-            \   'type' : 'tool_result',
-            \   'tool_use_id' : content[a:idx]['id'],
-            \   'content' : a:result
-            \ }
-            call builder.tool_result(content)
+            call builder.tool_result(content[a:idx]['id'], a:result)
             let completed = completed + 1
 
             if completed == tool_uses

@@ -135,32 +135,13 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
     endfunction
 
     function! api._on_out(msg, params, req_id) dict
-        if !has_key(self._replies, a:req_id)
-            call vimqq#log#error('anthropic: reply for non-existent request: ' . a:req_id)
-            return
-        endif
-        call add(self._replies[a:req_id], a:msg)
+        let builder = self._builders[a:req_id]
+        call builder.part(a:msg)
     endfunction
 
     function! api._on_close(params, req_id) dict
-        let response_str = join(self._replies[a:req_id], "\n")
-        let response = json_decode(response_str)
-        if has_key(response, 'content') && !empty(l:response.content) && has_key(l:response.content[0], 'text')
-            call vimqq#log#debug('usage: ' . string(response.usage))
-            let self._usage = vimqq#util#merge(self._usage, response.usage)
-            let message = l:response.content[0].text
-            if has_key(a:params, 'on_chunk')
-                call a:params.on_chunk(a:params, message)
-            endif
-            if has_key(a:params, 'on_complete')
-                call a:params.on_complete(v:null, a:params)
-            endif
-        else
-            call vimqq#log#error('Unable to process response')
-            call vimqq#log#error(response_str)
-            " TODO: still need to call on_complete with error?
-            call SysMessage('error', response_str)
-        endif
+        let builder = self._builders[a:req_id]
+        call builder.close()
     endfunction
 
     function! api.adapt_tool_def(tools) dict
@@ -213,18 +194,19 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
         let self._req_id = self._req_id + 1
         let self._replies[req_id] = []
 
-        let self._builders[req_id] = vimqq#msg_builder#new(params).set_role('assistant')
 
         if req.stream
+            let self._builders[req_id] = vimqq#msg_builder#streaming(params)
             let job_conf = {
             \   'out_cb': {channel, d -> self._on_stream_out(d, params, req_id)},
             \   'err_cb': {channel, d -> self._on_error(d, params)},
             \   'close_cb': {channel -> self._on_stream_close(params)},
             \ }
         else
+            let self._builders[req_id] = vimqq#msg_builder#assistant(params)
             let job_conf = {
             \   'out_cb': {channel, d -> self._on_out(d, params, req_id)},
-            \   'err_cb': {channel, d -> self._on_error(d, params, req_id)},
+            \   'err_cb': {channel, d -> self._on_error(d, params)},
             \   'close_cb': {channel -> self._on_close(params, req_id)}
             \ }
         endif

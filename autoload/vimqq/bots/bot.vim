@@ -38,11 +38,12 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
     endfunction
 
     function! bot.send_warmup(messages) dict
+        return
         let req = {
         \   'messages' : self._format(a:messages),
         \   'max_tokens' : 0,
         \   'model' : self._conf.model,
-        \   'on_complete' : {err, p -> self._on_warmup_complete(err, p)}
+        \   'on_complete' : {err, p, m -> self._on_warmup_complete(err, p)}
         \ }
         return self._impl.chat(req)
     endfunction
@@ -60,7 +61,7 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         \   'max_tokens' : self._conf.title_tokens,
         \   'model' : self._conf.model,
         \   'on_chunk' : {p, m -> vimqq#events#notify('title_done', {'chat_id' : a:chat_id, 'title': m})},
-        \   'on_complete': {err, p -> vimqq#log#debug('title complete')},
+        \   'on_complete': {err, p, m -> vimqq#log#debug('title complete')},
         \   'on_sys_msg' : {lvl, msg -> vimqq#sys_msg#log(lvl, chat_id, msg)}
         \ }
         return self._impl.chat(req)

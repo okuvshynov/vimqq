@@ -80,9 +80,7 @@ function! vimqq#controller#new() abort
 
         if a:event ==# 'system_message'
             let chat_id = a:args['chat_id']
-            let builder = vimqq#msg_builder#new({}).set_role('local')
-            let content = {'type': 'text', 'text' : a:args['text'], 'level': a:args['level']}
-            call builder.add_content(content)
+            let builder = vimqq#msg_builder#local().set_local(a:args['level'], a:args['text'])
             call self.db.append_message(chat_id, builder.msg)
             call self.show_chat(chat_id)
             return
@@ -103,7 +101,7 @@ function! vimqq#controller#new() abort
             let turn_end = v:true
             
             " check if we need to call tools
-            let builder = vimqq#msg_builder#new({}).set_role('user').set_bot_name(bot.name())
+            let builder = vimqq#msg_builder#tool().set_bot_name(bot.name())
             if self.toolset.run(saved_msg, builder, {m -> self.on_tool_result(bot, m, chat_id)})
                 let turn_end = v:false
             endif
@@ -161,8 +159,7 @@ function! vimqq#controller#new() abort
 
         let [bot, question] = self.bots.select(a:question, current_bot)
 
-        let builder = vimqq#msg_builder#new({})
-        let builder = builder.set_role('user').set_bot_name(bot.name())
+        let builder = vimqq#msg_builder#user().set_bot_name(bot.name())
         let builder = builder.set_sources(question, a:context, a:use_index)
 
         let chat_id = self.state.pick_chat_id(a:force_new_chat)
@@ -180,8 +177,7 @@ function! vimqq#controller#new() abort
 
     function! controller.send_warmup(force_new_chat, question, context) dict
         let [bot, question] = self.bots.select(a:question)
-        let builder = vimqq#msg_builder#new({})
-        let builder = builder.set_role('user').set_bot_name(bot.name())
+        let builder = vimqq#msg_builder#user().set_bot_name(bot.name())
         let builder = builder.set_sources(question, a:context, v:false)
 
         let chat_id = self.state.get_chat_id()
