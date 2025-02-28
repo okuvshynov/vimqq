@@ -1,0 +1,75 @@
+if exists('g:autoloaded_vimqq_llama_cpp_builder')
+    finish
+endif
+
+let g:autoloaded_vimqq_llama_cpp_builder = 1
+
+" No tool calling + streaming at the moment
+function! vimqq#api#llama_cpp_builder#streaming(params) abort
+    let builder = vimqq#msg_builder#new(a:params).set_role('assistant')
+
+    function! builder.append_text(text) dict
+        if len(self.msg.content) == 0
+            let self.msg.content = [{'type': 'text', 'text': ''}]
+        endif
+        let self.msg.content[0].text = self.msg.content[0].text . a:text
+    endfunction
+
+    function! builder.delta(response) dict
+        if has_key(a:response.choices[0].delta, 'content')
+            let chunk = a:response.choices[0].delta.content
+            call self.append_text(chunk)
+            call self.on_chunk(self.params, chunk)
+        endif
+    endfunction
+
+    function! builder.message_stop() dict
+        call self.on_complete(v:null, self.params, self.msg)
+    endfunction
+
+    return builder
+endfunction
+
+function! vimqq#api#llama_cpp_builder#plain(params) abort
+    let builder = vimqq#msg_builder#new(a:params).set_role('assistant')
+
+    let builder.parts = []
+
+    function! builder.append_text(text) dict
+        if len(self.msg.content) == 0
+            let self.msg.content = [{'type': 'text', 'text': ''}]
+        endif
+        let self.msg.content[0].text = self.msg.content[0].text . a:text
+    endfunction
+
+    function! builder.part(part) dict
+        call add(self.parts, a:part)
+    endfunction
+
+    function! builder.close() dict
+        let parsed = json_decode(join(self.parts, "\n"))
+        let message = parsed.choices[0].message
+        if has_key(message, 'content')
+            call self.append_text(message.content)
+            call self.on_chunk(self.params, message.content)
+        endif
+        if has_key(message, 'tool_calls')
+            if message.tool_calls isnot v:null
+                for tool_call in message.tool_calls
+                    let function_call = tool_calls.function
+                    let content = {
+                                \ 'type' : 'tool_use',
+                                \ 'input' : json_decode(function_call.arguments),
+                                \ 'id' : tool_call.id,
+                                \ 'name' : tool_call.name
+                                \ }
+                    call add(self.msg.content, content)
+                endfor
+            endif
+        endif
+        call self.on_complete(v:null, self.params, self.msg)
+    endfunction
+
+    return builder
+endfunction
+

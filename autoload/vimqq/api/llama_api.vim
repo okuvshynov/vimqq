@@ -12,8 +12,11 @@ function! vimqq#api#llama_api#new(conf) abort
     let api._replies = {}
     let api._req_id = 0
     let api._jinja = get(a:conf, 'jinja', v:false)
+    let api._builders = {}
 
-    function! api._on_stream_out(msg, params) dict
+    function! api._on_stream_out(msg, params, req_id) dict
+        let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
+        let builder = self._builders[a:req_id]
         let messages = split(a:msg, '\n')
         for message in messages
             if message !~# '^data: '
@@ -21,15 +24,13 @@ function! vimqq#api#llama_api#new(conf) abort
                 continue
             endif
             if message ==# 'data: [DONE]'
-                call a:params.on_complete(v:null, a:params)
+                call builder.message_stop()
                 return
             endif
             let json_string = substitute(message, '^data: ', '', '')
             let response = json_decode(json_string)
-            if has_key(response.choices[0].delta, 'content')
-                let chunk = response.choices[0].delta.content
-                call a:params.on_chunk(a:params, chunk)
-            endif
+            call vimqq#log#debug('raw_response ' . json_string)
+            call builder.delta(response)
         endfor
     endfunction
 
@@ -40,70 +41,13 @@ function! vimqq#api#llama_api#new(conf) abort
     endfunction
 
     function! api._on_out(msg, params, req_id) dict
-        if !has_key(self._replies, a:req_id)
-            call vimqq#log#error('llama_api: reply for non-existent request: ' . a:req_id)
-            return
-        endif
-        call add(self._replies[a:req_id], a:msg)
+        let builder = self._builders[a:req_id]
+        call builder.part(a:msg)
     endfunction
 
     function! api._on_close(params, req_id) dict
-        if !has_key(self._replies, a:req_id)
-            call vimqq#log#error('llama_api: reply for non-existent request: ' . a:req_id)
-            return
-        endif
-        let response = join(self._replies[a:req_id], '\n')
-        " if response is empty, vim would decode it to v:none,
-        " while neovim would error.
-        try
-            let response = json_decode(l:response)
-            "call vimqq#log#debug(l:response)
-        catch
-            call vimqq#log#error(string(response))
-            call vimqq#log#error('llama_api: Unable to process response')
-            " TODO: still need to mark query as done
-            if has_key(a:params, 'on_complete')
-                call a:params.on_complete("Unable to process response", a:params)
-            endif
-            return
-        endtry
-        if type(response) == type({}) &&
-                \ has_key(response, 'choices') && 
-                \ !empty(response.choices) && 
-                \ has_key(response.choices[0], 'message')
-            let message = l:response.choices[0].message
-            let content = message.content
-            if has_key(a:params, 'on_chunk')
-                call a:params.on_chunk(a:params, content)
-            endif
-
-            if has_key(message, 'tool_calls')
-                if message.tool_calls isnot v:null
-                    if has_key(a:params, 'on_sys_msg')
-                        call a:params.on_sys_msg('info', string(message.tool_calls))
-                    endif
-                    " TODO: just calling one tool first
-                    let function_call = message.tool_calls[0].function
-                    let function_call.input = json_decode(function_call.arguments)
-                    let function_call.id = message.tool_calls[0].id
-                    call a:params.on_tool_use(function_call)
-                endif
-            endif
-
-            if has_key(a:params, 'on_complete')
-                call a:params.on_complete(v:null, a:params)
-            endif
-        else
-            " TODO: still need to close/complete
-            call vimqq#log#error('llama_api: Unable to process response')
-            call vimqq#log#error(json_encode(response))
-            if has_key(a:params, 'on_sys_msg')
-                call a:params.on_sys_msg('error', string(response))
-            endif
-            if has_key(a:params, 'on_complete')
-                call a:params.on_complete("Unable to process response", a:params)
-            endif
-        endif
+        let builder = self._builders[a:req_id]
+        call builder.close()
     endfunction
 
     function! api._on_error(msg, params) dict
@@ -178,12 +122,14 @@ function! vimqq#api#llama_api#new(conf) abort
         let req['stream'] = stream
 
         if stream
+            let self._builders[req_id] = vimqq#api#llama_cpp_builder#streaming(a:params)
             let job_conf = {
-            \   'out_cb': {channel, msg -> self._on_stream_out(msg, a:params)},
+            \   'out_cb': {channel, msg -> self._on_stream_out(msg, a:params, req_id)},
             \   'err_cb': {channel, msg -> self._on_error(msg, a:params)},
             \   'close_cb': {channel -> self._on_stream_close(a:params)},
             \ }
         else
+            let self._builders[req_id] = vimqq#api#llama_cpp_builder#plain(a:params)
             let job_conf = {
             \   'out_cb': {channel, msg -> self._on_out(msg, a:params, req_id)},
             \   'err_cb': {channel, msg -> self._on_error(msg, a:params, req_id)},
