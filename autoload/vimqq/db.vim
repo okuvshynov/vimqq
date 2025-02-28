@@ -205,64 +205,10 @@ function! vimqq#db#new(db_file) abort
         return chat.id
     endfunction
 
+    " Event handling has been moved to controller.vim
     function! db.handle_event(event, args) dict
-        if a:event ==# 'chunk_done'
-            if !self.chat_exists(a:args['chat_id'])
-                call vimqq#log#warning("callback on non-existent chat.")
-                return
-            endif
-            let chat_id = a:args['chat_id']
-            let chat = self._chats[chat_id]
-            let first = v:false
-            if !has_key(chat, 'partial_message')
-                let first = v:true
-                call vimqq#metrics#first_token(chat_id)
-                let chat['partial_message'] = a:args['builder'].msg
-            endif
-            let chat.partial_message.bot_name = a:args['bot'].name()
-            let chat.partial_message.seq_id = self.seq_id()
-            if !has_key(chat.partial_message, 'seq_id_first')
-                let chat.partial_message.seq_id_first = chat.partial_message.seq_id
-            endif
-            call self._save()
-            if first
-                call vimqq#events#notify('reply_started', a:args)
-            else
-                call vimqq#events#notify('chunk_saved', a:args)
-            endif
-            return
-        endif
-        if a:event ==# 'reply_done'
-            call vimqq#util#log_chat(self._chats[a:args['chat_id']])
-            if !self.chat_exists(a:args['chat_id'])
-                call vimqq#log#warning('reply completed for non-existing (likely deleted) chat.')
-                return
-            endif
-            let chat_id = a:args['chat_id']
-            let chat = self._chats[chat_id]
-            let msg = a:args['msg']
-            if !has_key(chat, 'partial_message')
-                let msg.seq_id = self.seq_id()
-            else
-                let msg.seq_id = self._chats[chat_id].partial_message.seq_id_first
-            endif
-            let msg.bot_name = a:args['bot'].name()
-            let msg2 = self.append_message(chat_id, msg)
-            call self.clear_partial(chat_id)
-            call self._save()
-            call vimqq#events#notify('reply_saved', {'chat_id': chat_id, 'bot': a:args['bot'], 'msg': msg2})
-            return
-        endif
-        if a:event ==# 'title_done'
-            if !self.chat_exists(a:args['chat_id'])
-                call vimqq#log#warning("callback on non-existent chat.")
-                return
-            endif
-            call self.set_title(a:args['chat_id'], a:args['title'])
-            call vimqq#events#notify('title_saved', {'chat_id': a:args['chat_id']})
-            call vimqq#sys_msg#info(a:args.chat_id, 'Setting title: ' . a:args['title'])
-        endif
-
+        " This function is left as a stub to maintain backward compatibility
+        " but all event handling now happens in controller.vim
     endfunction
 
     return db

@@ -143,6 +143,66 @@ function! vimqq#controller#new() abort
             call self.show_list()
             return
         endif
+        
+        if a:event ==# 'chunk_done'
+            if !self.db.chat_exists(a:args['chat_id'])
+                call vimqq#log#warning("callback on non-existent chat.")
+                return
+            endif
+            let chat_id = a:args['chat_id']
+            let chat = self.db.get_chat(chat_id)
+            let first = v:false
+            if !has_key(chat, 'partial_message')
+                let first = v:true
+                call vimqq#metrics#first_token(chat_id)
+                let chat['partial_message'] = a:args['builder'].msg
+            endif
+            let chat.partial_message.bot_name = a:args['bot'].name()
+            let chat.partial_message.seq_id = self.db.seq_id()
+            if !has_key(chat.partial_message, 'seq_id_first')
+                let chat.partial_message.seq_id_first = chat.partial_message.seq_id
+            endif
+            call self.db._save()
+            if first
+                call vimqq#events#notify('reply_started', a:args)
+            else
+                call vimqq#events#notify('chunk_saved', a:args)
+            endif
+            return
+        endif
+        
+        if a:event ==# 'reply_done'
+            call vimqq#util#log_chat(self.db._chats[a:args['chat_id']])
+            if !self.db.chat_exists(a:args['chat_id'])
+                call vimqq#log#warning('reply completed for non-existing (likely deleted) chat.')
+                return
+            endif
+            let chat_id = a:args['chat_id']
+            let chat = self.db.get_chat(chat_id)
+            let msg = a:args['msg']
+            if !has_key(chat, 'partial_message')
+                let msg.seq_id = self.db.seq_id()
+            else
+                let msg.seq_id = self.db._chats[chat_id].partial_message.seq_id_first
+            endif
+            let msg.bot_name = a:args['bot'].name()
+            let msg2 = self.db.append_message(chat_id, msg)
+            call self.db.clear_partial(chat_id)
+            call self.db._save()
+            call vimqq#events#notify('reply_saved', {'chat_id': chat_id, 'bot': a:args['bot'], 'msg': msg2})
+            return
+        endif
+        
+        if a:event ==# 'title_done'
+            if !self.db.chat_exists(a:args['chat_id'])
+                call vimqq#log#warning("callback on non-existent chat.")
+                return
+            endif
+            call self.db.set_title(a:args['chat_id'], a:args['title'])
+            call vimqq#events#notify('title_saved', {'chat_id': a:args['chat_id']})
+            call vimqq#sys_msg#info(a:args.chat_id, 'Setting title: ' . a:args['title'])
+            return
+        endif
     endfunction
 
     function! controller.send_message(force_new_chat, question, context, use_index, use_tools=v:false) dict
