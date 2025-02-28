@@ -47,7 +47,6 @@ function! vimqq#controller#new() abort
         call vimqq#metrics#user_started_waiting(a:chat_id)
         " timestamp and other metadata might get appended here
         call self.db.append_message(a:chat_id, a:message)
-        call self.db.reset_partial(a:chat_id, a:bot.name())
         let chat = self.db.get_chat(a:chat_id)
         if a:bot.send_chat(chat)
             let self._in_flight[a:chat_id] = v:true
@@ -58,18 +57,8 @@ function! vimqq#controller#new() abort
         return v:false
     endfunction
 
-    function! controller.on_tool_result(bot, tool_use_id, tool_result, chat_id) dict
-        let tool_reply = {
-        \   "role": "user", 
-        \   "content" : [{
-        \       "type": "tool_result",
-        \       "tool_use_id": a:tool_use_id,
-        \       "content": a:tool_result
-        \   }],
-        \   "bot_name": a:bot.name()
-        \ }
-
-        if self.run_query(a:chat_id, a:bot, tool_reply)
+    function! controller.on_tool_result(bot, tool_result, chat_id) dict
+        if self.run_query(a:chat_id, a:bot, a:tool_result)
             call self.show_chat(a:chat_id)
         endif
 
@@ -82,10 +71,17 @@ function! vimqq#controller#new() abort
             return
         endif
 
+        if a:event ==# 'reply_started'
+            if a:args['chat_id'] ==# a:args['state'].get_chat_id()
+                call self.show_chat(a:args['chat_id'])
+                return
+            endif
+        endif
+
         if a:event ==# 'system_message'
             let chat_id = a:args['chat_id']
-            let message = {'role': 'local', 'content' : a:args['content'], 'type': a:args['type']}
-            let message = self.db.append_message(chat_id, message)
+            let builder = vimqq#msg_builder#local().set_local(a:args['level'], a:args['text'])
+            call self.db.append_message(chat_id, builder.msg)
             call self.show_chat(chat_id)
             return
         endif
@@ -93,6 +89,7 @@ function! vimqq#controller#new() abort
         if a:event ==# 'reply_saved'
             let chat_id = a:args['chat_id']
             let bot = a:args['bot']
+            let saved_msg = a:args['msg']
             
             call self.show_chat(chat_id)
             if has_key(self._in_flight, chat_id)
@@ -103,17 +100,10 @@ function! vimqq#controller#new() abort
 
             let turn_end = v:true
             
-            let messages = self.db.get_messages(chat_id)
-            if len(messages) > 0 
-                let last_message = messages[len(messages) - 1]
-                if has_key(last_message, 'tool_use') 
-                    let tool_use_id = last_message.tool_use['id']
-                    let turn_end = v:false
-                    call self.toolset.run_async(
-                        \ last_message.tool_use,
-                        \ {res -> self.on_tool_result(bot, tool_use_id, res, chat_id)}
-                    \ )
-                endif
+            " check if we need to call tools
+            let builder = vimqq#msg_builder#tool().set_bot_name(bot.name())
+            if self.toolset.run(saved_msg, builder, {m -> self.on_tool_result(bot, m, chat_id)})
+                let turn_end = v:false
             endif
     
             if !self.db.has_title(chat_id)
@@ -122,7 +112,8 @@ function! vimqq#controller#new() abort
                 call bot.send_gen_title(chat_id, self.db.get_first_message(chat_id))
             endif
 
-            " Getting here means 'conversation turn end'
+            " Getting here means 'conversation turn end', input back to user
+            " test/benchmark only behavior
             if s:vqq_dbg_exit_on_turn_end && turn_end
                 cquit 0
             endif
@@ -154,7 +145,7 @@ function! vimqq#controller#new() abort
         endif
     endfunction
 
-    function! controller.send_message(force_new_chat, question, context, use_index) dict
+    function! controller.send_message(force_new_chat, question, context, use_index, use_tools=v:false) dict
         " pick the last used bot when:
         "   - no tag at the beginning of the message
         "   - no force_new_chat
@@ -168,47 +159,50 @@ function! vimqq#controller#new() abort
 
         let [bot, question] = self.bots.select(a:question, current_bot)
 
-        let message = {
-              \ "role"     : 'user',
-              \ "sources"  : { "text": question },
-              \ "bot_name" : bot.name()
-        \ }
-
-        let message = vimqq#msg_sources#fill(message, a:context, a:use_index)
+        let builder = vimqq#msg_builder#user().set_bot_name(bot.name())
+        let builder = builder.set_sources(question, a:context, a:use_index)
 
         let chat_id = self.state.pick_chat_id(a:force_new_chat)
 
-        if a:use_index
+        if a:use_index || a:use_tools
             call self.db.set_tools(chat_id, self.toolset.def())
         endif
 
-        if self.run_query(chat_id, bot, message)
+        if self.run_query(chat_id, bot, builder.msg)
             call self.show_chat(chat_id)
         endif
 
         call self.ui.update_queue_size(len(self._in_flight))
     endfunction
 
+    " This is a little confusing. There are two warmups:
+    "   1. warmup when we started typing the question
+    "   2. warmup when we opened a chat
+    " (2) is handled by vimqq.warmup and it calls bot.send_warmup
+    " directly. (1), on the other hand, while is initiated in vimqq.warmup,
+    " goes through vimqq#warmup -> vimqq#main -> vimqq#controller path and
+    " ends up here. This happens because we need to go through bot selection
+    " process, and that happens here.
     function! controller.send_warmup(force_new_chat, question, context) dict
         let [bot, question] = self.bots.select(a:question)
-        let message = {
-              \ "role"     : 'user',
-              \ "sources"  : { "text": question },
-              \ "bot_name" : bot.name()
-        \ }
+        call vimqq#log#debug('send_warmup: [' . a:question . "] [" . bot.name() . "]")
 
-        let message = vimqq#msg_sources#fill(message, a:context, v:false)
+        if !bot.warmup_on_typing()
+            return v:false
+        endif
+        let builder = vimqq#msg_builder#user().set_bot_name(bot.name())
+        let builder = builder.set_sources(question, a:context, v:false)
 
         let chat_id = self.state.get_chat_id()
 
         if chat_id >= 0 && !a:force_new_chat
-            let messages = self.db.get_messages(chat_id) + [message]
+            let messages = self.db.get_messages(chat_id) + [builder.msg]
         else
-            let messages = [message]
+            let messages = [builder.msg]
         endif
 
         call vimqq#log#debug('Sending warmup with message of ' . len(messages))
-        call bot.send_warmup(messages)
+        return bot.send_warmup(messages)
     endfunction
 
     function! controller.show_list() dict

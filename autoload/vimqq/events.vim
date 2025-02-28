@@ -20,8 +20,6 @@ endfunction
 
 function! vimqq#events#notify(event, context) abort
     call vimqq#log#debug('event: ' . a:event)
-    let a:context['state'] = v:null
-    call vimqq#log#debug('context: ' . string(a:context))
     let a:context['state'] = s:state
     for observer in s:observers
         " TODO: should this be called in timer to 

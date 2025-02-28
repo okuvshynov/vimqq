@@ -41,7 +41,7 @@ let s:tool_def_claude = {
     \ }
 
 function s:suite.test_to_claude()
-    let s:observed = vimqq#api#anthropic_api#to_claude(s:tool_def)
+    let s:observed = vimqq#api#anthropic_adapter#tool_schema(s:tool_def)
 
     call s:assert.equals(s:observed, s:tool_def_claude)
 endfunction

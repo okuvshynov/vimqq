@@ -46,35 +46,6 @@ function s:suite.test_title_management()
     call s:assert.equals(db.get_title(chat_id), 'Test Title')
 endfunction
 
-function s:suite.test_partial_message()
-    let db = vimqq#db#new(s:test_db_file)
-    let chat_id = db.new_chat()
-    let bot_name = 'test_bot'
-    
-    " Test reset and get partial
-    call db.reset_partial(chat_id, bot_name)
-    let partial = db.get_partial(chat_id)
-    call s:assert.equals(partial.role, 'assistant')
-    call s:assert.equals(partial.bot_name, bot_name)
-    call s:assert.equals(partial.sources.text, '')
-    
-    " Test append partial
-    call db.append_partial(chat_id, 'hello')
-    call db.append_partial(chat_id, ' world')
-    let partial = db.get_partial(chat_id)
-    call s:assert.equals(partial.sources.text, 'hello world')
-    
-    " Test partial done
-    call db.partial_done(chat_id)
-    let messages = db.get_messages(chat_id)
-    call s:assert.equals(len(messages), 1)
-    call s:assert.equals(messages[0].sources.text, 'hello world')
-    
-    " Check partial was cleared
-    let new_partial = db.get_partial(chat_id)
-    call s:assert.equals(new_partial.sources.text, '')
-endfunction
-
 function s:suite.test_persistence()
     " Create and populate database
     let db = vimqq#db#new(s:test_db_file)

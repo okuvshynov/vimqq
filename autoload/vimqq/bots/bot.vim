@@ -30,6 +30,11 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         return self._conf.warmup_on_select
     endfunction
 
+    function! bot.warmup_on_typing() dict
+        return self._conf.warmup_on_typing
+    endfunction
+
+
     function! bot._on_warmup_complete(error, params) dict
         if a:error isnot v:null
             call vimqq#log#error('warmup call failed')
@@ -42,7 +47,7 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         \   'messages' : self._format(a:messages),
         \   'max_tokens' : 0,
         \   'model' : self._conf.model,
-        \   'on_complete' : {err, p -> self._on_warmup_complete(err, p)}
+        \   'on_complete' : {err, p, m -> self._on_warmup_complete(err, p)}
         \ }
         return self._impl.chat(req)
     endfunction
@@ -60,7 +65,7 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         \   'max_tokens' : self._conf.title_tokens,
         \   'model' : self._conf.model,
         \   'on_chunk' : {p, m -> vimqq#events#notify('title_done', {'chat_id' : a:chat_id, 'title': m})},
-        \   'on_complete': {err, p -> vimqq#log#debug('title complete')},
+        \   'on_complete': {err, p, m -> vimqq#log#debug('title complete')},
         \   'on_sys_msg' : {lvl, msg -> vimqq#sys_msg#log(lvl, chat_id, msg)}
         \ }
         return self._impl.chat(req)
@@ -69,19 +74,22 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
     function! bot.send_chat(chat, stream=v:true) dict
         let chat_id = a:chat.id
 
+        " This is request we send to API layer. APIs implementation (e.g.
+        " anthropic, llama.cpp, deepseek, together.ai, etc) will reformat
+        " our internal message formatting according to API rules.
+        " The result will be provided through callbacks.
         let req = {
         \   'messages' : self._format(a:chat.messages),
         \   'max_tokens' : self._conf.max_tokens,
         \   'model' : self._conf.model,
         \   'stream' : a:stream,
-        \   'on_chunk' : {p, m -> vimqq#events#notify('chunk_done', {'chat_id': chat_id, 'chunk': m})},
-        \   'on_complete' : {err, p -> vimqq#events#notify('reply_done', {'chat_id': chat_id, 'bot' : self})},
+        \   'on_chunk' : {p, m -> vimqq#events#notify('chunk_done', {'chat_id': chat_id, 'chunk': m, 'builder': p._builder, 'bot': self})},
+        \   'on_complete' : {err, p, m -> vimqq#events#notify('reply_done', {'chat_id': chat_id, 'bot' : self, 'msg' : m})},
         \   'on_sys_msg' : {lvl, msg -> vimqq#sys_msg#log(lvl, chat_id, msg)}
         \ }
 
         if has_key(a:chat, 'tools_allowed')
             let req['tools'] = a:chat.toolset
-            let req['on_tool_use'] = {tool_call -> vimqq#events#notify('tool_use_recv', {'chat_id': chat_id, 'tool_use': tool_call})}
         endif
 
         if get(self._conf, 'thinking_tokens', 0) > 0
@@ -94,12 +102,11 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
     function! bot._format(messages) dict
         " TODO: shall we save this to the chat itself?
         let res = [{"role": "system", "content" : self._conf.system_prompt}]
-        for msg in vimqq#fmt#many(a:messages)
-            " Skipping empty messages
-            " TODO: this should never happen
-            if !empty(msg.content)
-                call add (res, {'role': msg.role, 'content': msg.content})
+        for msg in a:messages
+            if msg['role'] ==# 'local'
+                continue
             endif
+            call add (res, {'role': msg.role, 'content': msg.content})
         endfor
         return res
     endfunction

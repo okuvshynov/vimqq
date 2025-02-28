@@ -9,8 +9,8 @@ let g:autoloaded_vimqq_sys_msg = 1
 " sys messages are chat-specific, thus, they need to be
 " added in the context where we know which chat they belong to.
 
-function! vimqq#sys_msg#log(type, chat_id, msg) abort
-    let args = {'chat_id': a:chat_id, 'content': a:msg, 'type': a:type}
+function! vimqq#sys_msg#log(level, chat_id, msg) abort
+    let args = {'chat_id': a:chat_id, 'text': a:msg, 'level': a:level}
     call vimqq#events#notify('system_message', args)
 endfunction
 
