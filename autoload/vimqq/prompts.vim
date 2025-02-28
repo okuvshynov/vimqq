@@ -55,8 +55,7 @@ function! vimqq#prompts#apply(message, prompt)
         \ "{vqq_context}": {msg -> has_key(msg.sources, 'context') ? msg.sources.context : ''},
         \ "{vqq_lucas_index}": {msg -> has_key(msg.sources, 'index') ? msg.sources.index : ''},
         \ "{vqq_lucas_index_size}": {msg -> has_key(msg.sources, 'index') ? len(msg.sources.index) : 0},
-        \ "{vqq_tool_call}" : {msg -> has_key(msg, 'tool_use') ? vimqq#tools#toolset#format(msg.tool_use): ""}
-        \ }
+    \ }
 
     let res = a:prompt
     for [pattern, ContextFn] in items(replacements)

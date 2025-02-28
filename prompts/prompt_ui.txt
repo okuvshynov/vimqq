@@ -1,1 +1,1 @@
-{vqq_message}{vqq_tool_call}
+{vqq_message}
