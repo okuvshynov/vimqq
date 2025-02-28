@@ -175,8 +175,21 @@ function! vimqq#controller#new() abort
         call self.ui.update_queue_size(len(self._in_flight))
     endfunction
 
+    " This is a little confusing. There are two warmups:
+    "   1. warmup when we started typing the question
+    "   2. warmup when we opened a chat
+    " (2) is handled by vimqq.warmup and it calls bot.send_warmup
+    " directly. (1), on the other hand, while is initiated in vimqq.warmup,
+    " goes through vimqq#warmup -> vimqq#main -> vimqq#controller path and
+    " ends up here. This happens because we need to go through bot selection
+    " process, and that happens here.
     function! controller.send_warmup(force_new_chat, question, context) dict
         let [bot, question] = self.bots.select(a:question)
+        call vimqq#log#debug('send_warmup: [' . a:question . "] [" . bot.name() . "]")
+
+        if !bot.warmup_on_typing()
+            return v:false
+        endif
         let builder = vimqq#msg_builder#user().set_bot_name(bot.name())
         let builder = builder.set_sources(question, a:context, v:false)
 
@@ -189,7 +202,7 @@ function! vimqq#controller#new() abort
         endif
 
         call vimqq#log#debug('Sending warmup with message of ' . len(messages))
-        call bot.send_warmup(messages)
+        return bot.send_warmup(messages)
     endfunction
 
     function! controller.show_list() dict

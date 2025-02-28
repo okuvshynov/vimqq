@@ -30,6 +30,11 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         return self._conf.warmup_on_select
     endfunction
 
+    function! bot.warmup_on_typing() dict
+        return self._conf.warmup_on_typing
+    endfunction
+
+
     function! bot._on_warmup_complete(error, params) dict
         if a:error isnot v:null
             call vimqq#log#error('warmup call failed')
@@ -38,7 +43,6 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
     endfunction
 
     function! bot.send_warmup(messages) dict
-        return
         let req = {
         \   'messages' : self._format(a:messages),
         \   'max_tokens' : 0,

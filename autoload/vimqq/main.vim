@@ -18,8 +18,10 @@ function! vimqq#main#send_message(force_new_chat, question, context=v:null, use_
     call s:controller.send_message(a:force_new_chat, a:question, a:context, a:use_index, a:use_tools)
 endfunction
 
+" returns true if warmup was started, and false if not (for example, tagged
+" bot doesn't support warmup or there was an error)
 function! vimqq#main#send_warmup(force_new_chat, question, context=v:null)
-    call s:controller.send_warmup(a:force_new_chat, a:question, a:context)
+    return s:controller.send_warmup(a:force_new_chat, a:question, a:context)
 endfunction
 
 function! vimqq#main#show_list()
