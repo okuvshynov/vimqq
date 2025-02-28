@@ -31,13 +31,13 @@ function s:suite.test_stream_text()
     endif
 
     let chunks = []
-    let complted = v:false
+    let completed = v:false
     function! s:OnChunk(params, chunk) closure
         call add(chunks, a:chunk)
     endfunction
 
-    function! s:OnComplete(err, params) closure
-        let complted = v:true
+    function! s:OnComplete(err, params, msg) closure
+        let completed = v:true
     endfunction
 
     let api = vimqq#api#anthropic_api#new({'base_url': 'http://127.0.0.1:' . s:MOCK_PORT})
