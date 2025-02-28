@@ -145,7 +145,7 @@ function! vimqq#controller#new() abort
         endif
     endfunction
 
-    function! controller.send_message(force_new_chat, question, context, use_index) dict
+    function! controller.send_message(force_new_chat, question, context, use_index, use_tools=v:false) dict
         " pick the last used bot when:
         "   - no tag at the beginning of the message
         "   - no force_new_chat
@@ -164,7 +164,7 @@ function! vimqq#controller#new() abort
 
         let chat_id = self.state.pick_chat_id(a:force_new_chat)
 
-        if a:use_index
+        if a:use_index || a:use_tools
             call self.db.set_tools(chat_id, self.toolset.def())
         endif
 

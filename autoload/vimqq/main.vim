@@ -14,8 +14,8 @@ function! vimqq#main#setup()
 endfunction
 
 " Core controller functions
-function! vimqq#main#send_message(force_new_chat, question, context=v:null, use_index=v:false)
-    call s:controller.send_message(a:force_new_chat, a:question, a:context, a:use_index)
+function! vimqq#main#send_message(force_new_chat, question, context=v:null, use_index=v:false, use_tools=v:false)
+    call s:controller.send_message(a:force_new_chat, a:question, a:context, a:use_index, a:use_tools)
 endfunction
 
 function! vimqq#main#send_warmup(force_new_chat, question, context=v:null)
@@ -61,6 +61,17 @@ function! vimqq#main#qi(message) abort
     call vimqq#main#send_message(v:true, a:message, v:null, v:true)
 endfunction
 
+function! vimqq#main#qqt(message) abort range
+    let lines = getline(a:firstline, a:lastline)
+    let context = join(lines, '\n')
+    call vimqq#main#send_message(v:true, a:message, context, v:false, v:true)
+endfunction
+
+function! vimqq#main#qt(message) abort
+    call vimqq#main#send_message(v:true, a:message, v:null, v:false, v:true)
+endfunction
+
+
 function! vimqq#main#q(message) abort
     call vimqq#main#send_message(v:false, a:message)
 endfunction
@@ -90,6 +101,14 @@ function! vimqq#main#dispatch_index(count, line1, line2, args) abort
         call vimqq#main#qi(a:args)
     else
         execute a:line1 . ',' . a:line2 . 'call vimqq#main#qqi(a:args)'
+    endif
+endfunction
+
+function! vimqq#main#dispatch_tools(count, line1, line2, args) abort
+    if a:count ==# -1
+        call vimqq#main#qt(a:args)
+    else
+        execute a:line1 . ',' . a:line2 . 'call vimqq#main#qqt(a:args)'
     endif
 endfunction
 
