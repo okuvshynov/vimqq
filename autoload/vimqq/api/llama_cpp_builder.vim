@@ -50,19 +50,21 @@ function! vimqq#api#llama_cpp_builder#plain(params) abort
         let parsed = json_decode(join(self.parts, "\n"))
         let message = parsed.choices[0].message
         if has_key(message, 'content')
-            call self.append_text(message.content)
-            call self.on_chunk(self.params, message.content)
+            if message['content'] isnot v:null
+                call self.append_text(message.content)
+                call self.on_chunk(self.params, message.content)
+            endif
         endif
         if has_key(message, 'tool_calls')
             if message.tool_calls isnot v:null
-                for tool_call in message.tool_calls
-                    let function_call = tool_calls.function
+                for tool_call in message['tool_calls']
+                    let function_call = tool_call['function']
                     let content = {
-                                \ 'type' : 'tool_use',
-                                \ 'input' : json_decode(function_call.arguments),
-                                \ 'id' : tool_call.id,
-                                \ 'name' : tool_call.name
-                                \ }
+                        \ 'type' : 'tool_use',
+                        \ 'input': json_decode(function_call.arguments),
+                        \ 'id'   : tool_call.id,
+                        \ 'name' : function_call.name
+                    \ }
                     call add(self.msg.content, content)
                 endfor
             endif

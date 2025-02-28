@@ -73,3 +73,35 @@ function! vimqq#util#has_python()
     
     return ''
 endfunction
+
+function! vimqq#util#log_msg(msg)
+    call vimqq#log#debug(' msg.seq_id = ' . get(a:msg, 'seq_id', 'NONE'))
+    call vimqq#log#debug('  msg.role = ' . get(a:msg, 'role', 'NONE'))
+    if has_key(a:msg, 'content')
+        call vimqq#log#debug('  msg.content.len = ' . len(a:msg.content))
+        for content in a:msg.content
+            call vimqq#log#debug('  content.type = ' . get(content, 'type', 'NONE'))
+        endfor
+    else
+        call vimqq#log#debug('  msg.content = NONE')
+    endif
+
+endfunction
+
+function! vimqq#util#log_chat(chat)
+    call vimqq#log#debug('chat.id = ' . get(a:chat, 'id', 'NONE'))
+    if has_key(a:chat, 'messages')
+        for msg in a:chat.messages
+            call vimqq#util#log_msg(msg)
+        endfor
+    else
+        call vimqq#log#debug(' chat.messages = NONE')
+    endif
+    if has_key(a:chat, 'partial_message')
+        call vimqq#log#debug(' chat.partial_message:')
+        call vimqq#util#log_msg(a:chat.partial_message)
+    else
+        call vimqq#log#debug(' chat.partial_message = NONE')
+    endif
+
+endfunction

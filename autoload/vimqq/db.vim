@@ -233,13 +233,19 @@ function! vimqq#db#new(db_file) abort
             return
         endif
         if a:event ==# 'reply_done'
+            call vimqq#util#log_chat(self._chats[a:args['chat_id']])
             if !self.chat_exists(a:args['chat_id'])
                 call vimqq#log#warning('reply completed for non-existing (likely deleted) chat.')
                 return
             endif
             let chat_id = a:args['chat_id']
+            let chat = self._chats[chat_id]
             let msg = a:args['msg']
-            let msg.seq_id = self._chats[chat_id].partial_message.seq_id_first
+            if !has_key(chat, 'partial_message')
+                let msg.seq_id = self.seq_id()
+            else
+                let msg.seq_id = self._chats[chat_id].partial_message.seq_id_first
+            endif
             let msg.bot_name = a:args['bot'].name()
             let msg2 = self.append_message(chat_id, msg)
             call self.clear_partial(chat_id)
