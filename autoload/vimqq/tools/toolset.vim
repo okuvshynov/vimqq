@@ -62,7 +62,7 @@ function! vimqq#tools#toolset#new()
         let tool_uses = 0
         let completed = 0
         let builder = a:reply_builder
-        let OnComplete = a:callback
+        let s:OnComplete = a:callback
 
         for content in a:msg.content
             if content['type'] ==# 'tool_use'
@@ -77,7 +77,7 @@ function! vimqq#tools#toolset#new()
             let completed = completed + 1
 
             if completed == tool_uses
-                call OnComplete(builder.msg)
+                call s:OnComplete(builder.msg)
             else
                 call s:RunIfTool(a:idx + 1)
             endif
