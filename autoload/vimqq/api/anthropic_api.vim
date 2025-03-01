@@ -5,7 +5,11 @@ endif
 let g:autoloaded_vimqq_api_anthropic_module = 1
 
 let g:vqq_claude_api_key = get(g:, 'vqq_claude_api_key', $ANTHROPIC_API_KEY)
+
+" TODO Need to cache more than just index
 let g:vqq_claude_cache_above = get(g:, 'vqq_claude_cache_above', 5000)
+
+let s:RATE_LIMIT_WAIT_S = 60
 
 " config is unused for now
 function! vimqq#api#anthropic_api#new(conf = {}) abort
@@ -13,7 +17,6 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
 
     let api._base_url = get(a:conf, 'base_url', 'https://api.anthropic.com')
     let api._req_id = 0
-    let api._replies = {}
     let api._api_key = g:vqq_claude_api_key
     " TODO: !! this is wrong needs to be per request
     let api._usage = {}
@@ -32,8 +35,27 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
         " Still need to close in case of error?
     endfunction
 
+    function! api._on_rate_limit(params) dict
+        call s:SysMessage(
+            \ 'warning',
+            \ 'Reached rate limit. Waiting ' . s:RATE_LIMIT_WAIT_S . 'seconds before retry'
+        \ )
+
+        call timer_start(s:RATE_LIMIT_WAIT_S * 1000, { timer_id -> self.chat(a:params)})
+    endfunction
+
+    function! api._on_error(error_json, params) dict
+        let err = string(a:error_json['error'])
+        if get(error_json['error'], 'type', '') ==# 'rate_limit_error'
+            call self._on_rate_limit(a:params)
+            return
+        endif
+        call s:SysMessage('error', err)
+        call vimqq#log#error(err)
+    endfunction
+
     function! api._on_stream_out(data, params, req_id) dict
-        let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
+        let s:SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
 
         let builder = self._builders[a:req_id]
 
@@ -47,18 +69,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                 try
                     let error_json = json_decode(event)
                     if error_json['type'] == 'error'
-                        let err = string(error_json['error'])
-                        if get(error_json['error'], 'type', '') ==# 'rate_limit_error'
-                            call SysMessage(
-                                \ 'warning',
-                                \ 'Reached rate limit. Waiting 60s before retry'
-                            \ )
-
-                            call timer_start(60000, { timer_id -> self.chat(a:params)})
-                            return
-                        endif
-                        call SysMessage('error', err)
-                        call vimqq#log#error(err)
+                        call self._on_error(error_json, a:params)
                     else
                         let warn = 'Unexpected event received: ' . event
                         call vimqq#log#warning(warn)
@@ -103,7 +114,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                             \ get(self._last_turn_usage, 'input_tokens', 0)
 
                 let out_tokens = get(response.usage, 'output_tokens', 0)
-                call SysMessage('info', 'Turn: in = ' . in_tokens . ', out = ' . out_tokens)
+                call s:SysMessage('info', 'Turn: in = ' . in_tokens . ', out = ' . out_tokens)
 
                 let in_tokens = get(self._usage, 'cache_creation_input_tokens', 0) +
                             \ get(self._usage, 'cache_read_input_tokens', 0) +
@@ -111,7 +122,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
 
                 let out_tokens = get(self._usage, 'output_tokens', 0)
 
-                call SysMessage('info', 'Conversation: in = ' . in_tokens . ', out = ' . out_tokens)
+                call s:SysMessage('info', 'Conversation: in = ' . in_tokens . ', out = ' . out_tokens)
                 continue
             endif
 
@@ -143,7 +154,6 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
 
         let req_id = self._req_id
         let self._req_id = self._req_id + 1
-        let self._replies[req_id] = []
 
         if req.stream
             let self._builders[req_id] = vimqq#api#anthropic_builder#streaming(a:params)

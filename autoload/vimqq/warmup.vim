@@ -102,8 +102,6 @@ function! vimqq#warmup#new(bots, db) abort
 
     function! w.handle_event(event, args) dict
         if a:event ==# 'warmup_done'
-            " TODO: we might be able to notify and immediately kick off the
-            " next one
             let s:warmup_in_progress = v:false
         endif
         if a:event ==# 'title_saved' || a:event ==# 'chat_selected'

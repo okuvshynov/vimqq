@@ -8,7 +8,6 @@ function! vimqq#api#anthropic_builder#streaming(params) abort
     let builder = vimqq#msg_builder#new(a:params).set_role('assistant')
 
     function! builder.content_block_start(index, content_block) dict
-        call vimqq#log#debug(string(a:content_block))
         call assert_true(
             \ a:index == len(self.msg.content),
             \ 'trying to add content at index = ' . a:index

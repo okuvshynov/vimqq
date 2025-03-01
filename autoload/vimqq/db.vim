@@ -205,12 +205,6 @@ function! vimqq#db#new(db_file) abort
         return chat.id
     endfunction
 
-    " Event handling has been moved to controller.vim
-    function! db.handle_event(event, args) dict
-        " This function is left as a stub to maintain backward compatibility
-        " but all event handling now happens in controller.vim
-    endfunction
-
     return db
 endfunction
 

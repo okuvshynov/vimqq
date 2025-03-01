@@ -85,7 +85,6 @@ function! vimqq#util#log_msg(msg)
     else
         call vimqq#log#debug('  msg.content = NONE')
     endif
-
 endfunction
 
 function! vimqq#util#log_chat(chat)
@@ -103,5 +102,4 @@ function! vimqq#util#log_chat(chat)
     else
         call vimqq#log#debug(' chat.partial_message = NONE')
     endif
-
 endfunction

@@ -21,10 +21,6 @@ function! vimqq#msg_builder#new(params) abort
 
     let builder.msg = {}
 
-    " To gradually migrate various places in the codebase
-    " we create a flag to indicate this comes from builder
-    let builder.msg.v2 = 1
-
     " types of content:
     "  - text [user, assistant]
     "  - tool_use [assistant]
@@ -51,10 +47,6 @@ function! vimqq#msg_builder#new(params) abort
         \ )
         let self.msg.bot_name = a:bot_name
         return self
-    endfunction
-
-    function! builder.tool_result(content) dict
-        call add(self.msg.content, a:content)
     endfunction
 
     return builder

@@ -32,7 +32,6 @@ function! vimqq#controller#new() abort
 
         call vimqq#events#set_state(self.state)
         call vimqq#events#clear_observers()
-        call vimqq#events#add_observer(self.db)
         call vimqq#events#add_observer(self.ui)
         call vimqq#events#add_observer(self.warmup)
         call vimqq#events#add_observer(self)
