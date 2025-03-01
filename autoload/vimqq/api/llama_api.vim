@@ -9,13 +9,11 @@ function! vimqq#api#llama_api#new(conf) abort
 
     let api._endpoint = a:conf.endpoint
     " stores partial responses
-    let api._replies = {}
     let api._req_id = 0
     let api._jinja = get(a:conf, 'jinja', v:false)
     let api._builders = {}
 
     function! api._on_stream_out(msg, params, req_id) dict
-        let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
         let builder = self._builders[a:req_id]
         let messages = split(a:msg, '\n')
         for message in messages
@@ -29,7 +27,6 @@ function! vimqq#api#llama_api#new(conf) abort
             endif
             let json_string = substitute(message, '^data: ', '', '')
             let response = json_decode(json_string)
-            call vimqq#log#debug('raw_response ' . json_string)
             call builder.delta(response)
         endfor
     endfunction
@@ -55,7 +52,7 @@ function! vimqq#api#llama_api#new(conf) abort
     endfunction
 
     function! api.chat(params) dict
-        call vimqq#log#debug('llama_api: calling chat')
+        let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
         let req = {
         \   'messages': get(a:params, 'messages', []),
         \   'n_predict': get(a:params, 'max_tokens', 1024),
@@ -66,57 +63,29 @@ function! vimqq#api#llama_api#new(conf) abort
         "   content : 'hello', not 
         "   content : [{type: text, text: 'hello'}] format
         if self._jinja
-            for message in req.messages
-                if type(message.content) == type([])
-                    try
-                        let content = message.content[0]
-                        if content.type ==# 'text'
-                            let message.content = message.content[0].text
-                        endif
-
-                        if content.type ==# 'tool_result'
-                            let message.tool_call_id = content.tool_use_id
-                            let message.content = content.content
-                            let message.role = 'tool'
-                            call vimqq#log#debug('tool reply ' . string(message))
-                        endif
-
-                        if content['type'] ==# 'tool_use'
-                            let message.tool_calls = [{
-                               \ 'id': content['id'],
-                               \ 'type': 'function',
-                               \ 'function': {
-                               \    'name': content['name'],
-                               \    'arguments': json_encode(content['input'])
-                               \ }
-                            \ }]
-                            let message.content = ""
-                            call vimqq#log#debug('adapted tool call: ' . string(message))
-                        endif
-                    catch
-                        call vimqq#log#error('llama_api: error adapting: ' . string(message.content))
-                    endtry
-                endif
-            endfor
+            call vimqq#api#llama_cpp_adapter#jinja(req)
         endif
 
         let req_id = self._req_id
         let self._req_id = self._req_id + 1
-        let self._replies[req_id] = []
 
         let stream = get(a:params, 'stream', v:false)
 
         if has_key(a:params, 'tools')
-            " llama.cpp server doesn't support streaming with tools
-            if stream
-                let warning = 'llama_api: not using streaming as it is not compatible with tools'
+            if !self._jinja
+                let warning = 'llama_api: using tools with llama.cpp requires jinja templates. Skipping tools.'
                 call vimqq#log#warning(warning)
-                if has_key(a:params, 'on_sys_msg')
-                    call a:params.on_sys_msg('warning', warning)
+                call SysMessage('warning', warning)
+            else
+                " llama.cpp server doesn't support streaming with tools
+                if stream
+                    let warning = 'llama_api: not using streaming as it is not compatible with tools'
+                    call vimqq#log#warning(warning)
+                    call SysMessage('warning', warning)
                 endif
+                let stream = v:false
+                let req['tools'] = a:params['tools']
             endif
-            let stream = v:false
-            let req['tools'] = a:params['tools']
         endif
         
         let req['stream'] = stream
