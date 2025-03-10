@@ -100,10 +100,11 @@ function! vimqq#warmup#new(bots, db) abort
         endif
     endfor
 
+    function! w.mark_done() dict
+        let s:warmup_in_progress = v:false
+    endfunction
+
     function! w.handle_event(event, args) dict
-        if a:event ==# 'warmup_done'
-            let s:warmup_in_progress = v:false
-        endif
         if a:event ==# 'title_saved' || a:event ==# 'chat_selected'
             let chat_id = a:args['chat_id']
             if !self._db.chat_exists(chat_id)

@@ -114,6 +114,11 @@ function! vimqq#controller#new() abort
             return
         endif
 
+        if a:event ==# 'warmup_done'
+            call self.warmup.mark_done()
+            return
+        endif
+
         if a:event ==# 'delete_chat'
             let chat_id = a:args['chat_id']
             if !self.db.chat_exists(chat_id)
