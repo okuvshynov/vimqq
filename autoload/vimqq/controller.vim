@@ -29,10 +29,6 @@ function! vimqq#controller#new() abort
         let self.warmup = vimqq#warmup#new(self.bots, self.db)
         let self.toolset = vimqq#tools#toolset#new()
         let self._in_flight = {}
-
-        call vimqq#events#set_state(self.state)
-        call vimqq#events#clear_observers()
-        call vimqq#events#add_observer(self)
     endfunction
 
     function! controller.run_query(chat_id, bot, message) dict
@@ -62,7 +58,7 @@ function! vimqq#controller#new() abort
         call self.ui.update_queue_size(len(self._in_flight))
     endfunction
 
-    function! controller.handle_event(event, args) dict
+    function! controller.notify(event, args) dict
         if a:event ==# 'chat_selected'
             call self.show_chat(a:args['chat_id'])
             let bot_name = self.db.get_last_bot(a:args['chat_id'])
@@ -198,7 +194,7 @@ function! vimqq#controller#new() abort
             let msg2 = self.db.append_message(chat_id, msg)
             call self.db.clear_partial(chat_id)
             call self.db._save()
-            call vimqq#events#notify('reply_saved', {'chat_id': chat_id, 'bot': a:args['bot'], 'msg': msg2})
+            call vimqq#main#notify('reply_saved', {'chat_id': chat_id, 'bot': a:args['bot'], 'msg': msg2})
             return
         endif
         

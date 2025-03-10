@@ -13,6 +13,10 @@ function! vimqq#main#setup()
     call s:controller.init()
 endfunction
 
+function! vimqq#main#notify(event, context) abort
+    return s:controller.notify(a:event, a:context)
+endfunction
+
 " Core controller functions
 function! vimqq#main#send_message(force_new_chat, question, context=v:null, use_index=v:false, use_tools=v:false)
     call s:controller.send_message(a:force_new_chat, a:question, a:context, a:use_index, a:use_tools)

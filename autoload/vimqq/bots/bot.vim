@@ -39,7 +39,7 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         if a:error isnot v:null
             call vimqq#log#error('warmup call failed')
         endif
-        call vimqq#events#notify('warmup_done', {'bot' : self})
+        call vimqq#main#notify('warmup_done', {'bot' : self})
     endfunction
 
     function! bot.send_warmup(messages) dict
@@ -64,7 +64,7 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         \   'messages' : messages,
         \   'max_tokens' : self._conf.title_tokens,
         \   'model' : self._conf.model,
-        \   'on_chunk' : {p, m -> vimqq#events#notify('title_done', {'chat_id' : a:chat_id, 'title': m, 'bot': self})},
+        \   'on_chunk' : {p, m -> vimqq#main#notify('title_done', {'chat_id' : a:chat_id, 'title': m, 'bot': self})},
         \   'on_complete': {err, p, m -> vimqq#log#debug('title complete')},
         \   'on_sys_msg' : {lvl, msg -> vimqq#sys_msg#log(lvl, chat_id, msg)}
         \ }
@@ -83,8 +83,8 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         \   'max_tokens' : self._conf.max_tokens,
         \   'model' : self._conf.model,
         \   'stream' : a:stream,
-        \   'on_chunk' : {p, m -> vimqq#events#notify('chunk_done', {'chat_id': chat_id, 'chunk': m, 'builder': p._builder, 'bot': self})},
-        \   'on_complete' : {err, p, m -> vimqq#events#notify('reply_done', {'chat_id': chat_id, 'bot' : self, 'msg' : m})},
+        \   'on_chunk' : {p, m -> vimqq#main#notify('chunk_done', {'chat_id': chat_id, 'chunk': m, 'builder': p._builder, 'bot': self})},
+        \   'on_complete' : {err, p, m -> vimqq#main#notify('reply_done', {'chat_id': chat_id, 'bot' : self, 'msg' : m})},
         \   'on_sys_msg' : {lvl, msg -> vimqq#sys_msg#log(lvl, chat_id, msg)}
         \ }
 

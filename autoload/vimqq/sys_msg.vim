@@ -11,7 +11,7 @@ let g:autoloaded_vimqq_sys_msg = 1
 
 function! vimqq#sys_msg#log(level, chat_id, msg) abort
     let args = {'chat_id': a:chat_id, 'text': a:msg, 'level': a:level}
-    call vimqq#events#notify('system_message', args)
+    call vimqq#main#notify('system_message', args)
 endfunction
 
 function! vimqq#sys_msg#info(chat_id, msg) abort
