@@ -32,7 +32,6 @@ function! vimqq#controller#new() abort
 
         call vimqq#events#set_state(self.state)
         call vimqq#events#clear_observers()
-        call vimqq#events#add_observer(self.warmup)
         call vimqq#events#add_observer(self)
     endfunction
 
@@ -66,6 +65,18 @@ function! vimqq#controller#new() abort
     function! controller.handle_event(event, args) dict
         if a:event ==# 'chat_selected'
             call self.show_chat(a:args['chat_id'])
+            let bot_name = self.db.get_last_bot(a:args['chat_id'])
+            if bot_name is v:null
+                return
+            endif
+            let bot = self.bots.find(bot_name)
+            if bot is v:null
+                return
+            endif
+            if bot.warmup_on_select()
+                call bot.send_warmup(self.db.get_messages(a:args['chat_id']))
+            endif
+
             return
         endif
 
@@ -197,8 +208,11 @@ function! vimqq#controller#new() abort
                 return
             endif
             call self.db.set_title(a:args['chat_id'], a:args['title'])
-            call vimqq#events#notify('title_saved', {'chat_id': a:args['chat_id']})
             call vimqq#sys_msg#info(a:args.chat_id, 'Setting title: ' . a:args['title'])
+            let bot = a:args['bot']
+            if bot.warmup_on_select()
+                call bot.send_warmup(self.db.get_messages(a:args['chat_id']))
+            endif
             return
         endif
     endfunction

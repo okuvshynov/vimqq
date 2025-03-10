@@ -64,7 +64,7 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         \   'messages' : messages,
         \   'max_tokens' : self._conf.title_tokens,
         \   'model' : self._conf.model,
-        \   'on_chunk' : {p, m -> vimqq#events#notify('title_done', {'chat_id' : a:chat_id, 'title': m})},
+        \   'on_chunk' : {p, m -> vimqq#events#notify('title_done', {'chat_id' : a:chat_id, 'title': m, 'bot': self})},
         \   'on_complete': {err, p, m -> vimqq#log#debug('title complete')},
         \   'on_sys_msg' : {lvl, msg -> vimqq#sys_msg#log(lvl, chat_id, msg)}
         \ }

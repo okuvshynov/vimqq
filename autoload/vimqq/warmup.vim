@@ -92,30 +92,8 @@ endfunction
 function! vimqq#warmup#new(bots, db) abort
     let w = {}
 
-    let w._bots = []
-    let w._db = a:db
-    for bot in a:bots.bots()
-        if bot.warmup_on_select()
-            call add(w._bots, bot)
-        endif
-    endfor
-
     function! w.mark_done() dict
         let s:warmup_in_progress = v:false
-    endfunction
-
-    function! w.handle_event(event, args) dict
-        if a:event ==# 'title_saved' || a:event ==# 'chat_selected'
-            let chat_id = a:args['chat_id']
-            if !self._db.chat_exists(chat_id)
-                call vimqq#log#warning("warmup on non-existent chat.")
-                return
-            endif
-            let messages = self._db.get_messages(chat_id)
-            for bot in self._bots
-                call bot.send_warmup(messages)
-            endfor
-        endif
     endfunction
 
     return w
