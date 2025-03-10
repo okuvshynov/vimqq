@@ -212,14 +212,6 @@ function vimqq#ui#new() abort
         endif
     endfunction
 
-    function! ui.handle_event(event, args) dict
-        if a:event ==# 'chunk_saved'
-            if a:args['chat_id'] ==# a:args['state'].get_chat_id()
-                call self.append_partial(a:args['chunk'])
-            endif
-        endif
-    endfunction
-
     " }}}
 
     return ui

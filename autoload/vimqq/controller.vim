@@ -32,7 +32,6 @@ function! vimqq#controller#new() abort
 
         call vimqq#events#set_state(self.state)
         call vimqq#events#clear_observers()
-        call vimqq#events#add_observer(self.ui)
         call vimqq#events#add_observer(self.warmup)
         call vimqq#events#add_observer(self)
     endfunction
@@ -68,13 +67,6 @@ function! vimqq#controller#new() abort
         if a:event ==# 'chat_selected'
             call self.show_chat(a:args['chat_id'])
             return
-        endif
-
-        if a:event ==# 'reply_started'
-            if a:args['chat_id'] ==# a:args['state'].get_chat_id()
-                call self.show_chat(a:args['chat_id'])
-                return
-            endif
         endif
 
         if a:event ==# 'system_message'
@@ -162,10 +154,12 @@ function! vimqq#controller#new() abort
                 let chat.partial_message.seq_id_first = chat.partial_message.seq_id
             endif
             call self.db._save()
-            if first
-                call vimqq#events#notify('reply_started', a:args)
-            else
-                call vimqq#events#notify('chunk_saved', a:args)
+            if a:args['chat_id'] ==# self.state.get_chat_id()
+                if first
+                    call self.show_chat(a:args['chat_id'])
+                else
+                    call self.ui.append_partial(a:args['chunk'])
+                endif
             endif
             return
         endif

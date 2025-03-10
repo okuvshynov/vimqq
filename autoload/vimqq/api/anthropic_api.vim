@@ -26,12 +26,13 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
     let api._builders = {}
 
     function! api._on_error(msg, params) dict
-        call vimqq#log#error('API error')
+        call vimqq#log#error('job error')
     endfunction
 
     " Not calling any callback as we expect to act on data: [DONE]
     function! api._on_stream_close(params) dict
-        call vimqq#log#debug('anthropic stream closed.')
+        let s:SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
+        call s:SysMessage('info', 'anthropic stream closed.')
         " Still need to close in case of error?
     endfunction
 
@@ -44,7 +45,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
         call timer_start(s:RATE_LIMIT_WAIT_S * 1000, { timer_id -> self.chat(a:params)})
     endfunction
 
-    function! api._on_error(error_json, params) dict
+    function! api._handle_error(error_json, params) dict
         let err = string(a:error_json['error'])
         if get(error_json['error'], 'type', '') ==# 'rate_limit_error'
             call self._on_rate_limit(a:params)
@@ -69,7 +70,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                 try
                     let error_json = json_decode(event)
                     if error_json['type'] == 'error'
-                        call self._on_error(error_json, a:params)
+                        call self._handle_error(error_json, a:params)
                     else
                         let warn = 'Unexpected event received: ' . event
                         call vimqq#log#warning(warn)
