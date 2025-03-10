@@ -6,8 +6,8 @@ let g:autoloaded_vimqq_controller = 1
 
 " for situations when we use it in benchmarks/tests
 let s:vqq_dbg_exit_on_turn_end = get(g:, 'vqq_dbg_exit_on_turn_end', v:false)
-" file to store all message history
-let g:vqq_chats_file = get(g:, 'vqq_chats_file', vimqq#platform#path#data('vqq_chats.json'))
+" directory to store chat history files
+let g:vqq_chats_dir = get(g:, 'vqq_chats_dir', vimqq#platform#path#data('vqq_chats'))
 
 
 function! vimqq#controller#new() abort
@@ -23,7 +23,7 @@ function! vimqq#controller#new() abort
 
     function! controller.init() dict
         let self.ui = vimqq#ui#new()
-        let self.db = vimqq#db#new(g:vqq_chats_file)
+        let self.db = vimqq#db#new(g:vqq_chats_dir)
         let self.bots = vimqq#bots#bots#new()
         let self.state = vimqq#state#new(self.db)
         let self.warmup = vimqq#warmup#new(self.bots, self.db)

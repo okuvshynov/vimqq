@@ -44,7 +44,7 @@ endfunction
 function s:suite.before_each()
 	if !s:skip_all
 		:bufdo! bd! | enew
-		call delete(g:vqq_chats_file)
+        call delete(g:vqq_chats_dir, 'rf')
 		call vimqq#main#setup()
 		let addr = g:vqq_llama_cpp_servers[0]['addr']
 		call vimqq#platform#http#get(addr . '/reset', ["--max-time", "5"], {})

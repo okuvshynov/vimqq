@@ -4,7 +4,7 @@ let s:assert = themis#helper('assert')
 let s:test_db_file = tempname()
 
 function s:suite.before_each()
-    call delete(s:test_db_file)
+    call delete(s:test_db_file, 'rf')
 endfunction
 
 function s:suite.test_new_db()

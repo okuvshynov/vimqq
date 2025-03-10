@@ -5,8 +5,8 @@ let g:vqq_llama_cpp_servers = [{'bot_name': 'mock', 'addr': 'http://localhost:88
 let g:vqq_time_format = "00:00"
 let g:vqq_skip_init = 1
 
-let s:temp_dir = tempname()
+let s:temp_dir = expand("~/.vim/vimqq_tests")
 call mkdir(s:temp_dir, "p")
 
 let g:vqq_log_file = s:temp_dir . "/vimqq.log"
-let g:vqq_chats_file = s:temp_dir . "/vimqq_db.json"
+let g:vqq_chats_dir = s:temp_dir . "/vimqq_db"
