@@ -18,7 +18,6 @@ function! vimqq#controller#new() abort
     let controller.db = v:null
     let controller.bots = v:null
     let controller.state = v:null
-    let controller.warmup = v:null
     let controller.toolset = v:null
 
     function! controller.init() dict
@@ -26,9 +25,11 @@ function! vimqq#controller#new() abort
         let self.db = vimqq#db#new(g:vqq_chats_dir)
         let self.bots = vimqq#bots#bots#new()
         let self.state = vimqq#state#new(self.db)
-        let self.warmup = vimqq#warmup#new(self.bots, self.db)
         let self.toolset = vimqq#tools#toolset#new()
         let self._in_flight = {}
+
+        " to autoload and start command line monitoring
+        call vimqq#warmup#start()
     endfunction
 
     function! controller.run_query(chat_id, bot, message) dict
@@ -50,6 +51,7 @@ function! vimqq#controller#new() abort
         return v:false
     endfunction
 
+    " This function will be called when tool completed.
     function! controller.on_tool_result(bot, tool_result, chat_id) dict
         if self.run_query(a:chat_id, a:bot, a:tool_result)
             call self.show_chat(a:chat_id)
@@ -122,7 +124,7 @@ function! vimqq#controller#new() abort
         endif
 
         if a:event ==# 'warmup_done'
-            call self.warmup.mark_done()
+            call vimqq#warmup#done()
             return
         endif
 

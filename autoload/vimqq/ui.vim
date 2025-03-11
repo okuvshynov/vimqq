@@ -114,6 +114,7 @@ function vimqq#ui#new() abort
     endfunction
 
     " }}}
+
     " {{{ public:
 
     function! ui.update_queue_size(queue_size) dict
@@ -123,11 +124,11 @@ function vimqq#ui#new() abort
         endif
     endfunction
 
-    function! ui.append_partial(token) dict
+    function! ui.append_partial(chunk) dict
         let bufnum = s:bnrs(s:CHAT_BUF_NAME)
         if bufnum != -1
             let curr_line = getbufline(bufnum, '$')[0]
-            let lines     = split(curr_line . a:token . "\n", '\n')
+            let lines     = split(curr_line . a:chunk . "\n", '\n')
             silent! call setbufvar(bufnum, '&modifiable', 1)
             silent! call setbufline(bufnum, '$', lines)
             silent! call setbufvar(bufnum, '&modifiable', 0)

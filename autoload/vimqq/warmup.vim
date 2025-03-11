@@ -11,6 +11,7 @@ let g:autoloaded_vimqq_warmup = 1
 "  These two situations are handled differently and we need to unify this 
 "  a little + add configuration (per bot?)
 
+" TODO(state)
 let s:warmup_timer = -1
 let s:warmup_in_progress = v:false
 let s:current_message = ''
@@ -88,15 +89,12 @@ function! s:start_command_timer()
     \)  " -1 means repeat indefinitely
 endfunction
 
-" This function handles auto warmup on title gen or chat selection
-function! vimqq#warmup#new(bots, db) abort
-    let w = {}
+function! vimqq#warmup#start() abort
+    call vimqq#log#info('autoloaded, monitoring command line.')
+endfunction
 
-    function! w.mark_done() dict
-        let s:warmup_in_progress = v:false
-    endfunction
-
-    return w
+function! vimqq#warmup#done() abort
+    let s:warmup_in_progress = v:false
 endfunction
 
 augroup VQQCommandLinePrefetch
