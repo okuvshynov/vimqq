@@ -18,10 +18,8 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
     let api._base_url = get(a:conf, 'base_url', 'https://api.anthropic.com')
     let api._req_id = 0
     let api._api_key = g:vqq_claude_api_key
-    " TODO: !! this is wrong needs to be per request
-    let api._usage = {}
-    " TODO: !! this is wrong needs to be per request
-    let api._last_turn_usage = {}
+    let api._req_usages = {}
+    let api._req_last_turn_usages = {}
 
     let api._builders = {}
 
@@ -30,10 +28,10 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
     endfunction
 
     " Not calling any callback as we expect to act on data: [DONE]
-    function! api._on_stream_close(params) dict
+    function! api._on_stream_close(params, req_id) dict
         let s:SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
         call s:SysMessage('info', 'anthropic stream closed.')
-        " Still need to close in case of error?
+        call self._cleanup_req_id(a:req_id)
     endfunction
 
     function! api._on_rate_limit(params) dict
@@ -85,8 +83,12 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
             let response = json_decode(json_string)
 
             if response['type'] ==# 'message_start'
-                let self._usage = vimqq#util#merge(self._usage, response.message.usage)
-                let self._last_turn_usage = response.message.usage
+                " Initialize usage for this req_id if it doesn't exist
+                if !has_key(self._req_usages, a:req_id)
+                    let self._req_usages[a:req_id] = {}
+                endif
+                let self._req_usages[a:req_id] = vimqq#util#merge(self._req_usages[a:req_id], response.message.usage)
+                let self._req_last_turn_usages[a:req_id] = response.message.usage
                 continue
             endif
 
@@ -108,20 +110,30 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
             if response['type'] ==# 'message_delta'
                 " Here we get usage for output
                 call vimqq#log#debug('usage: ' . string(response.usage))
-                let self._usage = vimqq#util#merge(self._usage, response.usage)
+                
+                " Ensure usage tracking exists for this req_id
+                if !has_key(self._req_usages, a:req_id)
+                    let self._req_usages[a:req_id] = {}
+                endif
+                
+                let self._req_usages[a:req_id] = vimqq#util#merge(self._req_usages[a:req_id], response.usage)
 
-                let in_tokens = get(self._last_turn_usage, 'cache_creation_input_tokens', 0) +
-                            \ get(self._last_turn_usage, 'cache_read_input_tokens', 0) +
-                            \ get(self._last_turn_usage, 'input_tokens', 0)
+                " Get turn usage information
+                let last_turn_usage = get(self._req_last_turn_usages, a:req_id, {})
+                let in_tokens = get(last_turn_usage, 'cache_creation_input_tokens', 0) +
+                            \ get(last_turn_usage, 'cache_read_input_tokens', 0) +
+                            \ get(last_turn_usage, 'input_tokens', 0)
 
                 let out_tokens = get(response.usage, 'output_tokens', 0)
                 call s:SysMessage('info', 'Turn: in = ' . in_tokens . ', out = ' . out_tokens)
 
-                let in_tokens = get(self._usage, 'cache_creation_input_tokens', 0) +
-                            \ get(self._usage, 'cache_read_input_tokens', 0) +
-                            \ get(self._usage, 'input_tokens', 0)
+                " Get total conversation usage
+                let usage = self._req_usages[a:req_id]
+                let in_tokens = get(usage, 'cache_creation_input_tokens', 0) +
+                            \ get(usage, 'cache_read_input_tokens', 0) +
+                            \ get(usage, 'input_tokens', 0)
 
-                let out_tokens = get(self._usage, 'output_tokens', 0)
+                let out_tokens = get(usage, 'output_tokens', 0)
 
                 call s:SysMessage('info', 'Conversation: in = ' . in_tokens . ', out = ' . out_tokens)
                 continue
@@ -142,6 +154,20 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
     function! api._on_close(params, req_id) dict
         let builder = self._builders[a:req_id]
         call builder.close()
+        call self._cleanup_req_id(a:req_id)
+    endfunction
+    
+    function! api._cleanup_req_id(req_id) dict
+        " Clean up resources for this req_id to avoid memory leaks
+        if has_key(self._builders, a:req_id)
+            unlet self._builders[a:req_id]
+        endif
+        if has_key(self._req_usages, a:req_id)
+            unlet self._req_usages[a:req_id]
+        endif
+        if has_key(self._req_last_turn_usages, a:req_id)
+            unlet self._req_last_turn_usages[a:req_id]
+        endif
     endfunction
 
     function! api.chat(params) dict
@@ -161,7 +187,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
             let job_conf = {
             \   'out_cb': {channel, d -> self._on_stream_out(d, a:params, req_id)},
             \   'err_cb': {channel, d -> self._on_error(d, a:params)},
-            \   'close_cb': {channel -> self._on_stream_close(a:params)},
+            \   'close_cb': {channel -> self._on_stream_close(a:params, req_id)},
             \ }
         else
             let self._builders[req_id] = vimqq#api#anthropic_builder#plain(a:params)
