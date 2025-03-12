@@ -38,7 +38,7 @@ function! vimqq#controller#new() abort
             return v:false
         endif
 
-        call vimqq#metrics#user_started_waiting(a:chat_id)
+        call vimqq#ttft#user_started_waiting(a:chat_id)
         " timestamp and other metadata might get appended here
         call self.db.append_message(a:chat_id, a:message)
         let chat = self.db.get_chat(a:chat_id)
@@ -159,7 +159,7 @@ function! vimqq#controller#new() abort
             let first = v:false
             if !has_key(chat, 'partial_message')
                 let first = v:true
-                call vimqq#metrics#first_token(chat_id)
+                call vimqq#ttft#first_token(chat_id)
                 let chat['partial_message'] = a:args['builder'].msg
             endif
             let chat.partial_message.bot_name = a:args['bot'].name()
