@@ -1,5 +1,5 @@
 ```
-14:38 You: @sonnet test_tools_schema is testing part of anthropic_adapter at the moment. Rename this test to be test_anthropic_adapter and create more tests for its functionality. Run the tests with 'themis tests/local' command.
+22:45 You: @sonnet using llama_api.vim as an example, create a simple mock_api.vim file in the same folder, which would return the length of current conversation as output. In case of streaming, do it in multiple chunks.
 
 ```
 <details>
@@ -363,7 +363,9 @@ This directory contains benchmarking tests and related files for the VimQQ plugi
 </details>
 
 ```
-14:38 sonnet: I'll help you rename the test file and create more tests for the Anthropic adapter functionality. Let's start by examining the current test file and understanding what it's testing.
+22:45 sonnet: I'll help you create a simple mock_api.vim file in the autoload/vimqq/api folder that returns the length of the current conversation as output. I'll use llama_api.vim as an example to understand the structure and functionality needed.
+
+First, let me examine the llama_api.vim file to understand its structure:
 
 
 ```
@@ -371,16 +373,15 @@ This directory contains benchmarking tests and related files for the VimQQ plugi
 <summary>Details</summary>
 
 ```
-tests/local/test_tools_schema.vim
-autoload/vimqq/api/anthropic_adapter.vim
+autoload/vimqq/api/llama_api.vim
 ```
 </details>
 
 ```
 
-14:38 info: Turn: in = 16614, out = 122
-14:38 info: Conversation: in = 16614, out = 127
-14:38 tool: @sonnet
+22:45 info: Turn: in = 16610, out = 148
+22:45 info: Conversation: in = 16610, out = 153
+22:45 tool: @sonnet
 
 ```
 <details>
@@ -388,352 +389,235 @@ autoload/vimqq/api/anthropic_adapter.vim
 
 ```
 
-tests/local/test_tools_schema.vim
-let s:suite = themis#suite('test_tools_schema.vim')
-let s:assert = themis#helper('assert')
-
-let s:tool_def = {
-        \ 'type': 'function',
-        \ 'function': {
-            \ 'name': 'get_files',
-            \ 'description': 'Gets content of one or more files.',
-            \ 'parameters': {
-                \ 'type': 'object',
-                \ 'properties': {
-                    \ 'filepaths': {
-                        \ 'type': 'array',
-                        \ 'items': {
-                            \ 'type': 'string'
-                        \ },
-                        \ 'description': 'A list of file paths to get the content.'
-                    \ }
-                \ },
-                \ 'required': ['filepaths']
-            \ }
-        \ }
-    \ }
-
-let s:tool_def_claude = {
-        \ 'name': 'get_files',
-        \ 'description': 'Gets content of one or more files.',
-        \ 'input_schema': {
-            \ 'type': 'object',
-            \ 'properties': {
-                \ 'filepaths': {
-                    \ 'type': 'array',
-                    \ 'items': {
-                        \ 'type': 'string'
-                    \ },
-                    \ 'description': 'A list of file paths to get the content.'
-                \ }
-            \ },
-            \ 'required': ['filepaths']
-        \ }
-    \ }
-
-function s:suite.test_to_claude()
-    let s:observed = vimqq#api#anthropic_adapter#tool_schema(s:tool_def)
-
-    call s:assert.equals(s:observed, s:tool_def_claude)
-endfunction
-
-
-autoload/vimqq/api/anthropic_adapter.vim
-if exists('g:autoloaded_vimqq_anthropic_adapter')
+autoload/vimqq/api/llama_api.vim
+if exists('g:autoloaded_vimqq_api_llama_module')
     finish
 endif
 
-let g:autoloaded_vimqq_anthropic_adapter = 1
+let g:autoloaded_vimqq_api_llama_module = 1
 
-" Translates tool definition schema to anthropic-compatible format
-" Public for unit testing
-function! vimqq#api#anthropic_adapter#tool_schema(schema)
-    let fn = a:schema['function']
-    let res = {
-    \   'name': fn['name'],
-    \   'description' : fn['description'],
-    \   'input_schema' : fn['parameters']
-    \} 
-    return res
-endfunction
+function! vimqq#api#llama_api#new(conf) abort
+    let api = {}
 
-function! vimqq#api#anthropic_adapter#adapt_tools(tools)
-    let res = []
-    for tool in a:tools
-        call add(res, vimqq#api#anthropic_adapter#tool_schema(tool))
-    endfor
-    return res
-endfunction
+    let api._endpoint = a:conf.endpoint
+    " stores partial responses
+    let api._req_id = 0
+    let api._jinja = get(a:conf, 'jinja', v:false)
+    let api._builders = {}
 
-
-" receives messages in internal format
-function! vimqq#api#anthropic_adapter#run(request)
-    let tools = get(a:request, 'tools', [])
-    let messages = a:request.messages
-    
-    let system_msg = v:null
-    if messages[0].role ==# 'system'
-        let system_msg = messages[0].content
-        call remove(messages, 0)
-    endif
-
-    let req = {
-    \   'messages' : messages,
-    \   'model': a:request.model,
-    \   'max_tokens' : get(a:request, 'max_tokens', 1024),
-    \   'stream': get(a:request, 'stream', v:false),
-    \   'tools': vimqq#api#anthropic_adapter#adapt_tools(tools)
-    \}
-
-    if system_msg isnot v:null
-        let req['system'] = system_msg
-    endif
-
-    if has_key(a:request, 'thinking_tokens')
-        let tokens = a:request['thinking_tokens']
-        if has_key(a:request, 'on_sys_msg')
-            call a:request.on_sys_msg(
-                \ 'info',
-                \ 'extended thinking with ' . tokens . ' token budget: ON')
-        endif
-        let req['thinking'] = {'type': 'enabled', 'budget_tokens': tokens}
-    endif
-
-
-    return req
-endfunction
-```
-</details>
-
-```
-
-14:38 info: anthropic stream closed.
-14:38 info: Setting title: Rename test_tools_schema to test_anthropic_adapter
-14:38 sonnet: Now I understand the current test functionality. The test is checking the `tool_schema` function of the Anthropic adapter, which transforms tool definitions into a format compatible with the Claude API.
-
-Let's also check how the tests are typically run in this project:
-
-
-[tool_call: run_cmd]
-
-$ ls tests/local/ | grep test_
-
-14:38 info: Turn: in = 17807, out = 117
-14:38 info: Conversation: in = 17807, out = 119
-14:38 info: anthropic stream closed.
-14:38 tool: @sonnet
-
-[tool_call_result]
-{"stderr":"","stdout":"test_anthropic_api.vim\ntest_controller.vim\ntest_db.vim\ntest_dir\ntest_fmt.vim\ntest_http.vim\ntest_log.vim\ntest_prompts.vim\ntest_queries.vim\ntest_tools_create_file.vim\ntest_tools_edit_file.vim\ntest_tools_get_files.vim\ntest_tools_run_cmd.vim\ntest_tools_schema.vim\ntest_util.vim\ntest_warmup.vim","returncode":0}
-
-14:38 sonnet: Now let's rename the test file and create more comprehensive tests for the anthropic_adapter functionality:
-
-
-```
-<details>
-<summary>Details</summary>
-
-```
-Pattern:
-let s:suite = themis#suite('test_tools_schema.vim')
-Replacement:
-let s:suite = themis#suite('test_anthropic_adapter.vim')
-```
-</details>
-
-```
-
-14:38 info: Turn: in = 18077, out = 154
-14:38 info: Conversation: in = 18077, out = 159
-14:38 tool: @sonnet
-
-[tool_call_result]
-
-tests/local/test_tools_schema.vim
-SUCCESS: File updated successfully.
-
-14:38 info: anthropic stream closed.
-14:38 sonnet: Now I'll expand the test file to test the other functions in the anthropic_adapter:
-
-
-```
-<details>
-<summary>Details</summary>
-
-```
-Pattern:
-function s:suite.test_to_claude()
-    let s:observed = vimqq#api#anthropic_adapter#tool_schema(s:tool_def)
-
-    call s:assert.equals(s:observed, s:tool_def_claude)
-endfunction
-
-Replacement:
-function s:suite.test_to_claude()
-    let s:observed = vimqq#api#anthropic_adapter#tool_schema(s:tool_def)
-
-    call s:assert.equals(s:observed, s:tool_def_claude)
-endfunction
-
-function s:suite.test_adapt_tools()
-    let tools = [s:tool_def]
-    let expected = [s:tool_def_claude]
-    
-    let observed = vimqq#api#anthropic_adapter#adapt_tools(tools)
-    
-    call s:assert.equals(observed, expected)
-endfunction
-
-function s:suite.test_adapt_multiple_tools()
-    let tool_def2 = {
-        \ 'type': 'function',
-        \ 'function': {
-            \ 'name': 'edit_file',
-            \ 'description': 'Edits a file by replacing text.',
-            \ 'parameters': {
-                \ 'type': 'object',
-                \ 'properties': {
-                    \ 'filepath': {
-                        \ 'type': 'string',
-                        \ 'description': 'Path to the file to edit.'
-                    \ },
-                    \ 'needle': {
-                        \ 'type': 'string',
-                        \ 'description': 'Text to replace.'
-                    \ },
-                    \ 'replacement': {
-                        \ 'type': 'string',
-                        \ 'description': 'Replacement text.'
-                    \ }
-                \ },
-                \ 'required': ['filepath', 'needle', 'replacement']
-            \ }
-        \ }
-    \ }
-    
-    let tool_def2_claude = {
-        \ 'name': 'edit_file',
-        \ 'description': 'Edits a file by replacing text.',
-        \ 'input_schema': {
-            \ 'type': 'object',
-            \ 'properties': {
-                \ 'filepath': {
-                    \ 'type': 'string',
-                    \ 'description': 'Path to the file to edit.'
-                \ },
-                \ 'needle': {
-                    \ 'type': 'string',
-                    \ 'description': 'Text to replace.'
-                \ },
-                \ 'replacement': {
-                    \ 'type': 'string',
-                    \ 'description': 'Replacement text.'
-                \ }
-            \ },
-            \ 'required': ['filepath', 'needle', 'replacement']
-        \ }
-    \ }
-    
-    let tools = [s:tool_def, tool_def2]
-    let expected = [s:tool_def_claude, tool_def2_claude]
-    
-    let observed = vimqq#api#anthropic_adapter#adapt_tools(tools)
-    
-    call s:assert.equals(observed, expected)
-endfunction
-
-function s:suite.test_run_with_system_message()
-    let request = {
-        \ 'model': 'claude-3-opus-20240229',
-        \ 'messages': [
-            \ {'role': 'system', 'content': 'You are a helpful assistant'},
-            \ {'role': 'user', 'content': 'Hello'}
-        \ ],
-        \ 'max_tokens': 2048,
-        \ 'stream': v:true
-    \ }
-    
-    let expected = {
-        \ 'model': 'claude-3-opus-20240229',
-        \ 'messages': [
-            \ {'role': 'user', 'content': 'Hello'}
-        \ ],
-        \ 'max_tokens': 2048,
-        \ 'stream': v:true,
-        \ 'system': 'You are a helpful assistant',
-        \ 'tools': []
-    \ }
-    
-    let observed = vimqq#api#anthropic_adapter#run(request)
-    
-    call s:assert.equals(observed, expected)
-endfunction
-
-function s:suite.test_run_with_tools()
-    let request = {
-        \ 'model': 'claude-3-opus-20240229',
-        \ 'messages': [
-            \ {'role': 'user', 'content': 'Get the contents of test file'}
-        \ ],
-        \ 'tools': [s:tool_def],
-        \ 'max_tokens': 1024,
-        \ 'stream': v:false
-    \ }
-    
-    let expected = {
-        \ 'model': 'claude-3-opus-20240229',
-        \ 'messages': [
-            \ {'role': 'user', 'content': 'Get the contents of test file'}
-        \ ],
-        \ 'max_tokens': 1024,
-        \ 'stream': v:false,
-        \ 'tools': [s:tool_def_claude]
-    \ }
-    
-    let observed = vimqq#api#anthropic_adapter#run(request)
-    
-    call s:assert.equals(observed, expected)
-endfunction
-
-function s:suite.test_run_with_thinking_tokens()
-    let on_sys_msg_called = 0
-    let on_sys_msg_level = ''
-    let on_sys_msg_message = ''
-    
-    function! TestOnSysMsg(level, message) closure
-        let on_sys_msg_called = 1
-        let on_sys_msg_level = a:level
-        let on_sys_msg_message = a:message
+    function! api._on_stream_out(msg, params, req_id) dict
+        let builder = self._builders[a:req_id]
+        let messages = split(a:msg, '\n')
+        for message in messages
+            if message !~# '^data: '
+                call vimqq#log#warning('Unexpected reply: ' . message)
+                continue
+            endif
+            if message ==# 'data: [DONE]'
+                call builder.message_stop()
+                return
+            endif
+            let json_string = substitute(message, '^data: ', '', '')
+            let response = json_decode(json_string)
+            call builder.delta(response)
+        endfor
     endfunction
-    
-    let request = {
-        \ 'model': 'claude-3-opus-20240229',
-        \ 'messages': [
-            \ {'role': 'user', 'content': 'Complex question requiring thinking'}
-        \ ],
-        \ 'thinking_tokens': 500,
-        \ 'on_sys_msg': function('TestOnSysMsg'),
-        \ 'max_tokens': 1024,
-        \ 'stream': v:false
-    \ }
-    
-    let expected = {
-        \ 'model': 'claude-3-opus-20240229',
-        \ 'messages': [
-            \ {'role': 'user', 'content': 'Complex question requiring thinking'}
-        \ ],
-        \ 'max_tokens': 1024,
-        \ 'stream': v:false,
-        \ 'thinking': {'type': 'enabled', 'budget_tokens': 500},
-        \ 'tools': []
-    \ }
-    
-    let observed = vimqq#api#anthropic_adapter#run(request)
-    
-    call s:assert.equals(observed, expected)
-    call s:assert.equals(on_sys_msg_called, 1)
-    call s:assert.equals(on_sys_msg_level, 'info')
-    call s:assert.equals(on_sys_msg_message, 'extended thinking with 500 token budget: ON')
+
+    " Not calling any callback as we expect to act on data: [DONE]
+    " However, we might need to do that to handle any errors?
+    function! api._on_stream_close(params) dict
+        call vimqq#log#debug('llama.cpp stream closed')
+    endfunction
+
+    function! api._on_out(msg, params, req_id) dict
+        let builder = self._builders[a:req_id]
+        call builder.part(a:msg)
+    endfunction
+
+    function! api._on_close(params, req_id) dict
+        let builder = self._builders[a:req_id]
+        call builder.close()
+    endfunction
+
+    function! api._on_error(msg, params) dict
+        call vimqq#log#error('llama_api: error')
+    endfunction
+
+    function! api.chat(params) dict
+        let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
+        let req = {
+        \   'messages': get(a:params, 'messages', []),
+        \   'n_predict': get(a:params, 'max_tokens', 1024),
+        \   'cache_prompt': get(a:params, 'cache_prompt', v:true)
+        \ }
+
+        " llama.cpp with jinja needs 
+        "   content : 'hello', not 
+        "   content : [{type: text, text: 'hello'}] format
+        if self._jinja
+            call vimqq#api#llama_cpp_adapter#jinja(req)
+        endif
+
+        let req_id = self._req_id
+        let self._req_id = self._req_id + 1
+
+        let stream = get(a:params, 'stream', v:false)
+
+        if has_key(a:params, 'tools')
+            if !self._jinja
+                let warning = 'llama_api: using tools with llama.cpp requires jinja templates. Skipping tools.'
+                call vimqq#log#warning(warning)
+                call SysMessage('warning', warning)
+            else
+                " llama.cpp server doesn't support streaming with tools
+                if stream
+                    let warning = 'llama_api: not using streaming as it is not compatible with tools'
+                    call vimqq#log#warning(warning)
+                    call SysMessage('warning', warning)
+                endif
+                let stream = v:false
+                let req['tools'] = a:params['tools']
+            endif
+        endif
+        
+        let req['stream'] = stream
+
+        if stream
+            let self._builders[req_id] = vimqq#api#llama_cpp_builder#streaming(a:params)
+            let job_conf = {
+            \   'out_cb': {channel, msg -> self._on_stream_out(msg, a:params, req_id)},
+            \   'err_cb': {channel, msg -> self._on_error(msg, a:params)},
+            \   'close_cb': {channel -> self._on_stream_close(a:params)},
+            \ }
+        else
+            let self._builders[req_id] = vimqq#api#llama_cpp_builder#plain(a:params)
+            let job_conf = {
+            \   'out_cb': {channel, msg -> self._on_out(msg, a:params, req_id)},
+            \   'err_cb': {channel, msg -> self._on_error(msg, a:params, req_id)},
+            \   'close_cb': {channel -> self._on_close(a:params, req_id)}
+            \ }
+        endif
+
+        let json_req = json_encode(req)
+        let headers = {
+            \ 'Content-Type': 'application/json'
+        \ }
+        return vimqq#platform#http#post(
+            \ self._endpoint,
+            \ headers,
+            \ json_req,
+            \ job_conf)
+    endfunction
+
+    return api
+endfunction
+```
+</details>
+
+```
+
+22:45 info: anthropic stream closed.
+22:45 info: Setting title: Create Simple Mock API for Conversation Length Output
+22:45 sonnet: Now let me look at how the message builder works to understand how to implement the streaming and non-streaming responses:
+
+
+```
+<details>
+<summary>Details</summary>
+
+```
+autoload/vimqq/api/llama_cpp_builder.vim
+```
+</details>
+
+```
+
+22:46 info: Turn: in = 18089, out = 99
+22:46 info: Conversation: in = 18089, out = 101
+22:46 tool: @sonnet
+
+```
+<details>
+<summary>Details</summary>
+
+```
+
+autoload/vimqq/api/llama_cpp_builder.vim
+if exists('g:autoloaded_vimqq_llama_cpp_builder')
+    finish
+endif
+
+let g:autoloaded_vimqq_llama_cpp_builder = 1
+
+" No tool calling + streaming at the moment
+function! vimqq#api#llama_cpp_builder#streaming(params) abort
+    let builder = vimqq#msg_builder#new(a:params).set_role('assistant')
+
+    function! builder.append_text(text) dict
+        if len(self.msg.content) == 0
+            let self.msg.content = [{'type': 'text', 'text': ''}]
+        endif
+        let self.msg.content[0].text = self.msg.content[0].text . a:text
+    endfunction
+
+    function! builder.delta(response) dict
+        if has_key(a:response.choices[0].delta, 'content')
+            let chunk = a:response.choices[0].delta.content
+            call self.append_text(chunk)
+            call self.on_chunk(self.params, chunk)
+        endif
+    endfunction
+
+    function! builder.message_stop() dict
+        call self.on_complete(v:null, self.params, self.msg)
+    endfunction
+
+    return builder
+endfunction
+
+function! vimqq#api#llama_cpp_builder#plain(params) abort
+    let builder = vimqq#msg_builder#new(a:params).set_role('assistant')
+
+    let builder.parts = []
+
+    function! builder.append_text(text) dict
+        if len(self.msg.content) == 0
+            let self.msg.content = [{'type': 'text', 'text': ''}]
+        endif
+        let self.msg.content[0].text = self.msg.content[0].text . a:text
+    endfunction
+
+    function! builder.part(part) dict
+        call add(self.parts, a:part)
+    endfunction
+
+    function! builder.close() dict
+        let parsed = json_decode(join(self.parts, "\n"))
+        let message = parsed.choices[0].message
+        if has_key(message, 'content')
+            if message['content'] isnot v:null
+                call self.append_text(message.content)
+                call self.on_chunk(self.params, message.content)
+            endif
+        endif
+        if has_key(message, 'tool_calls')
+            if message.tool_calls isnot v:null
+                for tool_call in message['tool_calls']
+                    let function_call = tool_call['function']
+                    let content = {
+                        \ 'type' : 'tool_use',
+                        \ 'input': json_decode(function_call.arguments),
+                        \ 'id'   : tool_call.id,
+                        \ 'name' : function_call.name
+                    \ }
+                    call add(self.msg.content, content)
+                endfor
+            endif
+        endif
+        call self.on_complete(v:null, self.params, self.msg)
+    endfunction
+
+    return builder
 endfunction
 
 ```
@@ -741,97 +625,346 @@ endfunction
 
 ```
 
-14:39 info: Turn: in = 18260, out = 1883
-14:39 info: Conversation: in = 18260, out = 1885
-14:39 tool: @sonnet
+22:46 info: anthropic stream closed.
+22:46 sonnet: Let me also check the message builder to understand how message objects are created:
 
-[tool_call_result]
-
-tests/local/test_tools_schema.vim
-SUCCESS: File updated successfully.
-
-14:39 info: anthropic stream closed.
-14:39 sonnet: Now let's rename the file to match the new test name:
-
-
-[tool_call: run_cmd]
-
-$ mv tests/local/test_tools_schema.vim tests/local/test_anthropic_adapter.vim
-
-14:39 info: Turn: in = 20172, out = 91
-14:39 info: Conversation: in = 20172, out = 96
-14:39 info: anthropic stream closed.
-14:39 tool: @sonnet
-
-[tool_call_result]
-{"stderr":"","stdout":"","returncode":0}
-
-14:39 sonnet: Now let's run the tests to make sure our changes are working correctly:
-
-
-[tool_call: run_cmd]
-
-$ themis tests/local/test_anthropic_adapter.vim
-
-14:39 info: Turn: in = 20285, out = 83
-14:39 info: Conversation: in = 20285, out = 88
-14:39 info: anthropic stream closed.
-14:39 tool: @sonnet
 
 ```
 <details>
 <summary>Details</summary>
 
 ```
-{"stderr":"","stdout":"1..6\nok 1 - test_anthropic_adapter.vim test_to_claude\nok 2 - test_anthropic_adapter.vim test_adapt_tools\nok 3 - test_anthropic_adapter.vim test_adapt_multiple_tools\nok 4 - test_anthropic_adapter.vim test_run_with_system_message\nok 5 - test_anthropic_adapter.vim test_run_with_tools\nok 6 - test_anthropic_adapter.vim test_run_with_thinking_tokens\n\n# tests 6\n# passes 6","returncode":0}
+autoload/vimqq/msg_builder.vim
 ```
 </details>
 
 ```
 
-14:39 sonnet: Great! All of our tests passed. Let's run the full test suite to make sure we haven't broken anything else:
-
-
-[tool_call: run_cmd]
-
-$ themis tests/local
-
-14:39 info: Turn: in = 20539, out = 84
-14:39 info: Conversation: in = 20539, out = 89
-14:39 info: anthropic stream closed.
-14:39 tool: @sonnet
+22:46 info: Turn: in = 18990, out = 86
+22:46 info: Conversation: in = 18990, out = 89
+22:46 tool: @sonnet
 
 ```
 <details>
 <summary>Details</summary>
 
 ```
-{"stderr":"","stdout":"1..70\nok 1 - test_tools_edit_file.vim test_edit_file\nok 2 - test_tools_edit_file.vim test_edit_file_newline\nok 3 - test_tools_edit_file.vim test_edit_file_pattern_not_found\nok 4 - test_tools_edit_file.vim test_edit_file_more_instances\nok 5 - test_tools_edit_file.vim test_edit_file_not_found\nok 6 - test_tools_edit_file.vim test_edit_file_async\nok 7 - test_queries.vim test_list_one\nok 8 - test_queries.vim test_new_chat\nok 9 - test_queries.vim test_new_chat_nodelay\nok 10 - test_queries.vim test_query\nok 11 - test_queries.vim test_query_twice\nok 12 - test_queries.vim test_queue\nok 13 - test_queries.vim test_selection\nok 14 - test_tools_create_file.vim test_create_file\nok 15 - test_tools_create_file.vim test_create_file_exists\nok 16 - test_tools_create_file.vim test_create_file_async\nok 17 - test_tools_create_file.vim test_create_file_async_exists\nok 18 - test_log.vim test_fn_call\nok 19 - test_log.vim test_method_call\nok 20 - test_log.vim test_local_fn_call\nok 21 - test_log.vim test_closure_call\nok 22 - test_warmup.vim test_warmup\nok 23 - test_tools_run_cmd.vim test_echo\nok 24 - test_tools_run_cmd.vim test_ls\nok 25 - test_tools_run_cmd.vim test_nonexistent_dir\nok 26 - test_anthropic_api.vim test_stream_text\nok 27 - test_util.vim test_basic\nok 28 - test_util.vim test_unicode\nok 29 - test_util.vim test_unicode_from\nok 30 - test_util.vim test_no_magic\nok 31 - test_util.vim test_nl0\nok 32 - test_util.vim test_nl1\nok 33 - test_util.vim test_nl2\nok 34 - test_util.vim test_nl3\nok 35 - test_util.vim test_nl4\nok 36 - test_util.vim test_nl5\nok 37 - test_util.vim test_merge\nok 38 - test_util.vim test_merge_empty\nok 39 - test_util.vim test_root\nok 40 - test_util.vim test_merge_non_existent\nok 41 - test_http.vim test_http_get\nok 42 - test_http.vim test_http_get_404\nok 43 - test_http.vim test_http_get_na\nok 44 - test_http.vim test_http_get_na_body\nok 45 - test_tools_get_files.vim test_get_files\nok 46 - test_tools_get_files.vim test_get_files_not_found\nok 47 - test_tools_get_files.vim test_get_files_async\nok 48 - test_tools_get_files.vim test_get_files_async_not_found\nok 49 - test_fmt.vim test_content_with_prompt\nok 50 - test_fmt.vim test_content_escape\nok 51 - test_fmt.vim test_content_no_context\nok 52 - test_anthropic_adapter.vim test_to_claude\nok 53 - test_anthropic_adapter.vim test_adapt_tools\nok 54 - test_anthropic_adapter.vim test_adapt_multiple_tools\nok 55 - test_anthropic_adapter.vim test_run_with_system_message\nok 56 - test_anthropic_adapter.vim test_run_with_tools\nok 57 - test_anthropic_adapter.vim test_run_with_thinking_tokens\nok 58 - test_controller.vim test_send_message\nok 59 - test_prompts.vim test_pick_basic\nok 60 - test_prompts.vim test_pick_with_context\nok 61 - test_prompts.vim test_pick_with_index\nok 62 - test_prompts.vim test_pick_with_context_and_index\nok 63 - test_prompts.vim test_pick_ui\nok 64 - test_db.vim test_new_db\nok 65 - test_db.vim test_new_chat\nok 66 - test_db.vim test_append_message\nok 67 - test_db.vim test_title_management\nok 68 - test_db.vim test_persistence\nok 69 - test_db.vim test_chat_list_ordering\nok 70 - test_db.vim test_delete_chat\n\n# tests 70\n# passes 70","returncode":0}
+
+autoload/vimqq/msg_builder.vim
+if exists('g:autoloaded_vimqq_msg_builder')
+    finish
+endif
+
+let g:autoloaded_vimqq_msg_builder = 1
+
+" what kind of callbacks we expect? All are optional
+" - on_sys_msg
+" - on_chunk
+" - on_complete
+" - on_thinking
+function! vimqq#msg_builder#new(params) abort
+    let builder = {}
+    let builder.on_sys_msg  = get(a:params, 'on_sys_msg' , {l, m    -> 0})
+    let builder.on_chunk    = get(a:params, 'on_chunk'   , {p, c    -> 0})
+    let builder.on_thinking = get(a:params, 'on_thinking', {p, t    -> 0})
+    let builder.on_complete = get(a:params, 'on_complete', {e, p, m -> 0})
+
+    let builder.params = a:params
+    let builder.params._builder = builder
+
+    let builder.msg = {}
+
+    " types of content:
+    "  - text [user, assistant]
+    "  - tool_use [assistant]
+    "  - tool_result [user]
+    "  - thinking [assistant]
+    "  - redacted_thinking [assistant]
+    let builder.msg.content = []
+    let builder.msg.timestamp = localtime()
+
+    function! builder.set_role(role) dict
+        let roles = ['user', 'assistant', 'local']
+        call assert_true(
+            \ index(roles, a:role) >= 0,
+            \ "role must be one of " . string(roles) . ", found " . a:role
+        \ )
+        let self.msg.role = a:role
+        return self
+    endfunction
+
+    function! builder.set_bot_name(bot_name) dict
+        call assert_true(
+            \ type(a:bot_name) == type(""),
+            \ "bot_name must be a string, found type " . type(a:bot_name)
+        \ )
+        let self.msg.bot_name = a:bot_name
+        return self
+    endfunction
+
+    return builder
+endfunction
+
+function! vimqq#msg_builder#user() abort
+    let builder = vimqq#msg_builder#new({}).set_role('user')
+
+    " sources are relevant for user-initiated messages only
+    " assistant replies and tool interations are not going to
+    " have sources.
+    " sources can have following entries
+    "  - text    - user question as typed
+    "  - context - usually code selection
+    "  - index   - repository summary
+    "  sources are used to differently render such message 
+    "  in UI and send over the wire.
+    "  so for user messages we will NOT have normal content: text
+    "  and will create it on the fly.
+    let builder.msg.sources = {}
+
+    function! builder._set_src_text(text) dict
+        call assert_true(
+            \ type(a:text) == type(""),
+            \ "text must be a string, found type " . type(a:text)
+        \ )
+        let self.msg.sources.text = a:text
+        return self
+    endfunction
+
+    " this is currently 'visual selection'
+    function! builder._set_src_context(context) dict
+        if a:context is v:null
+            return self
+        endif
+        call assert_true(
+            \ type(a:context) == type(""),
+            \ "context must be a string, found type " . type(a:context)
+        \ )
+        let self.msg.sources.context = a:context
+        return self
+    endfunction
+
+    function! builder._set_src_index(index) dict
+        call assert_true(
+            \ type(a:index) == type(""),
+            \ "index must be a string, found type " . type(a:index)
+        \ )
+        let self.msg.sources.index = a:index
+        return self
+    endfunction
+
+    function! builder.set_sources(question, context, use_index) dict
+        call self._set_src_text(a:question)
+        call self._set_src_context(a:context)
+        if a:use_index
+           call self._set_src_index(vimqq#lucas#load())
+        endif
+        let prompt = vimqq#prompts#pick(self.msg, v:false)
+        let text = vimqq#prompts#apply(self.msg, prompt)
+        let content = {'type': 'text', 'text': text}
+        call add(self.msg.content, content)
+        return self
+    endfunction
+
+    return builder
+endfunction
+
+function! vimqq#msg_builder#local() abort
+    let builder = vimqq#msg_builder#new({}).set_role('local')
+
+    function! builder.set_local(level, text) dict
+        let content = {'type': 'text', 'text' : a:text, 'level': a:level}
+        call add(self.msg.content, content)
+        return self
+    endfunction
+
+    return builder
+endfunction
+
+function! vimqq#msg_builder#tool() abort
+    let builder = vimqq#msg_builder#new({}).set_role('user')
+
+    function! builder.tool_result(id, result) dict
+        let content = {
+        \   'type' : 'tool_result',
+        \   'tool_use_id' : a:id,
+        \   'content' : a:result
+        \ }
+        call add(self.msg.content, content)
+        return self
+    endfunction
+
+    return builder
+endfunction
 ```
 </details>
 
 ```
 
-14:40 sonnet: All tests are passing! Here's a summary of the changes we made:
+22:46 info: anthropic stream closed.
+22:46 sonnet: Now I'll create a simple mock_api.vim file based on the llama_api.vim structure, but it will return the length of the conversation instead of interacting with an actual API:
 
-1. Renamed the test file from `tests/local/test_tools_schema.vim` to `tests/local/test_anthropic_adapter.vim`
-2. Updated the suite name from `test_tools_schema.vim` to `test_anthropic_adapter.vim`
-3. Added the following new tests:
-   - `test_adapt_tools`: Tests the function that adapts a single tool.
-   - `test_adapt_multiple_tools`: Tests the function that adapts multiple tools.
-   - `test_run_with_system_message`: Tests the run function with system messages.
-   - `test_run_with_tools`: Tests the run function with tools.
-   - `test_run_with_thinking_tokens`: Tests the run function with thinking tokens and the on_sys_msg callback.
 
-These tests provide more comprehensive coverage of the `anthropic_adapter.vim` functionality, including:
-- Transformation of tool definitions to Claude API format
-- Handling of multiple tools
-- Processing system messages
-- Integration with the thinking tokens feature
-- Callback handling
+```
+<details>
+<summary>Details</summary>
 
-The tests verify the core functionality of the adapter module, which is an important part of the VimQQ plugin's integration with the Anthropic Claude API.
-14:40 info: Turn: in = 22005, out = 296
-14:40 info: Conversation: in = 22005, out = 298
-14:40 info: anthropic stream closed.
+```
+Content:
+
+if exists('g:autoloaded_vimqq_api_mock_module')
+    finish
+endif
+
+let g:autoloaded_vimqq_api_mock_module = 1
+
+function! vimqq#api#mock_api#new(conf) abort
+    let api = {}
+
+    " No actual endpoint needed for mock API
+    let api._req_id = 0
+    let api._builders = {}
+
+    " For streaming, we'll break the response into multiple chunks
+    function! api._on_stream_out(msg, params, req_id) dict
+        let builder = self._builders[a:req_id]
+        
+        " In a real streaming response, we'd get multiple data lines
+        " Here we're simulating that by processing each character separately
+        for char in split(a:msg, '\zs')
+            " Format like a real SSE message
+            let message = 'data: {"choices":[{"delta":{"content":"' . char . '"}}]}'
+            
+            if message !~# '^data: '
+                call vimqq#log#warning('Unexpected reply: ' . message)
+                continue
+            endif
+            
+            let json_string = substitute(message, '^data: ', '', '')
+            let response = json_decode(json_string)
+            call builder.delta(response)
+        endfor
+        
+        " Signal the end of the stream
+        call builder.message_stop()
+    endfunction
+
+    function! api._on_stream_close(params) dict
+        call vimqq#log#debug('mock_api stream closed')
+    endfunction
+
+    function! api._on_out(msg, params, req_id) dict
+        let builder = self._builders[a:req_id]
+        call builder.part(a:msg)
+    endfunction
+
+    function! api._on_close(params, req_id) dict
+        let builder = self._builders[a:req_id]
+        call builder.close()
+    endfunction
+
+    function! api._on_error(msg, params) dict
+        call vimqq#log#error('mock_api: error')
+    endfunction
+
+    function! api.chat(params) dict
+        let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
+        
+        " Calculate the length of the conversation
+        let messages = get(a:params, 'messages', [])
+        let conv_length = 0
+        
+        " Count the total characters in all messages
+        for msg in messages
+            if has_key(msg, 'content')
+                if type(msg.content) == type([])
+                    " Handle array of content objects
+                    for content_part in msg.content
+                        if has_key(content_part, 'text')
+                            let conv_length += len(content_part.text)
+                        endif
+                    endfor
+                elseif type(msg.content) == type("")
+                    " Handle simple string content
+                    let conv_length += len(msg.content)
+                endif
+            endif
+        endfor
+        
+        " Create response string - conversation length
+        let response_text = "The conversation length is " . conv_length . " characters."
+        
+        let req_id = self._req_id
+        let self._req_id = self._req_id + 1
+
+        let stream = get(a:params, 'stream', v:false)
+        
+        if stream
+            let self._builders[req_id] = vimqq#api#llama_cpp_builder#streaming(a:params)
+            
+            " For streaming, we'll simulate delay by using a job
+            let job_conf = {
+            \   'out_cb': {channel, msg -> self._on_stream_out(response_text, a:params, req_id)},
+            \   'err_cb': {channel, msg -> self._on_error(msg, a:params)},
+            \   'close_cb': {channel -> self._on_stream_close(a:params)},
+            \ }
+            
+            " Echo the message to simulate a command that returns output
+            return vimqq#platform#jobs#start('echo "mock_streaming"', job_conf)
+        else
+            let self._builders[req_id] = vimqq#api#llama_cpp_builder#plain(a:params)
+            
+            " Format the response as JSON like a real API would
+            let json_response = '{"choices":[{"message":{"content":"' . response_text . '"}}]}'
+            
+            let job_conf = {
+            \   'out_cb': {channel, msg -> self._on_out(json_response, a:params, req_id)},
+            \   'err_cb': {channel, msg -> self._on_error(msg, a:params, req_id)},
+            \   'close_cb': {channel -> self._on_close(a:params, req_id)}
+            \ }
+            
+            " Echo the message to simulate a command that returns output
+            return vimqq#platform#jobs#start('echo "mock_nonstreaming"', job_conf)
+        endif
+    endfunction
+
+    return api
+endfunction
+```
+</details>
+
+```
+
+22:46 info: Turn: in = 20497, out = 1376
+22:46 info: Conversation: in = 20497, out = 1379
+22:46 tool: @sonnet
+
+[tool_call_result]
+
+autoload/vimqq/api/mock_api.vim
+SUCCESS: File created successfully.
+
+22:46 info: anthropic stream closed.
+22:46 sonnet: Now I've created a simple mock_api.vim file in the autoload/vimqq/api folder. This mock API implementation:
+
+1. Calculates the length of the conversation by counting characters in all messages
+2. Returns a response text that states the conversation length
+3. Supports both streaming and non-streaming responses:
+   - For streaming, it breaks the response into individual characters and sends them one by one
+   - For non-streaming, it sends the complete response in a single JSON-formatted message
+
+The API uses the existing llama_cpp_builder for message construction, similar to how llama_api.vim does it. The key difference is that instead of actually sending HTTP requests to an external service, it:
+
+1. Calculates the conversation length
+2. Creates a response message stating the length
+3. Uses vimqq#platform#jobs#start to simulate an async process
+4. Sends the response through the appropriate callbacks
+
+For streaming responses, the mock API simulates real Server-Sent Events (SSE) by formatting each character of the response as an individual SSE message, which is then processed by the streaming builder.
+
+For non-streaming responses, it formats the complete response as a JSON object similar to what would be returned by a real API.
+
+This mock implementation should work well for testing purposes, allowing you to see how the plugin handles both streaming and non-streaming responses without needing to connect to an actual external API.
+22:46 info: Turn: in = 21906, out = 317
+22:46 info: Conversation: in = 21906, out = 320
+22:46 info: anthropic stream closed.
 ```

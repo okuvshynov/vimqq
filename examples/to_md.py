@@ -39,7 +39,7 @@ def transform_to_markdown(log_content):
         time_author_match = re.match(r'^(\d{2}:\d{2} [^:]+:)(.*)', line)
         if time_author_match:
             time_author, rest_of_line = time_author_match.groups()
-            line = f"**{time_author}**{rest_of_line}"
+            line = f"{time_author}{rest_of_line}"
         
         # Check for fold start
         if "{{{" in line:
