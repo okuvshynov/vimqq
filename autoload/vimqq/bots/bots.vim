@@ -12,8 +12,14 @@ let g:vqq_claude_reviewer_models = get(g:, 'vqq_claude_reviewer_models', [])
 
 let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
 
+let s:MOCK_BOT_NAME = 'mqq'
+
 " Validate a bot name to ensure it's unique and follows naming conventions
 function! s:validate_name(name, bots)
+    if a:name ==# s:MOCK_BOT_NAME
+        call vimqq#log#error("Bot name '" . s:MOCK_BOT_NAME . "' is reserved for internal mock bot.")
+        return v:false
+    endif
     if a:name ==# 'You'
         call vimqq#log#error("Bot name 'You' is not allowed")
         return v:false
@@ -76,6 +82,10 @@ function! vimqq#bots#bots#new() abort
             let bots._default_bot = bot
         endif
     endfor
+
+    " add default mock bot
+    let mock_bot = vimqq#bots#mock_bot#new({'bot_name': s:MOCK_BOT_NAME})
+    call add(bots._bots, mock_bot)
 
     function! bots.bots() dict
         return self._bots
