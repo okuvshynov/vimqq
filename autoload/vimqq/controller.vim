@@ -150,6 +150,7 @@ function! vimqq#controller#new() abort
         endif
         
         if a:event ==# 'chunk_done'
+            call vimqq#log#debug('chunk_done: ' . a:args['chunk'])
             if !self.db.chat_exists(a:args['chat_id'])
                 call vimqq#log#warning("callback on non-existent chat.")
                 return
@@ -170,8 +171,10 @@ function! vimqq#controller#new() abort
             call self.db._save()
             if a:args['chat_id'] ==# self.state.get_chat_id()
                 if first
+                    call vimqq#log#debug('show_chat')
                     call self.show_chat(a:args['chat_id'])
                 else
+                    call vimqq#log#debug('append_partial')
                     call self.ui.append_partial(a:args['chunk'])
                 endif
             endif

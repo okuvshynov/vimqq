@@ -13,12 +13,15 @@ function! vimqq#api#mock_api#new(conf) abort
 
     " For streaming, we'll break the response into multiple chunks
     function! api._on_stream_out(msg, params, req_id) dict
-        let builder = self._builders[a:req_id]
-        
-        " In a real streaming response, we'd get multiple data lines
-        " Here we're simulating that by processing each character separately
-        for char in split(a:msg, '\zs')
-            " Format like a real SSE message
+        let req_id = a:req_id
+        let params = a:params
+        let builder = self._builders[req_id]
+
+        " we are simulating responses coming in chunks on timer
+        let chars = split(a:msg, '\zs')
+        if len(chars) > 0
+            let char = chars[0]
+            call vimqq#log#debug('on_stream_out: ' . char)
             let message = 'data: {"choices":[{"delta":{"content":"' . char . '"}}]}'
             
             if message !~# '^data: '
@@ -29,10 +32,12 @@ function! vimqq#api#mock_api#new(conf) abort
             let json_string = substitute(message, '^data: ', '', '')
             let response = json_decode(json_string)
             call builder.delta(response)
-        endfor
+            let tail = join(chars[1:], '')
+            call timer_start(0, {t -> self._on_stream_out(tail, params, req_id)})
+        else
+            call builder.message_stop()
+        endif
         
-        " Signal the end of the stream
-        call builder.message_stop()
     endfunction
 
     function! api._on_stream_close(params) dict
