@@ -18,11 +18,11 @@ function! vimqq#api#mock_api#new(conf) abort
         let builder = self._builders[req_id]
 
         " we are simulating responses coming in chunks on timer
-        let chars = split(a:msg, '\zs')
-        if len(chars) > 0
-            let char = chars[0]
-            call vimqq#log#debug('on_stream_out: ' . char)
-            let message = 'data: {"choices":[{"delta":{"content":"' . char . '"}}]}'
+        let chunks = split(a:msg)
+        if len(chunks) > 0
+            let chunk = chunks[0]
+            call vimqq#log#debug('on_stream_out: ' . chunk)
+            let message = 'data: {"choices":[{"delta":{"content":"' . chunk . ' "}}]}'
             
             if message !~# '^data: '
                 call vimqq#log#warning('Unexpected reply: ' . message)
@@ -32,7 +32,7 @@ function! vimqq#api#mock_api#new(conf) abort
             let json_string = substitute(message, '^data: ', '', '')
             let response = json_decode(json_string)
             call builder.delta(response)
-            let tail = join(chars[1:], '')
+            let tail = join(chunks[1:])
             call timer_start(0, {t -> self._on_stream_out(tail, params, req_id)})
         else
             call builder.message_stop()
