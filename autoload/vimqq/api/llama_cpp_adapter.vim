@@ -5,6 +5,7 @@ endif
 let g:autoloaded_vimqq_api_llama_adapter = 1
 
 " TODO: how should we handle situations with > 1 content entry?
+" For now llama.cpp is not returning such messages
 function! vimqq#api#llama_cpp_adapter#jinja(req)
     for message in a:req.messages
         if type(message.content) == type([])

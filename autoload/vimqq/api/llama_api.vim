@@ -17,6 +17,7 @@ function! vimqq#api#llama_api#new(conf) abort
         let builder = self._builders[a:req_id]
         let messages = split(a:msg, '\n')
         for message in messages
+            call vimqq#log#debug(message)
             if message !~# '^data: '
                 call vimqq#log#warning('Unexpected reply: ' . message)
                 continue
@@ -63,6 +64,7 @@ function! vimqq#api#llama_api#new(conf) abort
         "   content : 'hello', not 
         "   content : [{type: text, text: 'hello'}] format
         if self._jinja
+            " TODO: Modifies inplace, let's maybe return it instead
             call vimqq#api#llama_cpp_adapter#jinja(req)
         endif
 

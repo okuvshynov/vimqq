@@ -162,13 +162,13 @@ function! vimqq#controller#new() abort
                 let first = v:true
                 call vimqq#ttft#first_token(chat_id)
                 let chat['partial_message'] = a:args['builder'].msg
+                call self.db._save()
             endif
             let chat.partial_message.bot_name = a:args['bot'].name()
             let chat.partial_message.seq_id = self.db.seq_id()
             if !has_key(chat.partial_message, 'seq_id_first')
                 let chat.partial_message.seq_id_first = chat.partial_message.seq_id
             endif
-            call self.db._save()
             if a:args['chat_id'] ==# self.state.get_chat_id()
                 if first
                     call vimqq#log#debug('show_chat')

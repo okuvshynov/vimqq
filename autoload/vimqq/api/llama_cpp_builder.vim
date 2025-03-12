@@ -21,6 +21,17 @@ function! vimqq#api#llama_cpp_builder#streaming(params) abort
             call self.append_text(chunk)
             call self.on_chunk(self.params, chunk)
         endif
+        if has_key(a:response, "usage")
+            let in_tokens = get(a:response.usage, 'prompt_tokens', 0)
+            let out_tokens = get(a:response.usage, 'completion_tokens', 0)
+            call self.on_sys_msg('info', 'Turn: in = ' . in_tokens . ', out = ' . out_tokens)
+        endif
+        if has_key(a:response, "timings")
+            let tps = get(a:response.timings, "predicted_per_second", "n/a")
+            " With warmup tps for prompt processing is misleading
+            " Let's just track TTFT instead.
+            call self.on_sys_msg('info', 'Completion: ' . tps . ' tokens/second')
+        endif
     endfunction
 
     function! builder.message_stop() dict
