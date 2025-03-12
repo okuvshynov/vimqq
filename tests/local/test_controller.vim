@@ -2,8 +2,8 @@ let s:suite = themis#suite('test_controller.vim')
 let s:assert = themis#helper('assert')
 
 " E2E logic testing, excluding UI
-function s:suite.before()
-    :bufdo! bd! | enew
+function s:suite.before_each()
+    :bufdo! bd! | enew!
     call delete(g:vqq_chats_dir, 'rf')
     call vimqq#main#setup()
 endfunction
