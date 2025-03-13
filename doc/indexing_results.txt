@@ -1,0 +1,6 @@
+M2 Ultra local
+
+Mistral-Small-24B-Instruct-2501 Q8_0 24m25s
+gemma-3-4b-it                   Q8_0  6m??s
+
+
