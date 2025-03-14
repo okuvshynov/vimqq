@@ -13,12 +13,7 @@ function vimqq#bots#llama_cpp_indexer#new(config = {})
 
     function bot.count_tokens(request) dict
         let req = a:request
-        function! s:OnTokenized(tokens) closure
-            if has_key(req, 'on_complete')
-                call req.on_complete(len(a:tokens))
-            endif
-        endfunction
-        call self.api.tokenize(req.content, {'on_complete': {t -> s:OnTokenized(t)}})
+        call self.api.tokenize(req.content, {'on_complete': {t -> req.on_complete(len(t))}})
     endfunction
 
     return bot
