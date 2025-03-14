@@ -45,7 +45,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
 
     function! api._handle_error(error_json, params) dict
         let err = string(a:error_json['error'])
-        if get(error_json['error'], 'type', '') ==# 'rate_limit_error'
+        if get(a:error_json['error'], 'type', '') ==# 'rate_limit_error'
             call self._on_rate_limit(a:params)
             return
         endif
