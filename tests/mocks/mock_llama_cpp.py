@@ -37,6 +37,13 @@ def get_stats():
     global stats
     return Response(json.dumps(stats), content_type='application/json')
 
+@app.route('/tokenize', methods=['POST'])
+def tokenize():
+    input_data = request.json
+    input = input_data['content']
+    output = {'tokens' : input.split()}
+    return Response(json.dumps(output), content_type='application/json')
+
 # for now mock server returns three pieces of content(for streamed requests):
 # "BEGIN"
 # COPY_OF_REQUEST

@@ -7,8 +7,8 @@ let g:autoloaded_vimqq_api_llama_module = 1
 function! vimqq#api#llama_api#new(conf) abort
     let api = {}
 
-    let api._endpoint = a:conf.endpoint
-    " stores partial responses
+    let api._endpoint = a:conf.endpoint . '/v1/chat/completions'
+    let api._tokenize_endpoint = a:conf.endpoint . '/tokenize'
     let api._req_id = 0
     let api._jinja = get(a:conf, 'jinja', v:false)
     let api._builders = {}
@@ -117,6 +117,36 @@ function! vimqq#api#llama_api#new(conf) abort
             \ headers,
             \ json_req,
             \ job_conf)
+    endfunction
+
+    function! api.tokenize(text, params)
+        let req = {'content': a:text}
+        let json_req = json_encode(req)
+        let headers = {
+            \ 'Content-Type': 'application/json'
+        \ }
+
+        let parts = []
+
+        let OnCompleteCb = get(a:params, 'on_complete', {tokens -> 0})
+
+        function! s:OnComplete() closure
+            let res = join(parts, "\n")
+            call vimqq#log#debug('tokens: ' . res)
+            call OnCompleteCb(get(json_decode(res), 'tokens', []))
+        endfunction
+
+        let job_conf = {
+            \ 'out_cb': {c, m -> add(parts, m)},
+            \ 'err_cb': {c, m -> vimqq#log#error(m)},
+            \ 'close_cb': {c -> s:OnComplete()}
+        \ }
+        return vimqq#platform#http#post(
+            \ self._tokenize_endpoint,
+            \ headers,
+            \ json_req,
+            \ job_conf)
+
     endfunction
 
     return api

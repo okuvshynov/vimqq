@@ -1,10 +1,10 @@
 " Copyright 2024 Oleksandr Kuvshynov
 " -----------------------------------------------------------------------------
-if exists('g:autoloaded_vimqq_llama_cpp_module')
+if exists('g:autoloaded_vimqq_llama_cpp_bot_module')
     finish
 endif
 
-let g:autoloaded_vimqq_llama_cpp_module = 1
+let g:autoloaded_vimqq_llama_cpp_bot_module = 1
 
 let s:DEFAULT_CONF = {
     \ 'bot_name'      : 'llama',
@@ -17,8 +17,7 @@ let s:DEFAULT_CONF = {
 function vimqq#bots#llama_cpp#new(config = {}) abort
     let config = deepcopy(s:DEFAULT_CONF)
     call extend(config, a:config)
-    let server = substitute(config.addr, '/*$', '', '')
-    let config.endpoint = server . '/v1/chat/completions'
+    let config.endpoint = substitute(config.addr, '/*$', '', '')
 
     let impl = vimqq#api#llama_api#new(config)
 
