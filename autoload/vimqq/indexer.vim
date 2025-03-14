@@ -50,6 +50,8 @@ endfunction
 function! vimqq#indexer#new(...)
     let l:indexer = {}
     let l:indexer.start_dir = a:0 > 0 ? a:1 : getcwd()
+
+    let l:indexer.bot = vimqq#bots#llama_cpp_indexer#new({'addr' : g:vqq_indexer_addr})
     
     " Method to get the project root directory
     function! l:indexer.get_project_root() dict
