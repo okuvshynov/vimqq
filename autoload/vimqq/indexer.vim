@@ -102,12 +102,14 @@ function! vimqq#indexer#new(...)
         return 1
     endfunction
     
-    " Initialize files list
+    " Initialize files list and files_set for deduplication
     let l:indexer.files = []
+    let l:indexer.files_set = {}
     
     " Method to get list of all files in the project using git ls-files
     " Uses asynchronous execution for large directories
     " Stores the result in the 'files' member variable
+    " Implements queue-like behavior with deduplication
     function! l:indexer.get_git_files(...) dict
         " Check if we have a project root
         let project_root = self.get_project_root()
@@ -119,8 +121,11 @@ function! vimqq#indexer#new(...)
         " Go to parent directory of .vqq (actual project root)
         let git_root = fnamemodify(project_root, ':h')
         
-        " Initialize files list
-        let self.files = []
+        " Don't clear the files list - it's now a queue
+        " Only initialize if it doesn't exist yet
+        if !exists('self.files_set')
+            let self.files_set = {}
+        endif
         
         " Store reference to self for closure
         let indexer_ref = self
@@ -128,11 +133,14 @@ function! vimqq#indexer#new(...)
         
         " Define output callback
         function! s:on_git_files_output(channel, output) closure
-            " Split the output into lines and add to files list
+            " Split the output into lines and add to files list if not already present
             let file_list = split(a:output, "\n")
             for file in file_list
-                if !empty(file)
+                if !empty(file) && !has_key(indexer_ref.files_set, file)
+                    " Add to queue
                     call add(indexer_ref.files, file)
+                    " Mark as seen in our lookup dict
+                    let indexer_ref.files_set[file] = 1
                 endif
             endfor
         endfunction

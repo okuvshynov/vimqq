@@ -1,11 +1,6 @@
 let s:suite = themis#suite('test_indexer_git_files')
 let s:assert = themis#helper('assert')
 
-" Load required modules
-runtime! autoload/vimqq/log.vim
-runtime! autoload/vimqq/platform/jobs.vim
-runtime! autoload/vimqq/indexer.vim
-
 " Function to normalize paths (resolves symlinks)
 function! s:normalize_path(path)
     " Use the built-in resolve() function to follow symlinks
