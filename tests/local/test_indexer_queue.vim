@@ -1,6 +1,13 @@
 let s:suite = themis#suite('test_indexer_queue')
 let s:assert = themis#helper('assert')
 
+" Load the new module to ensure it's available for testing
+runtime autoload/vimqq/indexing.vim
+runtime autoload/vimqq/indexing/core.vim
+runtime autoload/vimqq/indexing/file.vim
+runtime autoload/vimqq/indexing/git.vim
+runtime autoload/vimqq/indexing/token.vim
+
 " Function to normalize paths (resolves symlinks)
 function! s:normalize_path(path)
     " Use the built-in resolve() function to follow symlinks

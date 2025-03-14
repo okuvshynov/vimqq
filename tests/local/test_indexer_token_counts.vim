@@ -1,6 +1,13 @@
 let s:suite = themis#suite('test_indexer_token_counts')
 let s:assert = themis#helper('assert')
 
+" Load the new module to ensure it's available for testing
+runtime autoload/vimqq/indexing.vim
+runtime autoload/vimqq/indexing/core.vim
+runtime autoload/vimqq/indexing/file.vim
+runtime autoload/vimqq/indexing/git.vim
+runtime autoload/vimqq/indexing/token.vim
+
 let s:serv_path = expand('<sfile>:p:h:h') . '/mocks/mock_llama_cpp.py'
 let s:skip_all = v:false
 

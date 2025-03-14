@@ -37,7 +37,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
     function! api._on_rate_limit(params) dict
         call s:SysMessage(
             \ 'warning',
-            \ 'Reached rate limit. Waiting ' . s:RATE_LIMIT_WAIT_S . 'seconds before retry'
+            \ 'Reached rate limit. Waiting ' . s:RATE_LIMIT_WAIT_S . ' seconds before retry'
         \ )
 
         call timer_start(s:RATE_LIMIT_WAIT_S * 1000, { timer_id -> self.chat(a:params)})
