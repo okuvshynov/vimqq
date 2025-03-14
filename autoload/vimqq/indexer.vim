@@ -1,4 +1,4 @@
-" Copyright 2024 Oleksandr Kuvshynov
+" Copyright 2025 Oleksandr Kuvshynov
 
 if exists('g:autoloaded_vimqq_indexer')
     finish
@@ -102,6 +102,68 @@ function! vimqq#indexer#new(...)
         return 1
     endfunction
     
+    " Initialize files list
+    let l:indexer.files = []
+    
+    " Method to get list of all files in the project using git ls-files
+    " Uses asynchronous execution for large directories
+    " Stores the result in the 'files' member variable
+    function! l:indexer.get_git_files(...) dict
+        " Check if we have a project root
+        let project_root = self.get_project_root()
+        if project_root is v:null
+            call vimqq#log#error('Cannot get git files: no .vqq directory found')
+            return 0
+        endif
+        
+        " Go to parent directory of .vqq (actual project root)
+        let git_root = fnamemodify(project_root, ':h')
+        
+        " Initialize files list
+        let self.files = []
+        
+        " Store reference to self for closure
+        let indexer_ref = self
+        let CallbackFn = a:0 > 0 && type(a:1) == v:t_func ? a:1 : v:null
+        
+        " Define output callback
+        function! s:on_git_files_output(channel, output) closure
+            " Split the output into lines and add to files list
+            let file_list = split(a:output, "\n")
+            for file in file_list
+                if !empty(file)
+                    call add(indexer_ref.files, file)
+                endif
+            endfor
+        endfunction
+        
+        " Define exit callback
+        function! s:on_git_files_exit(job, status) closure
+            if a:status == 0
+                call vimqq#log#info('Git files indexed: ' . len(indexer_ref.files) . ' files found')
+                
+                " Call the callback if provided
+                if CallbackFn isnot v:null
+                    call CallbackFn(indexer_ref.files)
+                endif
+            else
+                call vimqq#log#error('Failed to get git files. Exit status: ' . a:status)
+            endif
+        endfunction
+        
+        " Configure the job
+        let job_config = {
+            \ 'cwd': git_root,
+            \ 'out_cb': function('s:on_git_files_output'),
+            \ 'exit_cb': function('s:on_git_files_exit'),
+            \ 'err_cb': {channel, msg -> vimqq#log#error('Git ls-files error: ' . msg)}
+        \ }
+        
+        " Run the git command asynchronously
+        let cmd = ['git', 'ls-files', '--cached', '--others', '--exclude-standard']
+        return vimqq#platform#jobs#start(cmd, job_config)
+    endfunction
+    
     return l:indexer
 endfunction
 
@@ -128,4 +190,11 @@ endfunction
 function! vimqq#indexer#write_index(index_data)
     let indexer = vimqq#indexer#new()
     return indexer.write_index(a:index_data)
+endfunction
+
+" Gets list of all files in the project using git ls-files
+" Optional callback function can be provided to process files after indexing
+function! vimqq#indexer#get_git_files(...)
+    let indexer = vimqq#indexer#new()
+    return call(indexer.get_git_files, a:000, indexer)
 endfunction
