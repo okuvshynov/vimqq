@@ -32,6 +32,14 @@
             "approx_tokens": 1352,
             "processing_result": "This file defines the `vimqq#api#anthropic_builder` module, which is responsible for constructing messages for the Anthropic API. It uses a stream-based approach, allowing for incremental message building. Key functions include `streaming()` for streaming responses and `plain()` for constructing complete messages.  The module leverages `vimqq#msg_builder` to manage the message content and utilizes assertion functions to ensure data integrity. It handles 'text_delta', 'input_json_delta', and 'thinking_delta' types of content blocks."
         },
+        "autoload/vimqq/api/llama_api.vim": {
+            "path": "autoload/vimqq/api/llama_api.vim",
+            "size": 5265,
+            "checksum": "259a648568aea205e7790b431062bdfe",
+            "processing_timestamp": "2025-03-14T12:08:51.605150",
+            "approx_tokens": 1549,
+            "processing_result": "This file defines the API for interacting with a llama.cpp server. It handles communication, tokenization, and chat requests. It includes functions for creating a new API instance, sending chat requests, and tokenizing text. The API uses a stream-based approach for sending responses and includes options for using Jinja templates for rendering messages and handling tools."
+        },
         "autoload/vimqq/api/llama_cpp_adapter.vim": {
             "path": "autoload/vimqq/api/llama_cpp_adapter.vim",
             "size": 1512,
@@ -95,6 +103,14 @@
             "processing_timestamp": "2025-03-13T15:31:56.812141",
             "approx_tokens": 250,
             "processing_result": "This file defines the `vimqq#bots#claude_reviewer#new` function, which creates a new Claude reviewer bot instance. It initializes the API client, configures the endpoint, and returns a new `vimqq#bots#bot` instance. The core functionality is in its `_format` function, which formats the conversation history into a structured JSON object suitable for the Claude API, incorporating a system prompt.  It uses the default configuration settings and allows for customization."
+        },
+        "autoload/vimqq/bots/llama_cpp.vim": {
+            "path": "autoload/vimqq/bots/llama_cpp.vim",
+            "size": 755,
+            "checksum": "90dced3b90b38b8c9987d11105b5edfe",
+            "processing_timestamp": "2025-03-14T12:08:51.605150",
+            "approx_tokens": 250,
+            "processing_result": "This file defines a bot that integrates with a llama.cpp server. It creates an instance of the `llama_api` and provides a wrapper for interacting with the server. It also includes functions for managing the connection, handling errors, and potentially integrating with tools (although Jinja templates are required for this to work)."
         },
         "autoload/vimqq/bots/llama_cpp_reviewer.vim": {
             "path": "autoload/vimqq/bots/llama_cpp_reviewer.vim",
@@ -600,6 +616,14 @@
             "approx_tokens": 2638,
             "processing_result": "This file tests the 'vimqq#log#info' function, which is used for logging messages related to queries.  It uses a mock llama.cpp server to simulate the server's responses. The tests cover basic query execution, creating new chats, querying with and without delays, and selecting specific parts of the chat history. The tests utilize a 'g:vqq_llama_cpp_servers' variable to access the server's address. The tests assert that the server logs messages and sets titles correctly.  The `s:normtime` function converts timestamps to a standard format for comparison. The tests also verify server statistics (number of queries, warmups, etc.) after each operation."
         },
+        "tests/local/test_tokenize.vim": {
+            "path": "tests/local/test_tokenize.vim",
+            "size": 1978,
+            "checksum": "e777989c4cb2aec71bd83d307dcd51fa",
+            "processing_timestamp": "2025-03-14T12:08:57.605513",
+            "approx_tokens": 686,
+            "processing_result": "This file contains Vimscript code for testing a tokenizer using the 'themis' testing framework. It sets up a mock llama.cpp server using 'vimqq', handles server startup and shutdown, and defines two test functions: 'test_tokenize' which performs a tokenization request and asserts the result, and 'test_token_count' which tests a token counting bot. The code includes error handling for missing Python or Flask and uses sleep commands to ensure server availability.  The overall purpose is to verify the correct behavior of a tokenizer and a token counter when interacting with a remote llama.cpp server."
+        },
         "tests/local/test_tools_create_file.vim": {
             "path": "tests/local/test_tools_create_file.vim",
             "size": 3237,
@@ -664,6 +688,14 @@
             "approx_tokens": 955,
             "processing_result": "This file defines a mock implementation of the Claude-3-5-sonnet-20241022 model using Flask and the anthropic Python library.  It provides an HTTP endpoint (`/v1/chat/completions`) that simulates the model's responses. The mock responds to POST requests with JSON payloads containing user messages.  The responses can be either streamed (using the `stream` parameter) or non-streaming. The stream endpoint sends back a series of events (message start, content blocks, message end) to simulate a real model's output. The non-streaming endpoint returns a single JSON response with the model's answer. It also includes logging functionality for debugging purposes. The mock server also has an endpoint for resetting the stats and a health check endpoint."
         },
+        "tests/mocks/mock_llama_cpp.py": {
+            "path": "tests/mocks/mock_llama_cpp.py",
+            "size": 3811,
+            "checksum": "e31a924522b4dc5c0e802adb5a20409c",
+            "processing_timestamp": "2025-03-14T12:08:57.605513",
+            "approx_tokens": 1102,
+            "processing_result": "This Python file defines a Flask-based mock server for llama.cpp. It implements API endpoints for 'alive' (health check), 'reset' (reset server stats), 'stats' (retrieve server stats), 'tokenize' (performs tokenization), and '/v1/chat/completions' (simulates a chat completion endpoint). The 'tokenize' endpoint returns a basic tokenized string. The '/v1/chat/completions' endpoint mimics a chat completion response, supporting both streaming and non-streaming modes. It includes logging for queries and handles warmup requests. It also maintains server statistics, such as the number of queries (chat, non-stream, warmup) and the number of deltas sent in streaming mode. The server handles SIGINT and SIGTERM signals for graceful shutdown. It uses argparse to take port and logs directory as arguments."
+        },
         "tests/mocks/sample_mock_claude.py": {
             "path": "tests/mocks/sample_mock_claude.py",
             "size": 313,
@@ -688,53 +720,29 @@
             "approx_tokens": 238,
             "processing_result": "This file provides instructions on how to use the 'themis' testing framework for local tests. It explains how to run all local tests using `themis tests/local` and how to run individual test files following the `test_*.vim` pattern.  It also describes how to test the mock server using the 'official' anthropic Python client and how to run these tests with `pytest tests/mocks`.  The readme highlights the importance of testing the mock server itself and the relationship between the local tests and the remote API reimplementation in Vimscript."
         },
-        "autoload/vimqq/api/llama_api.vim": {
-            "path": "autoload/vimqq/api/llama_api.vim",
-            "size": 5265,
-            "checksum": "259a648568aea205e7790b431062bdfe",
-            "processing_timestamp": "2025-03-14T12:08:51.605150",
-            "approx_tokens": 1549,
-            "processing_result": "This file defines the API for interacting with a llama.cpp server. It handles communication, tokenization, and chat requests. It includes functions for creating a new API instance, sending chat requests, and tokenizing text. The API uses a stream-based approach for sending responses and includes options for using Jinja templates for rendering messages and handling tools."
-        },
-        "autoload/vimqq/bots/llama_cpp.vim": {
-            "path": "autoload/vimqq/bots/llama_cpp.vim",
-            "size": 755,
-            "checksum": "90dced3b90b38b8c9987d11105b5edfe",
-            "processing_timestamp": "2025-03-14T12:08:51.605150",
-            "approx_tokens": 250,
-            "processing_result": "This file defines a bot that integrates with a llama.cpp server. It creates an instance of the `llama_api` and provides a wrapper for interacting with the server. It also includes functions for managing the connection, handling errors, and potentially integrating with tools (although Jinja templates are required for this to work)."
-        },
         "autoload/vimqq/bots/llama_cpp_indexer.vim": {
             "path": "autoload/vimqq/bots/llama_cpp_indexer.vim",
-            "size": 708,
-            "checksum": "59b790ab9e12d5e5328c677102af5a12",
-            "processing_timestamp": "2025-03-14T12:08:51.605150",
-            "approx_tokens": 221,
-            "processing_result": "This file defines a bot specifically designed for indexing content using a llama.cpp server. It utilizes the `llama_api` to tokenize text and stores the tokens in an index file. It includes functions for finding the project root directory, ensuring the existence of the index file, reading and writing the index file, and retrieving the list of files to index using git ls-files. It handles deduplication of files using a set."
+            "size": 534,
+            "checksum": "573d0fb9dff5de0c19d160cce7d31420",
+            "processing_timestamp": "2025-03-14T14:09:25.558845",
+            "approx_tokens": 174,
+            "processing_result": "This file defines a VimQQ bot for indexing content using Llama.cpp. It handles token counting and integrates with the VimQQ API. It initializes a Llama.cpp API client, defines a `count_tokens` function to calculate token counts for given content, and returns a bot object.  The function `vimqq#bots#llama_cpp_indexer#new` sets up the bot with a provided endpoint and returns the configured bot instance. The file utilizes functions like `substitute` for endpoint parsing and logs information using `vimqq#log#info` and `vimqq#log#error`.  It defines a function `vimqq#indexer#new` to instantiate a new indexer, including initialization of a bot instance and getter functions for the project root and index file paths. The file also contains a `get_git_files` function that utilizes git ls-files to retrieve a list of files and performs token counting on them."
         },
         "autoload/vimqq/indexer.vim": {
             "path": "autoload/vimqq/indexer.vim",
-            "size": 7377,
-            "checksum": "10c5b9b0a2aff650eada9956491af8ef",
-            "processing_timestamp": "2025-03-14T12:08:51.605150",
-            "approx_tokens": 2050,
-            "processing_result": "This file provides the core functionality for indexing content using a llama.cpp server. It defines functions for finding the project root directory, ensuring the existence of the index file, reading and writing the index file, and retrieving the list of files to index. It utilizes git ls-files to get the list of files.  It also includes functions for handling asynchronous execution using vimqq#platform#jobs#start and includes callbacks for handling output, exit, and errors from the git command."
+            "size": 11785,
+            "checksum": "399fa4df148728e76c625e1308f1d3f5",
+            "processing_timestamp": "2025-03-14T14:09:25.558845",
+            "approx_tokens": 3184,
+            "processing_result": "This file implements a VimQQ indexer, responsible for managing an index file (index.json) and tracking files in a project. It uses git ls-files to discover files and counts their tokens. It includes functions for finding the project root directory, ensuring the existence of the index file, reading and writing the index file, and processing files for token counting. The `s:find_project_root` function searches for a '.vqq' directory to determine the project root. `s:ensure_index_file` creates the index.json file if it doesn't exist. The `vimqq#indexer#new` function creates an indexer instance, initializing a bot and getter functions for project root and index file. `s:get_project_root` uses `s:find_project_root` to get the project root, `s:get_index_file` creates/retrieves the index file and `s:read_index` reads the index file. `s:write_index` writes the index file. `get_git_files` retrieves a list of files using git ls-files, with asynchronous execution and deduplication. `process_token_counts` processes a specified number of files, calculating and storing their token counts in the index file."
         },
-        "tests/local/test_tokenize.vim": {
-            "path": "tests/local/test_tokenize.vim",
-            "size": 1978,
-            "checksum": "e777989c4cb2aec71bd83d307dcd51fa",
-            "processing_timestamp": "2025-03-14T12:08:57.605513",
-            "approx_tokens": 686,
-            "processing_result": "This file contains Vimscript code for testing a tokenizer using the 'themis' testing framework. It sets up a mock llama.cpp server using 'vimqq', handles server startup and shutdown, and defines two test functions: 'test_tokenize' which performs a tokenization request and asserts the result, and 'test_token_count' which tests a token counting bot. The code includes error handling for missing Python or Flask and uses sleep commands to ensure server availability.  The overall purpose is to verify the correct behavior of a tokenizer and a token counter when interacting with a remote llama.cpp server."
-        },
-        "tests/mocks/mock_llama_cpp.py": {
-            "path": "tests/mocks/mock_llama_cpp.py",
-            "size": 3811,
-            "checksum": "e31a924522b4dc5c0e802adb5a20409c",
-            "processing_timestamp": "2025-03-14T12:08:57.605513",
-            "approx_tokens": 1102,
-            "processing_result": "This Python file defines a Flask-based mock server for llama.cpp. It implements API endpoints for 'alive' (health check), 'reset' (reset server stats), 'stats' (retrieve server stats), 'tokenize' (performs tokenization), and '/v1/chat/completions' (simulates a chat completion endpoint). The 'tokenize' endpoint returns a basic tokenized string. The '/v1/chat/completions' endpoint mimics a chat completion response, supporting both streaming and non-streaming modes. It includes logging for queries and handles warmup requests. It also maintains server statistics, such as the number of queries (chat, non-stream, warmup) and the number of deltas sent in streaming mode. The server handles SIGINT and SIGTERM signals for graceful shutdown. It uses argparse to take port and logs directory as arguments."
+        "tests/local/test_indexer_token_counts.vim": {
+            "path": "tests/local/test_indexer_token_counts.vim",
+            "size": 5850,
+            "checksum": "ac0ab1c891ad75df4325f2eb6ec296ad",
+            "processing_timestamp": "2025-03-14T14:09:29.312831",
+            "approx_tokens": 1814,
+            "processing_result": "This file contains a Vim plugin test suite for the vqq indexer. It focuses on testing the `process_token_counts` function, which handles processing files in a Git repository to extract token counts. The test suite includes functions for setting up a mock server, creating test directories and files, initializing a Git repository, and performing asynchronous operations to process token counts. It utilizes `themis` for test execution and assertions. The test suite covers scenarios like normal processing, handling empty queues, and error cases (no project root).  It uses callbacks to monitor the completion of asynchronous Git file retrieval and token count processing.  The tests verify that the indexer correctly counts tokens in different files and subdirectories, and that the resulting index file contains the expected token counts.  It includes timeout mechanisms to prevent indefinite waits during asynchronous operations."
         }
     },
     "dirs": {
@@ -747,8 +755,8 @@
             "checksum": "0f4c38512e98b8aed10898c1f4b01e9d"
         },
         "autoload/vimqq/bots": {
-            "processing_result": "This directory houses the core logic for interacting with various language model APIs within the VimQQ bot system. It contains files defining different bot types (claude, claude_reviewer, llama_cpp, llama_cpp_indexer, llama_cpp_reviewer, mock_bot) and their associated functionalities. The directory also includes `bot.vim` which provides a base class for all bots, `bots.vim` which manages bot configuration and instantiation, and `readme.txt` which outlines the module's design and future goals. Key aspects include the use of a dynamic `_impl` object to support different API implementations, a centralized configuration system, and the ability to easily add new bot types. The directory's structure reflects a modular design, allowing for flexibility and extensibility in integrating with diverse language models. The `bots.vim` file is critical for managing bot instantiation and validation, while `bot.vim` serves as the foundation for all bot implementations.  The different bot files (claude, claude_reviewer, llama_cpp, llama_cpp_indexer, llama_cpp_reviewer, mock_bot) represent specific API integrations and specialized functionalities. The `readme.txt` file provides context and future direction for the module.",
-            "checksum": "169148c1bd774fed062a042fa14feeef"
+            "processing_result": "This directory houses the core bot logic for the VimQQ extension. It contains various bot implementations, including `bot.vim` which defines the base bot class, `bots.vim` which configures and manages bot instances, and specialized bots like `claude.vim`, `claude_reviewer.vim`, `llama_cpp.vim`, `llama_cpp_indexer.vim`, `llama_cpp_reviewer.vim`, and `mock_bot.vim`. The directory also includes a `readme.txt` file outlining the module's structure and future development goals, suggesting a unified agent architecture. The bots leverage different API providers (Anthropic, Llama.cpp) and are designed for chat, review, and indexing tasks.  The module utilizes a dynamic `_impl` object to adapt to different API backends and incorporates logging and notification mechanisms.  Bot creation and configuration are handled through functions like `s:validate_name`, `s:create`, and `new()`.  The bot class includes a configurable `DEFAULT_CONF` and a custom `_format` function for preparing API requests.  Token counting and integration with the VimQQ API are present in the Llama.cpp indexer.",
+            "checksum": "acb1e41589c0bb8791b49d51cce94faa"
         },
         "autoload/vimqq/platform": {
             "processing_result": "This directory contains Vimqq extension autoload files, primarily focused on platform-specific utilities and job management. It includes `http.vim`, which handles HTTP requests using `curl`, and `jobs.vim`, which provides a utility for managing asynchronous jobs within Neovim. `path.vim` handles platform-specific paths for data storage, adapting to both Neovim and other environments. All three files work together to provide a robust and adaptable infrastructure for the Vimqq extension's functionality.",
@@ -760,7 +768,7 @@
         },
         "autoload/vimqq": {
             "processing_result": "This directory contains various Vim scripting tools designed to be used within the vimqq module. Each tool implements specific functionalities, such as file creation, editing, retrieval, and command execution. The tools are designed to be asynchronous and compatible with the main vimqq module, leveraging `run_async` and `format_call` for integration. The tools are structured to provide a consistent and reusable interface, facilitating their use as plugins within Vim. The directory utilizes a toolset for managing and orchestrating these tools, enabling complex workflows and dependencies.",
-            "checksum": "5d86ab5a4f009e4b27159b53ff0e969c"
+            "checksum": "8183c62d04947b00846c3046ebb95969"
         },
         "autoload": {
             "processing_result": "This directory is the root directory of the vimqq module. It contains the core files and resources for the module, including the main entry point, command definitions, and utility functions. The module provides a set of Vim commands and tools for interacting with vimqq services. The directory uses asynchronous programming techniques through the `run_async` and `format_call` functions, enabling efficient handling of concurrent operations. It serves as the central control point for all vimqq functionality within Vim.",
@@ -811,20 +819,20 @@
             "checksum": "1954de06bb310f111e46221d49eee098"
         },
         "tests/local": {
-            "processing_result": "This directory contains a comprehensive suite of Vimscript tests for the VimQQ project, primarily focused on the \u2018themis\u2019 testing framework and its integration with various modules and tools. The tests cover a wide range of functionalities, including prompt formatting, database interactions, log processing, API calls, Git indexing, file manipulation, and tool execution. Many tests leverage a mock Claude API server and llama.cpp server for simulating external services and verifying correct responses.  The tests extensively use asynchronous operations with timeouts to ensure stability and prevent indefinite waits.  Several tests utilize helper functions defined in \u2018test_util.vim\u2019 for common tasks like string manipulation and dictionary merging.  A significant portion of the tests revolve around testing the `vimqq#tools` module, specifically the `create_file`, `edit_file`, `get_files`, and `run_cmd` tools. The tests demonstrate the usage of the `themis` framework, including setup and teardown procedures, assertions for verifying expected results, and error handling for potential issues such as missing Python packages.  The directory also contains files used for testing prompt formatting and log processing, using the \u2018prompts\u2019 and \u2018log\u2019 directories respectively.",
-            "checksum": "9fe68d9ba139d92d62c0e82251c08359"
+            "processing_result": "This directory contains a comprehensive suite of Vimscript tests for the vimqq module, primarily focused on testing the various tools and functionalities within the system. The tests utilize the 'themis' testing framework extensively, employing both synchronous and asynchronous testing methods.  A significant portion of the tests relate to Git integration, including file retrieval, indexing, and token counting. Several tests involve mocking external services, such as a local Claude API server and a llama.cpp server, to ensure isolated and reproducible testing.  The tests cover a wide range of features, including prompt formatting, database interactions, logging, and file manipulation.  The directory includes several test files specifically designed to test individual tools like \u2018create_file\u2019, \u2018edit_file\u2019, \u2018get_files\u2019, and \u2018run_cmd\u2019.  There's also testing for the indexer module, its queue, and token counts.  Several tests utilize asynchronous operations and timeout mechanisms to ensure proper behavior under various conditions.  The tests rely heavily on the \u2018vimqq\u2019 module and its associated tools, and incorporate helper functions like \u2018assert\u2019 and \u2018writefile\u2019.  Furthermore, the directory contains a \u2018warmup\u2019 test which sets up and monitors a Flask server simulating a Claude-3-5-sonnet-20241022 model to test the system\u2019s warm-up functionality. Finally, it includes a placeholder file \u2018tools_get_files.txt\u2019.",
+            "checksum": "73be8d0d4f15292062d2ba3fb40f87dc"
         },
         "tests/mocks": {
             "processing_result": "This directory contains mock server implementations for several large language models, including Claude-3-5-sonnet-20241022 and llama.cpp. It provides Flask-based API endpoints for simulating model responses, handling streaming, and tracking server statistics. The mocks are used for testing purposes and demonstrate how to interact with these models using the anthropic Python client.  The directory includes mock_claude.py, mock_llama_cpp.py, sample_mock_claude.py, and test_mock_claude.py, which collectively showcase different levels of complexity and functionality related to model simulation and testing.  The mocks support health checks, stats retrieval, tokenization, and chat completion endpoints, with streaming capabilities implemented in some cases.  They also incorporate logging and graceful shutdown mechanisms.",
             "checksum": "09eb0649a3cf7aaeeaff8f89af856f3e"
         },
         "tests": {
-            "processing_result": "This directory contains mock server implementations for large language models like Claude-3-5-sonnet-20241022 and llama.cpp. It provides Flask-based API endpoints for simulating model responses, handling streaming, and tracking server statistics.  The mocks are used for testing purposes and demonstrate interaction with these models via the anthropic Python client.  Files include `mock_claude.py`, `mock_llama_cpp.py`, `sample_mock_claude.py`, and `test_mock_claude.py`, showcasing different levels of complexity.  The mocks support health checks, stats retrieval, tokenization, and chat completion with streaming capabilities.  They incorporate logging and graceful shutdown.",
-            "checksum": "2f6d0f11383bb7f9e8efea96be419caf"
+            "processing_result": "This directory contains mock server implementations for several large language models, including Claude-3-5-sonnet-20241022 and llama.cpp. It provides Flask-based API endpoints for simulating model responses, handling streaming, and tracking server statistics. The mocks are used for testing purposes and demonstrate how to interact with these models using the anthropic Python client.  The directory includes mock_claude.py, mock_llama_cpp.py, sample_mock_claude.py, and test_mock_claude.py, which collectively showcase different levels of complexity and functionality related to model simulation and testing.  The mocks support health checks, stats retrieval, tokenization, and chat completion endpoints, with streaming capabilities implemented in some cases.  They also incorporate logging and graceful shutdown mechanisms.",
+            "checksum": "dc4455f3ab9c59e35865f4b003f10632"
         },
         "": {
-            "processing_result": "The \u2018tests\u2019 directory implements mock server implementations for large language models like Claude-3-5-sonnet-20241022 and llama.cpp, utilizing Flask APIs for simulating model responses and tracking server statistics. The mocks support health checks, stats retrieval, tokenization, and chat completion with streaming capabilities.  Files like `mock_claude.py`, `mock_llama_cpp.py`, and associated test files demonstrate the implementation details. These mocks are crucial for testing the vimqq plugin\u2019s interaction with these models.",
-            "checksum": "b64699d6275fee3076623e844d56cc74"
+            "processing_result": "The \u2018tests\u2019 directory contains mock server implementations for large language models, such as Claude-3-5-sonnet-20241022 and llama.cpp, using Flask for API endpoints. It supports streaming, stats retrieval, tokenization, and chat completion, and includes logging and graceful shutdown mechanisms.",
+            "checksum": "0e0c5de41c850ce1daaa62984d19fcf2"
         }
     }
 }
