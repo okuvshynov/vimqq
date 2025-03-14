@@ -8,14 +8,6 @@
             "approx_tokens": 552,
             "processing_result": "This file contains functions for adapting tool schemas to Anthropic's compatible format and running Anthropic requests. It handles the translation of tool definitions, adapts tools for use with Anthropic, and orchestrates the overall request process to Anthropic\u2019s API. It includes utilities for logging, error handling, and caching.  The functions `tool_schema` and `adapt_tools` are used to prepare tool definitions, while `run` is the core function for sending requests to the Anthropic API.  It leverages a caching mechanism for frequently used data to optimize performance and control rate limits."
         },
-        "autoload/vimqq/api/anthropic_api.vim": {
-            "path": "autoload/vimqq/api/anthropic_api.vim",
-            "size": 8201,
-            "checksum": "3a0d081b804ebb9db0cd22bc7545099d",
-            "processing_timestamp": "2025-03-13T15:31:20.309162",
-            "approx_tokens": 2428,
-            "processing_result": "This file implements the core API for interacting with the Anthropic API within the VimQQ plugin. It provides a `new` function to create a new API instance, configuring base URL, API key, and caching parameters. The `chat` function is the primary entry point for sending requests to Anthropic, handling message formatting, rate limiting, and streaming responses. It uses a builder pattern to manage the different stages of the request lifecycle (sending, receiving data, closing).  The file also includes functions for handling errors, managing stream output, and managing usage statistics. Specifically, it implements stream handling, error handling, and rate limiting to ensure reliable and efficient communication with the Anthropic API. It utilizes a builder pattern to manage the different stages of the request lifecycle."
-        },
         "autoload/vimqq/api/anthropic_builder.vim": {
             "path": "autoload/vimqq/api/anthropic_builder.vim",
             "size": 4722,
@@ -368,6 +360,14 @@
             "approx_tokens": 77,
             "processing_result": "This shell script is designed to automate the execution of vimqq's unit tests. It clones the vimqq repository, installs necessary dependencies using pip, and then runs the tests using the 'themis' testing framework. The script includes error handling and checks for successful execution."
         },
+        "doc/indexing_results.txt": {
+            "path": "doc/indexing_results.txt",
+            "size": 106,
+            "checksum": "23d7885b33ebaf7d05ffe787e1a08760",
+            "processing_timestamp": "2025-03-13T23:18:33.729331",
+            "approx_tokens": 52,
+            "processing_result": "This file contains a log of indexing results, likely related to a specific model (Mistral-Small-24B-Instruct-2501) and a quantization level (Q8_0). It lists the model name, quantization level, and a memory usage estimate ('m??s').  It appears to be documenting the performance characteristics of an indexing operation."
+        },
         "doc/style.txt": {
             "path": "doc/style.txt",
             "size": 260,
@@ -672,35 +672,59 @@
             "approx_tokens": 238,
             "processing_result": "This file provides instructions on how to use the 'themis' testing framework for local tests. It explains how to run all local tests using `themis tests/local` and how to run individual test files following the `test_*.vim` pattern.  It also describes how to test the mock server using the 'official' anthropic Python client and how to run these tests with `pytest tests/mocks`.  The readme highlights the importance of testing the mock server itself and the relationship between the local tests and the remote API reimplementation in Vimscript."
         },
+        ".vqq/index.json": {
+            "path": ".vqq/index.json",
+            "size": 52,
+            "checksum": "0125c380d5a2fb9f20e5f9a957b241be",
+            "processing_timestamp": "2025-03-14T10:42:59.503849",
+            "approx_tokens": 32,
+            "processing_result": "This file contains a JSON object with two keys: `local_deploy.sh` and `LICENSE`. Both keys have a value of 1741923078, which likely represents a timestamp or a unique identifier. The file seems to be used for managing deployments and licensing information within the Vqq project."
+        },
+        "autoload/vimqq/api/anthropic_api.vim": {
+            "path": "autoload/vimqq/api/anthropic_api.vim",
+            "size": 8203,
+            "checksum": "8860a955b48f81a4f5a53a229f8f553c",
+            "processing_timestamp": "2025-03-14T10:42:59.503849",
+            "approx_tokens": 2430,
+            "processing_result": "This file defines a Vim plugin for interacting with the Anthropic Claude API. It handles API key management, rate limiting, request building, stream handling, and error management. The plugin utilizes a builder pattern to construct API requests and handles various event types (message start, content blocks, message deltas, message stop) from the API stream. It includes caching mechanisms to reduce API calls and track usage. The function `api.chat` is the core function that initiates a conversation with the Anthropic API, managing the request lifecycle and handling potential errors and rate limits. It uses both streaming and non-streaming modes depending on the API response. The module also includes logging and debugging capabilities."
+        },
         "autoload/vimqq/indexer.vim": {
             "path": "autoload/vimqq/indexer.vim",
-            "size": 2779,
-            "checksum": "dd316f17d4ce58f49c00acc7bdeb46fb",
-            "processing_timestamp": "2025-03-13T23:18:33.729331",
-            "approx_tokens": 822,
-            "processing_result": "This file contains the core Vim plugin for indexing and managing project files within Vimqq. It defines functions for finding the project root directory, ensuring an index file exists, and reading/writing the index file.  It uses the `vimqq` namespace and includes error handling and logging. Key functions include `s:find_project_root()`, `s:ensure_index_file()`, `vimqq#indexer#get_project_root()`, `vimqq#indexer#get_index_file()`, `vimqq#indexer#read_index()`, and `vimqq#indexer#write_index()`. It also includes a copyright notice and uses the `g:autoloaded_vimqq_indexer` flag to prevent multiple autoloading."
-        },
-        "doc/indexing_results.txt": {
-            "path": "doc/indexing_results.txt",
-            "size": 106,
-            "checksum": "23d7885b33ebaf7d05ffe787e1a08760",
-            "processing_timestamp": "2025-03-13T23:18:33.729331",
-            "approx_tokens": 52,
-            "processing_result": "This file contains a log of indexing results, likely related to a specific model (Mistral-Small-24B-Instruct-2501) and a quantization level (Q8_0). It lists the model name, quantization level, and a memory usage estimate ('m??s').  It appears to be documenting the performance characteristics of an indexing operation."
+            "size": 7288,
+            "checksum": "30110fda470cc72ef4d49fe70ef3698f",
+            "processing_timestamp": "2025-03-14T10:43:02.987836",
+            "approx_tokens": 2016,
+            "processing_result": "This Vim script file implements the vimqq indexer, a tool for managing project indices within Vim. It provides functions for finding the project root directory, ensuring the existence of an index file, creating a new indexer instance, reading the index file, writing the index file, and retrieving a list of files within the project using Git's `ls-files` command. The indexer utilizes asynchronous Git operations to efficiently handle large projects.  It employs a queue-like mechanism to deduplicate files and avoids redundant processing.  The script includes logging functionality to provide feedback on its operations and potential errors. The script also handles symlinks and provides error handling for various scenarios like missing project roots or index files."
         },
         "tests/local/test_indexer.vim": {
             "path": "tests/local/test_indexer.vim",
-            "size": 3442,
-            "checksum": "602ce124bf52055bdca9d3fe5320a9ff",
-            "processing_timestamp": "2025-03-13T23:18:33.729331",
-            "approx_tokens": 1099,
-            "processing_result": "This file contains a collection of tests for the `vimqq#indexer` module. The tests use the `themis` testing framework and are designed to verify the functionality of the `find_project_root()`, `ensure_index_file()`, `read_index()`, and `write_index()` functions. The tests create a temporary directory structure, assert expected results, and clean up the directory afterward. They cover scenarios like finding the project root, creating an index file when it doesn't exist, reading and writing data to the index file, and handling cases where the project root is not found."
+            "size": 7971,
+            "checksum": "4ac6a5cdfd3243298969cc754ae9d7f0",
+            "processing_timestamp": "2025-03-14T10:43:10.215213",
+            "approx_tokens": 2589,
+            "processing_result": "This file contains a Themis test suite for the vimqq#indexer module. It sets up a test directory structure with a .vqq folder and creates test files within it. The suite includes various tests: finding the project root using both a legacy function and a class method, testing with and without a project root, reading and writing index files, and verifying the behavior of the indexer with multiple directories.  It utilizes asynchronous calls to `get_git_files` and includes timeout handling for the asynchronous operation.  The test suite also includes a test for multiple indexers to ensure that each indexer can independently handle its own directory structure."
+        },
+        "tests/local/test_indexer_git_files.vim": {
+            "path": "tests/local/test_indexer_git_files.vim",
+            "size": 3908,
+            "checksum": "216e368a519aba1a7faf9a809fda72c9",
+            "processing_timestamp": "2025-03-14T10:43:10.215213",
+            "approx_tokens": 1219,
+            "processing_result": "This file contains a Themis test suite to verify the `get_git_files` method of the `vimqq#indexer` module. It sets up a temporary directory with a Git repository containing tracked and untracked files. The test uses an asynchronous call to `get_git_files` to retrieve the list of tracked files. It then verifies that the returned list contains the expected files (file1.txt, file2.txt, and subdir/file3.txt) and that the returned list's length matches the number of files found. It also includes a test case to verify the behavior when the indexer is initialized in a directory without a .vqq folder."
+        },
+        "tests/local/test_indexer_queue.vim": {
+            "path": "tests/local/test_indexer_queue.vim",
+            "size": 6339,
+            "checksum": "df97963b3d55d5e84abe38029db31e7f",
+            "processing_timestamp": "2025-03-14T10:43:13.736697",
+            "approx_tokens": 1897,
+            "processing_result": "This file contains a Vimscript test suite for the vimqq indexer queue. It tests the asynchronous retrieval of Git files, including the handling of tracked and untracked files, queue behavior with multiple runs, and deduplication. The test suite utilizes the `themis` testing framework and includes functions for normalizing paths, creating test directories, initializing Git repositories, and asserting expected results. It simulates two runs of the indexer, adding files in each run and verifying the final queue contents. The test suite also verifies the initialization of the `files_set` and `files` variables within the indexer instance.  The test focuses on ensuring correct queue behavior, especially regarding the handling of already present files in subsequent runs.  It employs timeouts to prevent indefinite waiting for asynchronous operations."
         }
     },
     "dirs": {
         "autoload/vimqq/api": {
-            "processing_result": "This directory contains the core API modules for interacting with various language models, including Anthropic, Llama.cpp, and mock APIs. It implements a layered architecture with message builders and adapters to handle different provider-specific requirements. Key modules include `anthropic_adapter.vim` for Anthropic API interactions, `anthropic_api.vim` for the general Anthropic API, `anthropic_builder.vim` for constructing messages for the Anthropic API, `llama_api.vim` for interacting with Llama.cpp servers, `llama_cpp_adapter.vim` for bridging the `llama_api` and Llama.cpp, `llama_cpp_builder.vim` for constructing messages for Llama.cpp, and `mock_api.vim` for simulating API interactions.  `readme.txt` provides a design document detailing the API structure and provider-specific considerations. The architecture emphasizes a consistent single 'chat' call with parameters for model, messages (including system prompts), max_tokens, streaming, and callbacks for completion and chunk events.  It leverages stream-based approaches, builder patterns, and caching mechanisms for performance and rate limiting.",
-            "checksum": "0f1a7acd1240bbe5bdcf9dc92e50d34f"
+            "processing_result": "This directory contains the core API modules for interacting with various language models, including Anthropic, Llama.cpp, and others. It utilizes a layered architecture with message builders for internal message formatting and adapters for translating between internal and external formats. Key modules include `anthropic_adapter.vim`, `anthropic_api.vim`, `anthropic_builder.vim`, `llama_api.vim`, `llama_cpp_adapter.vim`, `llama_cpp_builder.vim`, and `mock_api.vim`. The design prioritizes consistency and flexibility across different models. The `mock_api.vim` file provides a mock API for testing and development. The `anthropic_api.vim` is the primary entry point for interacting with the Anthropic Claude API, handling key aspects like API key management, rate limiting, and streaming.  The `llama_api.vim` handles communication with Llama.cpp servers. The `anthropic_builder.vim` and `llama_cpp_builder.vim` modules construct messages for these respective APIs. The `readme.txt` file documents the overall API design and its components.",
+            "checksum": "fd028a422d9dd9583fb75e49703eb6ea"
         },
         "autoload/vimqq/bots": {
             "processing_result": "This directory houses the core bot logic for the VimQQ extension. It contains modules for various bot types, including Claude, Llama.cpp, a mock bot, and a reviewer bot. Each bot module defines a `new` function to instantiate the bot, utilizing a common `bot` base class. Key functionalities include message formatting (`_format` function), API client initialization, configuration management (using `s:DEFAULT_CONF` and bot-specific configuration lists), and notification mechanisms through `vimqq#main#notify`. The directory also includes a `readme.txt` file outlining the module's current structure and potential future simplification towards a unified agent architecture.  It includes specific implementations for interacting with various LLM providers such as Anthropic (Claude), Llama.cpp, and a mock bot for testing purposes.  The `bots.vim` file provides global configuration and bot instantiation logic, while `bots.vim` and `claude.vim`, `claude_reviewer.vim`, `llama_cpp.vim`, and `llama_cpp_reviewer.vim` define specific bot implementations and their associated formatting functions.  The `mock_bot.vim` file provides a placeholder bot for testing.",
@@ -716,11 +740,15 @@
         },
         "autoload/vimqq": {
             "processing_result": "This directory contains various Vim scripting tools designed to be used within the vimqq module. Each tool implements specific functionalities, such as file creation, editing, retrieval, and command execution. The tools are designed to be asynchronous and compatible with the main vimqq module, leveraging `run_async` and `format_call` for integration. The tools are structured to provide a consistent and reusable interface, facilitating their use as plugins within Vim. The directory utilizes a toolset for managing and orchestrating these tools, enabling complex workflows and dependencies.",
-            "checksum": "be66dc090d5bfc3bb573f664eecd3fd0"
+            "checksum": "82c887944928c83047a67326585aca77"
         },
         "autoload": {
             "processing_result": "This directory is the root directory of the vimqq module. It contains the core files and resources for the module, including the main entry point, command definitions, and utility functions. The module provides a set of Vim commands and tools for interacting with vimqq services. The directory uses asynchronous programming techniques through the `run_async` and `format_call` functions, enabling efficient handling of concurrent operations. It serves as the central control point for all vimqq functionality within Vim.",
             "checksum": "a73d8dcaa20f3c187efc5398f5ea688a"
+        },
+        ".vqq": {
+            "processing_result": "This directory contains the core configuration and metadata files for the Vqq project. It includes `index.json`, which likely holds deployment and licensing information, suggesting a structured approach to managing the project. The presence of `local_deploy.sh` within this directory implies a deployment script is part of the project's infrastructure.",
+            "checksum": "08ff743933da4341beb948496369c8cd"
         },
         "benchmarks/engineer/vimscript/refactor_vimqq": {
             "processing_result": "This directory contains the source code and documentation for a benchmark project focused on evaluating refactoring changes within the vimqq plugin. The project utilizes a shell script (`bm_run.sh`) to automate the benchmark process, including cloning the vimqq repository, installing dependencies, executing a Vim refactoring command, running unit tests, and verifying the deletion of files. A README file (`readme.txt`) provides detailed instructions on how to manually execute the benchmark, specifying required input parameters (base commit index, VimQQ version commit, and bot configuration), validation steps, and Docker usage for running the benchmark with different bots (Anthropic and DeepSeek). The benchmark is designed to be executed in an isolated environment using Docker.",
@@ -767,20 +795,20 @@
             "checksum": "1954de06bb310f111e46221d49eee098"
         },
         "tests/local": {
-            "processing_result": "This directory contains a comprehensive suite of unit tests for the VimQQ client, utilizing the Themis testing framework. The tests cover various modules including \u2018anthropic_adapter\u2019, \u2018anthropic_api\u2019, \u2018controller\u2019, \u2018db\u2019, \u2018fmt\u2019, \u2018http\u2019, \u2018indexer\u2019, \u2018log\u2019, \u2018prompts\u2019, \u2018queries\u2019, \u2018tools_create_file\u2019, \u2018tools_edit_file\u2019, \u2018tools_get_files\u2019, \u2018tools_run_cmd\u2019, and \u2018util\u2019. Many tests leverage mock servers for simulating external services like Claude and a local Flask server. The tests utilize asynchronous operations and assertions to verify functionality, including file creation, editing, retrieval, HTTP requests, database interactions, prompt formatting, logging, and tool execution. Several tests rely on predefined prompt files for validating prompt formatting. The tests also include setup and teardown logic for initializing the testing environment, such as creating and cleaning up temporary directories and databases. Some tests skip if required packages (e.g., Python, Flask, themis) are not installed, demonstrating robust error handling.",
-            "checksum": "058d77d6c5e877a43e60c32f91f1a4ae"
+            "processing_result": "This directory contains a comprehensive suite of unit tests for the VimQQ system, primarily focused on testing the `vimqq` module and its tools. The tests utilize the Themis testing framework and involve various mocking techniques, including a mock Claude API server, a mock llama.cpp server, and a local log server.  The tests cover a wide range of functionalities, including prompt formatting, database operations, HTTP communication, file handling, indexing, logging, and tool usage. Several test files utilize asynchronous operations and employ timeouts to prevent indefinite waiting.  The directory also includes a test for the vimqq warmup functionality, interacting with a mock Claude server to verify warmup statistics.  The tests demonstrate integration with external tools like Flask and Python, and utilize helper functions for file manipulation and assertion. The tests are organized into separate files, each focusing on a specific aspect of the VimQQ system.",
+            "checksum": "e9993195c9903d7232ac494e4b76551f"
         },
         "tests/mocks": {
             "processing_result": "This directory contains mock implementations of various language models, primarily Claude-3-5-sonnet-20241022 and LlamaCpp, designed for testing purposes. It includes three Python files: `mock_claude.py`, `mock_llama_cpp.py`, and `sample_mock_claude.py`, which define mock servers using Flask for simulating model responses. Additionally, it contains a unit test file, `test_mock_claude.py`, which uses the anthropic Python client to test the mock Claude server's functionality and response to different user prompts. The mocks support both streaming and non-streaming responses, and track metrics like queries and warmups. The `mock_claude.py` file simulates a Claude-3-5-sonnet-20241022 model, while `mock_llama_cpp.py` simulates a LlamaCpp API. `sample_mock_claude.py` provides a simplified example of interacting with the Claude-3-5-sonnet-20241022 model. The `test_mock_claude.py` file provides unit tests for the `mock_claude.py` server.",
             "checksum": "d494d40faf112dac91a66715d5da3ad9"
         },
         "tests": {
-            "processing_result": "This directory contains mock implementations of various language models, primarily Claude-3-5-sonnet-20241022 and LlamaCpp, designed for testing purposes. It includes three Python files: `mock_claude.py`, `mock_llama_cpp.py`, and `sample_mock_claude.py`, which define mock servers using Flask for simulating model responses. Additionally, it contains a unit test file, `test_mock_claude.py`, which uses the anthropic Python client to test the mock Claude server's functionality and response to different user prompts. The mocks support both streaming and non-streaming responses, and track metrics like queries and warmups. The `mock_claude.py` file simulates a Claude-3-5-sonnet-20241022 model, while `mock_llama_cpp.py` simulates a LlamaCpp API. `sample_mock_claude.py` provides a simplified example of interacting with the Claude-3-5-sonnet-20241022 model. The `test_mock_claude.py` file provides unit tests for the `mock_claude.py` server.",
-            "checksum": "9e9fa20b614cf8f5bd8dfc4610ce5f91"
+            "processing_result": "This directory provides mock implementations of language models, specifically Claude-3-5-sonnet-20241022 and LlamaCpp, for use in testing.  It comprises three Python files: `mock_claude.py`, `mock_llama_cpp.py`, and `sample_mock_claude.py`, which define Flask-based mock servers to simulate model responses. The `mock_claude.py` file simulates the Claude-3-5-sonnet-20241022 model, while `mock_llama_cpp.py` simulates a LlamaCpp API. `sample_mock_claude.py` offers a simplified example of interacting with the Claude-3-5-sonnet-20241022 model.  A unit test file, `test_mock_claude.py`, utilizes the anthropic Python client to rigorously test the `mock_claude.py` server's functionality and response to various user prompts, covering both streaming and non-streaming responses.  The tests track metrics like queries and warmups.  The directory supports mocking and testing the interaction of the VimQQ system with these models.",
+            "checksum": "816ae59ce44ebb08aa6c5b49bf6c6a45"
         },
         "": {
-            "processing_result": "This directory contains mock implementations of various language models, primarily Claude-3-5-sonnet-20241022 and LlamaCpp, designed for testing purposes. It includes three Python files: `mock_claude.py`, `mock_llama_cpp.py`, and `sample_mock_claude.py`, which define mock servers using Flask for simulating model responses. Additionally, it contains a unit test file, `test_mock_claude.py`, which uses the anthropic Python client to test the mock Claude server's functionality and response to different user prompts. The mocks support both streaming and non-streaming responses, and track metrics like queries and warmups. The `mock_claude.py` file simulates a Claude-3-5-sonnet-20241022 model, while `mock_llama_cpp.py` simulates a LlamaCpp API. `sample_mock_claude.py` provides a simplified example of interacting with the Claude-3-5-sonnet-20241022 model. The `test_mock_claude.py` file provides unit tests for the `mock_claude.py` server.",
-            "checksum": "3b98a99d081a4fe8989b1a67347037be"
+            "processing_result": "This directory provides mock implementations of language models, specifically Claude-3-5-sonnet-20241022 and LlamaCpp, for use in testing.  It comprises three Python files: `mock_claude.py`, `mock_llama_cpp.py`, and `sample_mock_claude.py`, which define Flask-based mock servers to simulate model responses. The `mock_claude.py` file simulates the Claude-3-5-sonnet-20241022 model, while `mock_llama_cpp.py` simulates a LlamaCpp API. `sample_mock_claude.py` offers a simplified example of interacting with the Claude-3-5-sonnet-20241022 model.  A unit test file, `test_mock_claude.py`, utilizes the anthropic Python client to rigorously test the `mock_claude.py` server\u2019s functionality and response to various user prompts, covering both streaming and non-streaming responses.  The tests track metrics like queries and warmups.  The directory supports mocking and testing the interaction of the VimQQ system with these models.",
+            "checksum": "d2f7128cf51ef69acecdbea11de58e49"
         }
     }
 }
