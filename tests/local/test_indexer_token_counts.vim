@@ -88,7 +88,7 @@ endfunction
 
 function! s:suite.test_process_token_counts()
     " Create indexer instance for the test directory
-    let indexer = vimqq#indexer#new(s:test_dir)
+    let indexer = vimqq#indexing#core#new(s:test_dir)
     
     " Set up variables to track the completion of the async job
     let s:git_files_completed = 0
@@ -156,7 +156,7 @@ endfunction
 
 function! s:suite.test_process_token_counts_empty_queue()
     " Create indexer instance for the test directory
-    let indexer = vimqq#indexer#new(s:test_dir)
+    let indexer = vimqq#indexing#core#new(s:test_dir)
     
     " Process token counts without filling the queue first
     let result = indexer.process_token_counts(10)
@@ -171,7 +171,7 @@ function! s:suite.test_process_token_counts_no_project_root()
     call mkdir(temp_dir, 'p')
     
     " Create an indexer instance with the temp directory
-    let indexer = vimqq#indexer#new(temp_dir)
+    let indexer = vimqq#indexing#core#new(temp_dir)
     
     " Process token counts
     let result = indexer.process_token_counts(10)

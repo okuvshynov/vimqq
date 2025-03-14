@@ -1,0 +1,5 @@
+Your job is to summarize the file so that it can serve as high level documentation.
+
+You will be given its path in the repo and content.
+
+Provide only the summary itself in your response.
