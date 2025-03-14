@@ -53,3 +53,27 @@ function s:suite.test_tokenize()
     call s:assert.equals(tokens, ["hello,", "world!"])
 
 endfunction
+
+function s:suite.test_token_count()
+    if s:skip_all
+        call s:assert.skip(s:skip_msg)
+    endif
+    let indexer_bot = vimqq#bots#llama_cpp_indexer#new(g:vqq_llama_cpp_servers[0])
+
+    let token_count = 0
+    function! s:OnCounted(token_count) closure
+        let token_count = a:token_count
+    endfunction
+
+    let req = {
+        \ 'content': 'quick brown fox jumped',
+        \ 'on_complete' : {tc -> s:OnCounted(tc)}
+    \ }
+
+    call indexer_bot.count_tokens(req)
+
+    :sleep 1
+
+    call s:assert.equals(token_count, 4)
+
+endfunction
