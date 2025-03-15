@@ -24,14 +24,12 @@ function vimqq#bots#llama_cpp_indexer#new(config = {})
 
     " request has following fields:
     "   - on_complete callback
-    "   - file_path - relative path
     "   - content - file content to summarize 
     "
     " TODO: Later we'll add existing index and multiple file.
     " For now just summarize each file
     function bot.summarize(request) dict
         let prompt = vimqq#prompts#indexing_file()
-        let prompt = prompt . "\nFile path: " . a:request.file_path 
         let prompt = prompt . "\nFile content:\n" . a:request.content 
 
         let messages = [

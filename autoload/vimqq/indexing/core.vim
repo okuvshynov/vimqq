@@ -98,6 +98,13 @@ function! vimqq#indexing#core#new(...)
     function! l:indexer.process_token_counts(max_files, ...) dict
         return call('vimqq#indexing#token#process_counts', [self, a:max_files] + a:000)
     endfunction
+    
+    " Method to process up to N files from the queue, generating summaries for each file's content
+    " and writing the results to the JSON index
+    " Returns the number of files processed, or -1 on error
+    function! l:indexer.process_summaries(max_files, ...) dict
+        return call('vimqq#indexing#summary#process_summaries', [self, a:max_files] + a:000)
+    endfunction
 
     return l:indexer
 endfunction

@@ -1,5 +1,5 @@
-Your job is to summarize the file so that it can serve as high level documentation.
+You are given a source file in the code repository.
 
-You will be given its path in the repo and content.
+Your job is to summarize the file so that it can serve as high level documentation.
 
 Provide only the summary itself in your response.
