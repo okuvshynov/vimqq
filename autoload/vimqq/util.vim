@@ -103,3 +103,19 @@ function! vimqq#util#log_chat(chat)
         call vimqq#log#debug(' chat.partial_message = NONE')
     endif
 endfunction
+
+function! vimqq#util#capture()
+	let capture = {'value': 0}
+
+	function! capture.set(v) dict
+		let self.value = a:v
+		return a:v
+	endfunction
+
+	function! capture.get() dict
+		return self.value
+	endfunction
+
+	return capture
+endfunction
+
