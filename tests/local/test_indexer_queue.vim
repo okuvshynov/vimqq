@@ -53,7 +53,7 @@ endfunction
 
 function! s:suite.test_queue_behavior()
     " Create indexer instance for the test directory
-    let indexer = vimqq#indexer#new(s:test_dir)
+    let indexer = vimqq#indexing#new(s:test_dir)
     
     " Set up variables to track the completion of the async job
     let s:async_completed_first = 0
@@ -164,7 +164,7 @@ endfunction
 
 function! s:suite.test_files_set_initialization()
     " Create indexer instance for the test directory
-    let indexer = vimqq#indexer#new(s:test_dir)
+    let indexer = vimqq#indexing#new(s:test_dir)
     
     " Verify files_set is initialized
     call s:assert.true(exists('indexer.files_set'), 'files_set should be initialized')

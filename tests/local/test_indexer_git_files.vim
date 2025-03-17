@@ -1,13 +1,6 @@
 let s:suite = themis#suite('test_indexer_git_files')
 let s:assert = themis#helper('assert')
 
-" Load the new module to ensure it's available for testing
-runtime autoload/vimqq/indexing.vim
-runtime autoload/vimqq/indexing/core.vim
-runtime autoload/vimqq/indexing/file.vim
-runtime autoload/vimqq/indexing/git.vim
-runtime autoload/vimqq/indexing/token.vim
-
 " Function to normalize paths (resolves symlinks)
 function! s:normalize_path(path)
     " Use the built-in resolve() function to follow symlinks
@@ -53,7 +46,7 @@ endfunction
 
 function! s:suite.test_get_git_files()
     " Create indexer instance for the test directory
-    let indexer = vimqq#indexer#new(s:test_dir)
+    let indexer = vimqq#indexing#new(s:test_dir)
     
     " Set up variables to track the completion of the async job
     let s:async_completed = 0
@@ -116,7 +109,7 @@ function! s:suite.test_get_git_files_no_project_root()
     call mkdir(temp_dir, 'p')
     
     " Create an indexer instance with the temp directory
-    let indexer = vimqq#indexer#new(temp_dir)
+    let indexer = vimqq#indexing#new(temp_dir)
     
     " Call get_git_files and verify it returns 0 (error)
     let result = indexer.get_git_files()

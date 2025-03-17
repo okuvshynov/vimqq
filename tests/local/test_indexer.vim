@@ -36,8 +36,7 @@ function! s:suite.test_find_project_root_legacy()
     let original_dir = getcwd()
     execute 'cd ' . s:test_dir
     
-    " Test finding project root with legacy function
-    let project_root = s:normalize_path(vimqq#indexer#get_project_root())
+    let project_root = s:normalize_path(vimqq#indexing#get_project_root())
     call s:assert.equals(project_root, s:normalize_path(s:vqq_dir))
     
     " Return to original directory
@@ -46,7 +45,7 @@ endfunction
 
 function! s:suite.test_find_project_root_class()
     " Create an indexer instance with the test directory
-    let indexer = vimqq#indexer#new(s:test_dir)
+    let indexer = vimqq#indexing#new(s:test_dir)
     
     " Test finding project root with class method
     let project_root = s:normalize_path(indexer.get_project_root())
@@ -55,7 +54,7 @@ function! s:suite.test_find_project_root_class()
     " Test with a subdirectory
     let sub_dir = s:test_dir . '/subdir'
     call mkdir(sub_dir, 'p')
-    let indexer2 = vimqq#indexer#new(sub_dir)
+    let indexer2 = vimqq#indexing#new(sub_dir)
     let project_root2 = s:normalize_path(indexer2.get_project_root())
     call s:assert.equals(project_root2, s:normalize_path(s:vqq_dir))
 endfunction
@@ -68,7 +67,7 @@ function! s:suite.test_no_project_root_legacy()
     execute 'cd ' . temp_dir
     
     " Test that no project root is found with legacy function
-    let project_root = vimqq#indexer#get_project_root()
+    let project_root = vimqq#indexing#get_project_root()
     call s:assert.equals(project_root, v:null)
     
     " Return to original directory and clean up
@@ -82,7 +81,7 @@ function! s:suite.test_no_project_root_class()
     call mkdir(temp_dir, 'p')
     
     " Create an indexer instance with the temp directory
-    let indexer = vimqq#indexer#new(temp_dir)
+    let indexer = vimqq#indexing#new(temp_dir)
     
     " Test that no project root is found with class method
     let project_root = indexer.get_project_root()
@@ -101,7 +100,7 @@ function! s:suite.test_get_index_file_creates_file_legacy()
     call s:assert.false(filereadable(s:index_file))
     
     " Call legacy function that should create the file
-    let index_file = s:normalize_path(vimqq#indexer#get_index_file())
+    let index_file = s:normalize_path(vimqq#indexing#get_index_file())
     call s:assert.equals(index_file, s:normalize_path(s:index_file))
     
     " Verify file was created with empty dictionary
@@ -123,7 +122,7 @@ function! s:suite.test_get_index_file_creates_file_class()
     call s:assert.false(filereadable(s:index_file))
     
     " Create an indexer instance with the test directory
-    let indexer = vimqq#indexer#new(s:test_dir)
+    let indexer = vimqq#indexing#new(s:test_dir)
     
     " Call method that should create the file
     let index_file = s:normalize_path(indexer.get_index_file())
@@ -142,11 +141,11 @@ function! s:suite.test_read_write_index_legacy()
     
     " Write test data to index with legacy function
     let test_data = {'test': 'data', 'number': 42}
-    let result = vimqq#indexer#write_index(test_data)
+    let result = vimqq#indexing#write_index(test_data)
     call s:assert.equals(result, 1)
     
     " Read data back with legacy function and verify
-    let read_data = vimqq#indexer#read_index()
+    let read_data = vimqq#indexing#read_index()
     call s:assert.equals(read_data.test, 'data')
     call s:assert.equals(read_data.number, 42)
     
@@ -156,7 +155,7 @@ endfunction
 
 function! s:suite.test_read_write_index_class()
     " Create an indexer instance with the test directory
-    let indexer = vimqq#indexer#new(s:test_dir)
+    let indexer = vimqq#indexing#new(s:test_dir)
     
     " Write test data to index with class method
     let test_data = {'test': 'data', 'number': 42}
@@ -169,7 +168,7 @@ function! s:suite.test_read_write_index_class()
     call s:assert.equals(read_data.number, 42)
     
     " Create a new indexer instance and verify it can read the same data
-    let indexer2 = vimqq#indexer#new(s:test_dir)
+    let indexer2 = vimqq#indexing#new(s:test_dir)
     let read_data2 = indexer2.read_index()
     call s:assert.equals(read_data2.test, 'data')
     call s:assert.equals(read_data2.number, 42)
@@ -184,7 +183,7 @@ function! s:suite.test_write_index_no_project_root_legacy()
     
     " Try to write index with legacy function when no project root exists
     let test_data = {'test': 'data'}
-    let result = vimqq#indexer#write_index(test_data)
+    let result = vimqq#indexing#write_index(test_data)
     call s:assert.equals(result, 0)
     
     " Return to original directory and clean up
@@ -198,7 +197,7 @@ function! s:suite.test_write_index_no_project_root_class()
     call mkdir(temp_dir, 'p')
     
     " Create an indexer instance with the temp directory
-    let indexer = vimqq#indexer#new(temp_dir)
+    let indexer = vimqq#indexing#new(temp_dir)
     
     " Try to write index with class method when no project root exists
     let test_data = {'test': 'data'}
@@ -218,8 +217,8 @@ function! s:suite.test_multiple_indexers()
     call mkdir(s:vqq_dir2, 'p')
     
     " Create two indexer instances for different directories
-    let indexer1 = vimqq#indexer#new(s:test_dir)
-    let indexer2 = vimqq#indexer#new(s:test_dir2)
+    let indexer1 = vimqq#indexing#new(s:test_dir)
+    let indexer2 = vimqq#indexing#new(s:test_dir2)
     
     " Write different test data to each index
     let test_data1 = {'test': 'data1', 'number': 1}

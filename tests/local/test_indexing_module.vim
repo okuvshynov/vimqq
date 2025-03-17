@@ -66,27 +66,3 @@ function! s:suite.test_indexing_file_read_write()
     call s:assert.equals(read_data.test, 'data')
     call s:assert.equals(read_data.number, 42)
 endfunction
-
-function! s:suite.test_direct_module_vs_compatibility_layer()
-    " Test that both approaches yield the same result
-    
-    " Create an indexer using the new direct module
-    let indexer_new = vimqq#indexing#new(s:test_dir)
-    let project_root_new = indexer_new.get_project_root()
-    
-    " Create an indexer using the compatibility layer
-    let indexer_compat = vimqq#indexer#new(s:test_dir)
-    let project_root_compat = indexer_compat.get_project_root()
-    
-    " Both should return the same project root
-    call s:assert.equals(
-        \ s:normalize_path(project_root_new), 
-        \ s:normalize_path(project_root_compat)
-    \ )
-    
-    " Test static functions too
-    call s:assert.equals(
-        \ s:normalize_path(vimqq#indexing#get_project_root()), 
-        \ s:normalize_path(vimqq#indexer#get_project_root())
-    \ )
-endfunction
