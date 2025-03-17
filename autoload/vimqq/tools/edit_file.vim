@@ -106,7 +106,7 @@ function! vimqq#tools#edit_file#new(root) abort
         if count(output, "\n") > COLLAPSE_WHEN_OVER_N
             let output = "{{{ " . output . "\n}}}"
         endif
-        return "\n\n" . output . "\n\n"
+        return "\n" . output . "\n\n"
 
     endfunction
 

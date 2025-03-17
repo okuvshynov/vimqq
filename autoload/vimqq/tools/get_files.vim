@@ -4,6 +4,8 @@ endif
 
 let g:autoloaded_vimqq_tools_get_files_module = 1
 
+let s:TOOL_FOLD_LIMIT = 400
+
 function! vimqq#tools#get_files#new(root) abort
     let tool = {}
 
@@ -66,11 +68,10 @@ function! vimqq#tools#get_files#new(root) abort
         let paths = a:tool_use_args['filepaths']
         let path_list = join(paths, "\n")
         let output = "[tool_call: get_files]\n" . path_list
-        let COLLAPSE_WHEN_OVER_N = 1
-        if len(path_list) > COLLAPSE_WHEN_OVER_N
+        if len(path_list) > s:TOOL_FOLD_LIMIT
             let output = "{{{ " . output . "\n}}}"
         endif
-        return "\n\n" . output . "\n\n"
+        return "\n" . output . "\n\n"
     endfunction
 
     return tool
