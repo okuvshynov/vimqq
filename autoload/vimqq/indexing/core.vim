@@ -89,7 +89,13 @@ function! vimqq#indexing#core#new(...)
     " Stores the result in the 'files' member variable
     " Implements queue-like behavior with deduplication
     function! l:indexer.get_git_files(...) dict
-        return call('vimqq#indexing#git#get_files', [self] + a:000)
+        if !exists('self.files')
+            let self.files = []
+        endif
+        if !exists('self.files_set')
+            let self.files_set = {}
+        endif
+        return call('vimqq#indexing#git#get_files', [self.get_project_root(), self.files, self.files_set] + a:000)
     endfunction
     
     " Method to process up to N files from the queue, counting tokens for each file's content
