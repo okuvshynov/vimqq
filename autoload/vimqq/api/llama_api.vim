@@ -132,7 +132,6 @@ function! vimqq#api#llama_api#new(conf) abort
 
         function! s:OnComplete() closure
             let res = join(parts, "\n")
-            call vimqq#log#debug('tokens: ' . res)
             call OnCompleteCb(get(json_decode(res), 'tokens', []))
         endfunction
 

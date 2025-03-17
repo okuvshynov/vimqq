@@ -30,8 +30,7 @@ endfunction
 
 " Creates a new indexer instance for the specified starting directory
 " If no directory is provided, the current working directory is used
-function! vimqq#indexing#core#new(...)
-    let l:indexer = {}
+function! vimqq#indexing#core#start(...)
     let l:indexer.start_dir = a:0 > 0 ? a:1 : getcwd()
 
     let l:indexer.bot = vimqq#bots#llama_cpp_indexer#new({'addr' : g:vqq_indexer_addr})

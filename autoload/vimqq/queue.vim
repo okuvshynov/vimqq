@@ -12,22 +12,18 @@ function! vimqq#queue#new()
     
     " Initialize the queue as an empty list
     let queue._items = []
+    let queue._items_set = {}
     
     " Check if an item is already in the queue using string equality
     function! queue._contains(item) dict
-        let item_str = string(a:item)
-        for existing_item in self._items
-            if string(existing_item) ==# item_str
-                return 1
-            endif
-        endfor
-        return 0
+        return has_key(self._items_set, a:item)
     endfunction
     
     " Add an item to the queue if it's not already present
     function! queue.enqueue(item) dict
         if !self._contains(a:item)
             call add(self._items, a:item)
+            let self._items_set[a:item] = 1
             return 1
         endif
         return 0
@@ -41,6 +37,7 @@ function! vimqq#queue#new()
         
         let item = self._items[0]
         let self._items = self._items[1:]
+        unlet self._items_set[item]
         return item
     endfunction
     

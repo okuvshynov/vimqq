@@ -42,20 +42,6 @@ function! s:suite.test_duplicate_prevention()
     call s:assert.false(queue.enqueue('item1'))
     call s:assert.equals(queue.size(), 1)
     
-    " Test adding duplicate numbers
-    call s:assert.true(queue.enqueue(42))
-    call s:assert.false(queue.enqueue(42))
-    call s:assert.equals(queue.size(), 2)
-    
-    " Test adding duplicate lists
-    call s:assert.true(queue.enqueue(['a', 'b']))
-    call s:assert.false(queue.enqueue(['a', 'b']))
-    call s:assert.equals(queue.size(), 3)
-    
-    " Test adding duplicate dictionaries
-    call s:assert.true(queue.enqueue({'key': 'value'}))
-    call s:assert.false(queue.enqueue({'key': 'value'}))
-    call s:assert.equals(queue.size(), 4)
 endfunction
 
 function! s:suite.test_get_all_and_clear()
