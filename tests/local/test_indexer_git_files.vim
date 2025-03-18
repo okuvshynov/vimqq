@@ -60,8 +60,7 @@ function! s:suite.test_get_git_files_direct()
     endfunction
     
     " Get project root
-    let project_root = vimqq#indexing#core#find_project_root(s:test_dir)
-    let project_root = fnamemodify(project_root, ':h')
+    let project_root = s:test_dir
     
     " Call get_git_files directly with our callback
     call vimqq#indexing#git#get_files(project_root, function('s:OnFile'), function('s:OnTestComplete'))
