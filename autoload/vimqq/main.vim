@@ -37,7 +37,7 @@ function! vimqq#main#show_chat(chat_id)
 endfunction
 
 function! vimqq#main#init() abort
-    " Just to autoload
+    call vimqq#main#setup()
 endfunction
 
 function! vimqq#main#fzf() abort
@@ -117,5 +117,3 @@ function! vimqq#main#dispatch_tools(count, line1, line2, args) abort
         execute a:line1 . ',' . a:line2 . 'call vimqq#main#qqt(a:args)'
     endif
 endfunction
-
-call vimqq#main#setup()

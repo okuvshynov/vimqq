@@ -30,6 +30,9 @@ function! vimqq#controller#new() abort
 
         " to autoload and start command line monitoring
         call vimqq#warmup#start()
+
+        " to start indexing
+        call vimqq#indexing#basic#run()
     endfunction
 
     function! controller.run_query(chat_id, bot, message) dict

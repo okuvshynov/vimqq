@@ -20,13 +20,13 @@ function! vimqq#indexing#basic#run()
     
     function! idx.on_file(file_path) dict
         if vimqq#util#path_matches_patterns(a:file_path, self.ignores)
-            call vimqq#log#info('Skipping ' . a:file_path)
             return
         endif
         let full_path = self.root . '/' . a:file_path
         if filereadable(full_path)
             let checksum = vimqq#platform#checksum#sha256(full_path)
             let file_data = get(self.data, a:file_path, {})
+            " TODO: this is incorrect, we need to handle it better.
             if get(file_data, 'checksum', '') ==# checksum
                 " already enqueued it
                 return
@@ -66,4 +66,19 @@ function! vimqq#indexing#basic#run()
     let idx.summarizer = vimqq#indexing#summary#start(idx.root, idx.to_summarize, {f, s -> idx.on_summary(f, s)})
 
     let g:vimqq_indexer_basic = idx
+endfunction
+
+function! vimqq#indexing#basic#format()
+    let data = vimqq#indexing#io#read(s:INDEX_NAME)
+    if data is v:null
+        call vimqq#log#error('Unable to locate index file ' . s:INDEX_NAME)
+        return "Index not found"
+    endif
+    let res = []
+    for [file_path, entry] in items(data)
+        call add(res, file_path)
+        call add(res, get(entry, 'summary', ''))
+        call add(res, '')
+    endfor
+    return join(res, "\n")
 endfunction

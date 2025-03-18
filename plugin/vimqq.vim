@@ -10,6 +10,7 @@ command! -nargs=0 QQFZF  call vimqq#main#fzf()
 command! -nargs=0 QQLOG execute 'vertical split ' . vimqq#log#file()
 
 " we autoload to allow autowarmup in command line
+" and indexing if configured
 if !has_key(g:, 'vqq_skip_init')
     call vimqq#main#init()
 endif

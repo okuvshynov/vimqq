@@ -32,8 +32,6 @@ function! vimqq#indexing#token_counter#start(git_root, in_queue, OnCounted) abor
             return self.schedule(s:PERIOD_MS)
         endif
 
-        call vimqq#log#info('Counting tokens for ' . file_path)
-        
         " Read file content
         let file_content = join(readfile(full_path), "\n")
         
@@ -49,7 +47,7 @@ function! vimqq#indexing#token_counter#start(git_root, in_queue, OnCounted) abor
     
     " Define callback for token count result
     function! counter.on_token_count_complete(file_path, token_count) dict
-        call vimqq#log#info('on_token_count_complete' . a:file_path)
+        call vimqq#log#debug('on_token_count_complete: ' . a:file_path)
         call self.schedule(s:PERIOD_MS)
         call self.on_counted(a:file_path, a:token_count)
     endfunction
