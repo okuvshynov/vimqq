@@ -46,7 +46,6 @@ function! vimqq#indexing#summary#start(git_root, in_queue, OnSummary) abort
     endfunction
     
     function! summ.on_summarized(file_path, summary) dict
-        call vimqq#log#info('on_summary for ' . a:file_path)
         call self.schedule(s:PERIOD_MS)
         call self.on_summary(a:file_path, a:summary)
     endfunction

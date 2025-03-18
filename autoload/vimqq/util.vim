@@ -108,8 +108,6 @@ endfunction
 " Similar to gitignore pattern matching
 " Returns 1 if path matches any pattern, 0 otherwise
 function! vimqq#util#path_matches_patterns(path, patterns) abort
-    call vimqq#log#debug('path: ' . a:path)
-    call vimqq#log#debug('patterns: ' . string(a:patterns))
     if empty(a:patterns)
         return 0
     endif

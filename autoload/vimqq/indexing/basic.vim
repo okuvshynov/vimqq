@@ -1,20 +1,22 @@
-function! vimqq#indexing#basic#run(root, index_file)
+let s:RETRY_IN_MS = 30000
+let s:INDEX_NAME  = 'basic.idx'
+
+function! vimqq#indexing#basic#run()
     let idx = {}
 
-    let idx.to_count = vimqq#queue#new()
+    let idx.to_count     = vimqq#queue#new()
     let idx.to_summarize = vimqq#queue#new()
-    let idx.data = {}
-    let idx.index_file = a:index_file
-    let idx.root = a:root
-    let idx.ignores = []
-    if filereadable(idx.root . '/.vqqignore')
-        let idx.ignores = readfile(a:root . '/.vqqignore')
+    let idx.root = vimqq#indexing#io#root()
+    if idx.root is v:null
+        call vimqq#log#warning('No indexing configured. Retry in ' . s:RETRY_IN_MS . 'ms')
+        call timer_start(s:RETRY_IN_MS, {t -> vimqq#indexing#basic#run()})
+        return
     endif
+
+    let idx.ignores = vimqq#indexing#io#ignores()
     call vimqq#log#info('Ingoring patterns: ' . string(idx.ignores))
 
-    if filereadable(a:index_file)
-        let idx.data = json_decode(join(readfile(a:index_file), ''))
-    endif
+    let idx.data = vimqq#indexing#io#read(s:INDEX_NAME)
     
     function! idx.on_file(file_path) dict
         if vimqq#util#path_matches_patterns(a:file_path, self.ignores)
@@ -48,22 +50,20 @@ function! vimqq#indexing#basic#run(root, index_file)
     endfunction
 
     function! idx.on_summary(file_path, summary) dict
-        call vimqq#log#debug('summary for ' . a:file_path . ' = ' . a:summary)
+        call vimqq#log#debug('summary for ' . a:file_path)
         if !has_key(self.data, a:file_path)
             call vimqq#log#error('Got summary for non-enqueued file')
             return
         endif
         let self.data[a:file_path]['summary'] = a:summary
-        " TODO: this is bad for large repos
-        let json_text = json_encode(self.data)
-        call vimqq#log#debug('Saving index: ' . json_text)
-        call writefile([json_text], self.index_file)
+        call vimqq#log#info('Updating index file ' . s:INDEX_NAME . '. Size = ' . len(self.data))
+        call vimqq#log#debug('Summarization queue size = ' . len(self.to_summarize))
+        call vimqq#indexing#io#write(s:INDEX_NAME, self.data)
     endfunction
 
-    let idx.crawler = vimqq#indexing#git#start(a:root, {f -> idx.on_file(f)})
-    let idx.counter = vimqq#indexing#token_counter#start(a:root, idx.to_count, {f, c -> idx.on_counted(f, c)})
-    let idx.summarizer = vimqq#indexing#summary#start(a:root, idx.to_summarize, {f, s -> idx.on_summary(f, s)})
+    let idx.crawler = vimqq#indexing#git#start(idx.root, {f -> idx.on_file(f)})
+    let idx.counter = vimqq#indexing#token_counter#start(idx.root, idx.to_count, {f, c -> idx.on_counted(f, c)})
+    let idx.summarizer = vimqq#indexing#summary#start(idx.root, idx.to_summarize, {f, s -> idx.on_summary(f, s)})
 
     let g:vimqq_indexer_basic = idx
-
 endfunction
