@@ -6,6 +6,11 @@ function! vimqq#indexing#basic#run(root, index_file)
     let idx.data = {}
     let idx.index_file = a:index_file
     let idx.root = a:root
+    let idx.ignores = []
+    if filereadable(idx.root . '/.vqqignore')
+        let idx.ignores = readfile(a:root . '/.vqqignore')
+    endif
+
     if filereadable(a:index_file)
         let idx.index_file = json_decode(join(readfile(a:index_file), ''))
     endif
@@ -45,7 +50,7 @@ function! vimqq#indexing#basic#run(root, index_file)
         endif
         let self.data[a:file_path]['summary'] = a:summary
         " TODO: this is bad for large repos
-        call writefile([json_encode(self.data)], a:index_file)
+        call writefile([json_encode(self.data)], self.index_file)
     endfunction
 
     let idx.crawler = vimqq#indexing#git#start(a:root, {f -> idx.on_file(f)})
