@@ -90,3 +90,28 @@ function! s:suite.test_merge_non_existent() abort
   call s:assert.equals(result['b'], 2)
   call s:assert.equals(get(result, 'c', 0), 0)
 endfunction
+
+function! s:suite.test_path_matches_patterns() abort
+  " Test with empty patterns list
+  call s:assert.equals(vimqq#util#path_matches_patterns('some/file.txt', []), 0)
+  
+  " Test exact filename match
+  call s:assert.equals(vimqq#util#path_matches_patterns('file.txt', ['file.txt']), 1)
+  call s:assert.equals(vimqq#util#path_matches_patterns('file.txt', ['other.txt']), 0)
+  
+  " Test wildcard patterns
+  call s:assert.equals(vimqq#util#path_matches_patterns('file.txt', ['*.txt']), 1)
+  call s:assert.equals(vimqq#util#path_matches_patterns('file.log', ['*.txt']), 0)
+  
+  " Test negated patterns
+  call s:assert.equals(vimqq#util#path_matches_patterns('file.txt', ['!file.txt']), 0)
+  call s:assert.equals(vimqq#util#path_matches_patterns('other.txt', ['!file.txt']), 1)
+  
+  " Test path normalization
+  call s:assert.equals(vimqq#util#path_matches_patterns('src\file.txt', ['src/file.txt']), 1)
+endfunction
+
+function! s:suite.test_path_matches_patterns_dir() abort
+    call s:assert.equals(vimqq#util#path_matches_patterns('foo/file.txt', ['foo/*']), 1)
+    call s:assert.equals(vimqq#util#path_matches_patterns('bar/file.txt', ['foo/*']), 0)
+endfunction

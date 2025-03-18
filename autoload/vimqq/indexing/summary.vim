@@ -21,7 +21,7 @@ function! vimqq#indexing#summary#start(git_root, in_queue, OnSummary) abort
     function! summ.next() dict
         let file_path = self.in_queue.dequeue()
         if file_path is v:null
-            call vimqq#log#debug('No files to summarize for')
+            call vimqq#log#debug('No files to summarize.')
             return self.schedule(s:RETRY_PERIOD_MS)
         endif
         let full_path = self.git_root . '/' . file_path

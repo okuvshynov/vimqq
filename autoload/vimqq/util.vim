@@ -103,3 +103,80 @@ function! vimqq#util#log_chat(chat)
         call vimqq#log#debug(' chat.partial_message = NONE')
     endif
 endfunction
+
+" Check if a file path matches any pattern in the given list
+" Similar to gitignore pattern matching
+" Returns 1 if path matches any pattern, 0 otherwise
+function! vimqq#util#path_matches_patterns(path, patterns) abort
+    call vimqq#log#debug('path: ' . a:path)
+    call vimqq#log#debug('patterns: ' . string(a:patterns))
+    if empty(a:patterns)
+        return 0
+    endif
+
+    " Normalize the path (ensure forward slashes)
+    let path = substitute(a:path, '\', '/', 'g')
+    
+    for pattern in a:patterns
+        " Skip empty lines and comments
+        if empty(pattern) || pattern =~# '^#'
+            continue
+        endif
+        
+        " Handle negation (patterns starting with !)
+        let negated = 0
+        let pat = pattern
+        if pat =~# '^!'
+            let negated = 1
+            let pat = pat[1:]
+        endif
+        
+        " Trim leading and trailing whitespace
+        let pat = substitute(pat, '^\s\+\|\s\+$', '', 'g')
+        if empty(pat)
+            continue
+        endif
+        
+        " Simple wildcard matching (convert to regex)
+        let pat_regex = pat
+        
+        " Handle exact directory matching (ending with /)
+        let is_dir_only = pat_regex =~# '/$'
+        if is_dir_only
+            let pat_regex = substitute(pat_regex, '/$', '', 'g')
+        endif
+        
+        " Convert * to regex wildcard (any chars)
+        let pat_regex = substitute(pat_regex, '\*', '.*', 'g')
+        
+        " Convert ? to regex wildcard (single char)
+        let pat_regex = substitute(pat_regex, '?', '.', 'g')
+        
+        " Perform the match (basic implementation)
+        let matched = path =~# pat_regex . '$'
+        
+        " If pattern starts with /, match only from beginning
+        if pat =~# '^/'
+            let pat_no_slash = substitute(pat, '^/', '', '')
+            let matched = path =~# '^' . pat_no_slash
+        endif
+        
+        " For directory-only patterns, check if path is a directory
+        if is_dir_only
+            " Simple check - in a real implementation would use filereadable/isdirectory
+            let is_dir = path =~# '/$'
+            let matched = matched && is_dir
+        endif
+        
+        " If negated, invert the match
+        if negated
+            let matched = !matched
+        endif
+        
+        if matched
+            return 1
+        endif
+    endfor
+    
+    return 0
+endfunction
