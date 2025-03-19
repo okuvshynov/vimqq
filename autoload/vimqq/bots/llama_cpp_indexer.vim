@@ -39,7 +39,7 @@ function vimqq#bots#llama_cpp_indexer#new(config = {})
         let req = {
         \   'messages' : messages,
         \   'max_tokens' : s:MAX_TOKENS,
-        \   'on_complete': {err, p, m -> a:request.on_complete(m.content[0].text)},
+        \   'on_complete': {err, p, m -> err is v:null ? a:request.on_complete(m.content[0].text) : a:request.on_error(err)},
         \   'stream' : v:false
         \ }
 

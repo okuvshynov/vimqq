@@ -16,7 +16,7 @@ function! vimqq#indexing#token_counter#start(git_root, in_queue, OnCounted) abor
         \ 'on_counted' : a:OnCounted
     \ }
 
-    let counter.bot = vimqq#bots#llama_cpp_indexer#new({'addr' : g:vqq_indexer_addr})
+    let counter.bot = vimqq#bots#llama_cpp_indexer#new({'addr' : g:vqq_tokenizer_addr})
 
     function! counter.next() dict
         let file_path = self.in_queue.dequeue()

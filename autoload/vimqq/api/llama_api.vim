@@ -103,7 +103,7 @@ function! vimqq#api#llama_api#new(conf) abort
             let self._builders[req_id] = vimqq#api#llama_cpp_builder#plain(a:params)
             let job_conf = {
             \   'out_cb': {channel, msg -> self._on_out(msg, a:params, req_id)},
-            \   'err_cb': {channel, msg -> self._on_error(msg, a:params, req_id)},
+            \   'err_cb': {channel, msg -> self._on_error(msg, a:params)},
             \   'close_cb': {channel -> self._on_close(a:params, req_id)}
             \ }
         endif
@@ -132,7 +132,13 @@ function! vimqq#api#llama_api#new(conf) abort
 
         function! s:OnComplete() closure
             let res = join(parts, "\n")
-            call OnCompleteCb(get(json_decode(res), 'tokens', []))
+            let tokens = []
+            try
+                let tokens = get(json_decode(res), 'tokens', [])
+            catch
+                call vimqq#log#error('error decoding ' . res)
+            endtry
+            call OnCompleteCb(tokens)
         endfunction
 
         let job_conf = {

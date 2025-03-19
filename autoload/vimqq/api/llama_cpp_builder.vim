@@ -58,8 +58,15 @@ function! vimqq#api#llama_cpp_builder#plain(params) abort
     endfunction
 
     function! builder.close() dict
-        let parsed = json_decode(join(self.parts, "\n"))
-        let message = parsed.choices[0].message
+        let json_text = join(self.parts, "\n")
+        call vimqq#log#debug('json: ' . json_text)
+        try
+            let parsed = json_decode(json_text)
+            let message = parsed.choices[0].message
+        catch
+            call self.on_complete('error', self.params, self.msg)
+            return
+        endtry
         if has_key(message, 'content')
             if message['content'] isnot v:null
                 call self.append_text(message.content)

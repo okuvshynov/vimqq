@@ -55,6 +55,11 @@ function! vimqq#indexing#basic#run()
             call vimqq#log#error('Got summary for non-enqueued file')
             return
         endif
+        if a:summary is v:null
+            call vimqq#log#error('Error summarizing ' . a:file_path)
+            return
+        endif
+
         let self.data[a:file_path]['summary'] = a:summary
         call vimqq#log#info('Updating index file ' . s:INDEX_NAME . '. Size = ' . len(self.data))
         call vimqq#log#debug('Summarization queue size = ' . len(self.to_summarize))

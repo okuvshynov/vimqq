@@ -37,9 +37,11 @@ function! vimqq#indexing#summary#start(git_root, in_queue, OnSummary) abort
         " Read file content
         let file_content = join(readfile(full_path), "\n")
         
+        " TODO: better error handling here
         let req = {
-            \ 'content': file_content,
-            \ 'on_complete': {summary -> self.on_summarized(file_path, summary)}
+            \ 'content'     : file_content,
+            \ 'on_complete' : {summary -> self.on_summarized(file_path, summary)},
+            \ 'on_error'    : {error -> self.on_summarized(file_path, v:null)}
         \ }
         
         call self.bot.summarize(req)
