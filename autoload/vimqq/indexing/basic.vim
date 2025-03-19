@@ -62,7 +62,7 @@ function! vimqq#indexing#basic#run()
 
         let self.data[a:file_path]['summary'] = a:summary
         call vimqq#log#info('Updating index file ' . s:INDEX_NAME . '. Size = ' . len(self.data))
-        call vimqq#log#debug('Summarization queue size = ' . len(self.to_summarize))
+        call vimqq#log#debug('Summarization queue size = ' . self.to_summarize.size())
         call vimqq#indexing#io#write(s:INDEX_NAME, self.data)
     endfunction
 
