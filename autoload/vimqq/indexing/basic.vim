@@ -1,6 +1,8 @@
 let s:RETRY_IN_MS = 30000
 let s:INDEX_NAME  = 'basic.idx'
 
+" It's a very limited index with no cleanup of old entries 
+" and incorrect dedup. It processes one file at a time.
 function! vimqq#indexing#basic#run()
     let idx = {}
 

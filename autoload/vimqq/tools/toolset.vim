@@ -4,14 +4,14 @@ endif
 
 let g:autoloaded_vimqq_tools_toolset_module = 1
 
-function! s:find_lucas_root()
+function! s:find_project_root()
     let current_dir = expand('%:p:h')
     let prev_dir = ''
 
     while current_dir !=# prev_dir
         " Check if lucas.idx file exists in current dir
-        let file_path = current_dir . '/lucas.idx'
-        if filereadable(file_path)
+        let file_path = current_dir . '/.vqq'
+        if isdirectory(file_path)
             return current_dir
         endif
 
@@ -24,7 +24,7 @@ endfunction
 function! vimqq#tools#toolset#new()
     let res = {}
 
-    let root = s:find_lucas_root()
+    let root = s:find_project_root()
 
     let res.tools = [
         \ vimqq#tools#get_files#new(root),
