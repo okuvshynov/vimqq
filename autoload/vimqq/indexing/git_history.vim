@@ -6,7 +6,7 @@ endif
 
 let g:autoloaded_vimqq_indexing_git_history = 1
 
-let s:COMMIT_LIMIT  = 1000
+let s:COMMIT_LIMIT  = 100
 let s:READ_DELAY_MS = 100 
 
 function! vimqq#indexing#git_history#file_reader(git_root, commit_id, OnComplete)
@@ -116,6 +116,7 @@ function! vimqq#indexing#git_history#traverse(git_root, OnCommit, OnComplete = v
     function! traverser.process_next_commit() dict
         if !self.continue_traversal || empty(self.commit_hashes)
             " Traversal is complete or was stopped
+            call vimqq#log#debug('on_complete')
             if self.on_complete isnot v:null
                 call self.on_complete(self.commits_processed)
             endif

@@ -23,8 +23,15 @@ function! vimqq#indexing#related_files#run(git_root, OnComplete)
     endfunction
 
     function! rf.on_files(files) dict
+        call vimqq#log#debug('files: ' . string(a:files))
         for f1 in a:files
+            if !filereadable(self.git_root . '/' . f1)
+                continue
+            endif
             for f2 in a:files
+                if !filereadable(self.git_root . '/' . f2)
+                    continue
+                endif
                 if f1 ==# f2
                     continue
                 endif
