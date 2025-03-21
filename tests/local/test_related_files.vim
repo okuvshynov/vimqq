@@ -62,12 +62,12 @@ function! s:suite.test_related_files_relationship_strength() abort
     
     " Setup test repository
     let temp_dir = s:temp_dir
-    let matrix_result = {}
+    let graph = {}
     let processing_complete = 0
     
     " Define completion callback
-    function! s:on_complete(matrix) closure
-        let matrix_result = a:matrix
+    function! s:on_complete(graph) closure
+        let graph = a:graph
         let processing_complete = 1
     endfunction
     
@@ -81,22 +81,15 @@ function! s:suite.test_related_files_relationship_strength() abort
         sleep 100m
     endwhile
     
-    call s:assert.equals(matrix_result['file1.txt,file2.txt'], 2)
-    call s:assert.equals(matrix_result['file2.txt,file1.txt'], 2)
+    call s:assert.equals(graph['file1.txt']['file2.txt'], 2)
+    call s:assert.equals(graph['file1.txt']['file3.txt'], 1)
 
-    call s:assert.equals(matrix_result['file1.txt,file3.txt'], 1)
-    call s:assert.equals(matrix_result['file3.txt,file1.txt'], 1)
+    call s:assert.equals(graph['file2.txt']['file1.txt'], 2)
+    call s:assert.equals(graph['file2.txt']['file3.txt'], 1)
 
-    call s:assert.equals(matrix_result['file3.txt,file2.txt'], 1)
-    call s:assert.equals(matrix_result['file2.txt,file3.txt'], 1)
+    call s:assert.equals(graph['file3.txt']['file1.txt'], 1)
+    call s:assert.equals(graph['file3.txt']['file2.txt'], 1)
 
-    let all_keys = join(keys(matrix_result), '')
-    call s:assert.includes(all_keys, 'file1.txt')
-    call s:assert.includes(all_keys, 'file2.txt')
-    call s:assert.includes(all_keys, 'file3.txt')
-    call s:assert.not_includes(all_keys, 'file4.txt')
-    call s:assert.not_includes(all_keys, 'file4.txt')
-    call s:assert.not_includes(all_keys, 'file4.txt')
-    call s:assert.not_includes(all_keys, 'file4.txt')
+    call s:assert.equals(len(graph), 3)
 
 endfunction

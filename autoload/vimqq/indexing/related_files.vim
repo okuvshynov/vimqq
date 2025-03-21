@@ -11,9 +11,16 @@ function! vimqq#indexing#related_files#run(git_root, OnComplete)
     let rf = {
         \ 'git_root' : a:git_root,
         \ 'on_complete' : a:OnComplete,
-        \ 'matrix' : {},
+        \ 'graph' : {},
         \ 'index'  : 0
     \ }
+
+    function! rf.add_edge(f1, f2) dict
+        let A = get(self.graph, a:f1, {})
+        " 1 should be decayed
+        let A[a:f2] = get(A, a:f2, 0) + 1
+        let self.graph[a:f1] = A
+    endfunction
 
     function! rf.on_files(files) dict
         for f1 in a:files
@@ -21,11 +28,9 @@ function! vimqq#indexing#related_files#run(git_root, OnComplete)
                 if f1 ==# f2
                     continue
                 endif
-                let key = f1 . ',' . f2
-                let self.matrix[key] = get(self.matrix, key, 0) + 1
+                call self.add_edge(f1, f2)
             endfor
         endfor
-        call vimqq#log#debug(string(self.matrix))
         " So that we continue traversal
         return v:true
     endfunction
@@ -34,7 +39,7 @@ function! vimqq#indexing#related_files#run(git_root, OnComplete)
         let self.crawler = vimqq#indexing#git_history#traverse(
             \ self.git_root, 
             \ {ch, files -> self.on_files(files)},
-            \ {cp -> self.on_complete(self.matrix)}
+            \ {cp -> self.on_complete(self.graph)}
         \)
     endfunction
 
