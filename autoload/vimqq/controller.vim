@@ -32,7 +32,7 @@ function! vimqq#controller#new() abort
         call vimqq#warmup#start()
 
         " to start indexing
-        call vimqq#indexing#basic#run()
+        " call vimqq#indexing#basic#run()
     endfunction
 
     function! controller.run_query(chat_id, bot, message) dict

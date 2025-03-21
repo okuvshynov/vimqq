@@ -1,0 +1,112 @@
+*git_history.txt* Traverse Git commit history in VimQQ
+
+INTRODUCTION                                         *vimqq-git-history*
+
+The Git history module allows traversing through the commit history of a Git
+repository and processing the files changed in each commit.
+
+FUNCTIONS                                     *vimqq-git-history-functions*
+
+traverse({git_root}, {on_commit}, [{on_complete}])  *vimqq#indexing#git_history#traverse()*
+
+Traverses the Git commit history in chronological order (oldest to newest)
+and calls the provided callback for each commit.
+
+Parameters:
+  {git_root}      The path to the Git repository root directory
+  {on_commit}     Callback function that will be called for each commit
+                  The callback receives two arguments:
+                    1. The commit hash (string)
+                    2. A list of files changed in that commit
+                  The callback should return v:true to continue traversal
+                  or v:false to stop
+  {on_complete}   Optional callback function to be called when traversal
+                  is complete or stopped. Receives one argument:
+                    1. The number of commits processed
+
+Return:
+  A traverser object containing information about the traversal process
+
+WRAPPER FUNCTION                             *vimqq-git-history-wrapper*
+
+For convenience, the module can also be accessed through:
+
+traverse_git_history({on_commit}, [{on_complete}])  *vimqq#indexing#traverse_git_history()*
+
+This is a wrapper that automatically uses the project root directory as the Git
+repository root. It calls the `vimqq#indexing#git_history#traverse()` function
+with the appropriate arguments.
+
+EXAMPLES                                     *vimqq-git-history-examples*
+
+Basic usage:
+>
+  function! s:on_commit(commit_hash, files)
+    echo 'Commit: ' . a:commit_hash
+    echo 'Files changed: ' . string(a:files)
+    return v:true  " Continue traversal
+  endfunction
+
+  function! s:on_complete(commits_processed)
+    echo 'Traversal complete! Processed ' . a:commits_processed . ' commits'
+  endfunction
+
+  " Using the direct function
+  call vimqq#indexing#git_history#traverse(
+        \ '/path/to/git/repo',
+        \ function('s:on_commit'),
+        \ function('s:on_complete')
+        \)
+
+  " Or using the wrapper (uses project root automatically)
+  call vimqq#indexing#traverse_git_history(
+        \ function('s:on_commit'),
+        \ function('s:on_complete')
+        \)
+<
+
+Early stopping:
+>
+  function! s:stop_after_n_commits(commit_hash, files)
+    " Stop after 5 commits
+    let s:commit_count += 1
+    return s:commit_count < 5
+  endfunction
+
+  let s:commit_count = 0
+  call vimqq#indexing#git_history#traverse(
+        \ '/path/to/git/repo',
+        \ function('s:stop_after_n_commits')
+        \)
+<
+
+Filtering commits:
+>
+  function! s:filter_by_file_type(commit_hash, files)
+    " Only process commits that modify Python files
+    let python_files = filter(copy(a:files), 'v:val =~ "\.py$"')
+    if !empty(python_files)
+      echo 'Found Python changes in commit: ' . a:commit_hash
+      echo '  Files: ' . string(python_files)
+    endif
+    return v:true
+  endfunction
+
+  call vimqq#indexing#git_history#traverse(
+        \ '/path/to/git/repo',
+        \ function('s:filter_by_file_type')
+        \)
+<
+
+NOTES                                        *vimqq-git-history-notes*
+
+- The traversal is done asynchronously, so the function returns immediately.
+- The on_commit callback is called for each commit in chronological order.
+- If the Git repository has a large number of commits, the traversal may take
+  a long time to complete.
+- The module requires Git to be installed and available in the PATH.
+- The module uses the `git log` and `git show` commands to retrieve commit
+  information.
+
+See also:
+  |vimqq-indexing|
