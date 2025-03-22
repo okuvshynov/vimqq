@@ -24,3 +24,25 @@ function! vimqq#indexing#graph#run()
 
     return idx
 endfunction
+
+function! vimqq#indexing#graph#get_top_n(file_path, n)
+    let graph = vimqq#indexing#io#read(s:GRAPH_INDEX_NAME)
+    let edges = get(graph, a:file_path, {})
+    let items = []
+    for [label, cnt] in items(edges)
+        call add(items, [label, cnt])
+    endfor
+    
+    " Sort by count in descending order
+    call sort(items, {a, b -> b[1] - a[1]})
+    
+    " Extract the top n labels
+    let result = []
+    let i = 0
+    while i < a:n && i < len(items)
+        call add(result, items[i][0])
+        let i += 1
+    endwhile
+    
+    return result
+endfunction
