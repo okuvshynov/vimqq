@@ -6,8 +6,6 @@ endif
 
 let g:autoloaded_vimqq_indexing_git = 1
 
-let s:PERIOD_MS = 30000
-
 function! vimqq#indexing#git#get_files(git_root, OnFile, OnComplete = v:null)
     let crawler = {
         \ 'on_file' : a:OnFile,
@@ -48,26 +46,4 @@ function! vimqq#indexing#git#get_files(git_root, OnFile, OnComplete = v:null)
     " Run the git command asynchronously
     let cmd = ['git', 'ls-files', '--cached', '--others', '--exclude-standard']
     return vimqq#platform#jobs#start(cmd, crawler.job_config)
-endfunction
-
-function! vimqq#indexing#git#start(git_root, OnFile)
-    let git = {
-        \ 'git_root' : a:git_root,
-        \ 'on_file'  : a:OnFile
-    \ }
-
-    function git.next() dict
-        call vimqq#indexing#git#get_files(
-                    \ self.git_root, 
-                    \ {f -> self.on_file(f)},
-                    \ {fc -> self.schedule(s:PERIOD_MS)}
-        \)
-    endfunction
-
-    function git.schedule(period_ms) dict
-        call timer_start(a:period_ms, {t -> self.next()})
-    endfunction
-
-    call git.next()
-    return git
 endfunction

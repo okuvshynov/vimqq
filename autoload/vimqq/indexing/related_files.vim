@@ -4,9 +4,6 @@ endif
 
 let g:autoloaded_vimqq_indexing_related_files = 1
 
-" TODO: not implemented 
-let s:DECAY = 0.01
-
 function! vimqq#indexing#related_files#run(git_root, OnComplete)
     let rf = {
         \ 'git_root' : a:git_root,
@@ -17,7 +14,7 @@ function! vimqq#indexing#related_files#run(git_root, OnComplete)
 
     function! rf.add_edge(f1, f2) dict
         let A = get(self.graph, a:f1, {})
-        " 1 should be decayed
+        " TODO: 1 should be decayed
         let A[a:f2] = get(A, a:f2, 0) + 1
         let self.graph[a:f1] = A
     endfunction

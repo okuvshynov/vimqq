@@ -1,6 +1,6 @@
-"if exists('g:autoloaded_vimqq_indexing_graph')
-"    finish
-"endif
+if exists('g:autoloaded_vimqq_indexing_graph')
+    finish
+endif
 
 let g:autoloaded_vimqq_indexing_graph = 1
 

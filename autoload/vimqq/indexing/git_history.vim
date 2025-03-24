@@ -128,7 +128,6 @@ function! vimqq#indexing#git_history#traverse(git_root, OnCommit, OnComplete = v
 
         let reader = vimqq#indexing#git_history#file_reader(self.git_root, commit_id, {c, f -> self.on_commit_files(c, f)})
         call timer_start(s:READ_DELAY_MS, {t -> reader.start()})
-
     endfunction
     
     " Start the traversal
