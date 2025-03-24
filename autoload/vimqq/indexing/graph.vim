@@ -123,3 +123,14 @@ function! vimqq#indexing#graph#build_index()
     endfunction
 
 endfunction
+
+function! vimqq#indexing#graph#format()
+    let summaries = vimqq#indexing#io#collect(s:INDEX_NAME)
+    let res = []
+    for [file_path, summary] in items(summaries)
+        call add(res, file_path)
+        call add(res, summary)
+        call add(res, '')
+    endfor
+    return join(res, "\n")
+endfunction

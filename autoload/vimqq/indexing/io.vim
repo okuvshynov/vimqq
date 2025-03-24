@@ -62,6 +62,43 @@ function! vimqq#indexing#io#write(index_name, data)
     call writefile([json_text], file_path)
 endfunction
 
+function! s:collect_rec(base_dir, current_dir, result)
+    for item in glob(a:current_dir . '/*', 0, 1)
+        if isdirectory(item)
+            call s:collect_rec(a:base_dir, item, a:result)
+        elseif filereadable(item)
+            let file_content = join(readfile(item), "\n")
+            try
+                let json_data = json_decode(file_content)
+                if type(json_data) == v:t_dict && has_key(json_data, 'summary')
+                    let relative_path = substitute(item, a:base_dir . '/', '', '')
+                    let a:result[relative_path] = json_data.summary
+                endif
+            catch
+                call vimqq#log#error('skipping ' . string(item))
+                continue
+            endtry
+        endif
+    endfor
+endfunction
+
+function! vimqq#indexing#io#collect(index_name)
+    let root = vimqq#indexing#io#root()
+    if root is v:null
+        call vimqq#log#error('attempt to read index with no index dir.')
+        return
+    endif
+    let result = {}
+
+    let base_dir = root . '/' . s:INDEX_DIRECTORY . '/' . a:index_name
+    if isdirectory(base_dir)
+        call s:collect_rec(base_dir, base_dir, result)
+    endif
+
+    return result
+
+endfunction
+
 function! vimqq#indexing#io#read_path(index_name, file_path)
     let root = vimqq#indexing#io#root()
     if root is v:null

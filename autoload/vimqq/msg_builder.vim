@@ -103,7 +103,7 @@ function! vimqq#msg_builder#user() abort
         call self._set_src_text(a:question)
         call self._set_src_context(a:context)
         if a:use_index
-           call self._set_src_index(vimqq#indexing#basic#format())
+           call self._set_src_index(vimqq#indexing#graph#format())
         endif
         let prompt = vimqq#prompts#pick(self.msg, v:false)
         let text = vimqq#prompts#apply(self.msg, prompt)
