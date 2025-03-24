@@ -12,6 +12,12 @@ function! vimqq#prompts#gen_title_prompt(message) abort
     return "Write a title with a few words summarizing the following paragraph. Reply only with title itself. Use no quotes around it.\n\n" . text
 endfunction
 
+function! vimqq#prompts#indexing_file_ctx() abort
+    let root_dir = vimqq#util#root()
+    let prompt_file = root_dir . '/prompts/indexing_file_ctx.txt'
+    return join(readfile(prompt_file), "\n")
+endfunction
+
 function! vimqq#prompts#indexing_file() abort
     let root_dir = vimqq#util#root()
     let prompt_file = root_dir . '/prompts/indexing_file.txt'

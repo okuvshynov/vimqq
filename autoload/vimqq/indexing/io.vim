@@ -61,3 +61,36 @@ function! vimqq#indexing#io#write(index_name, data)
     let json_text = json_encode(a:data)
     call writefile([json_text], file_path)
 endfunction
+
+function! vimqq#indexing#io#read_path(index_name, file_path)
+    let root = vimqq#indexing#io#root()
+    if root is v:null
+        call vimqq#log#error('attempt to read index with no index dir.')
+        return v:null
+    endif
+    let index_path = root . '/' . s:INDEX_DIRECTORY . '/' . a:index_name
+    let full_path = index_path . '/' . a:file_path
+    if filereadable(full_path)
+        return json_decode(join(readfile(full_path)))
+    endif
+    return {}
+endfunction
+
+function! vimqq#indexing#io#write_path(index_name, file_path, data)
+    let root = vimqq#indexing#io#root()
+    if root is v:null
+        call vimqq#log#error('attempt to read index with no index dir.')
+        return
+    endif
+    let index_path = root . '/' . s:INDEX_DIRECTORY . '/' . a:index_name
+    let full_path = index_path . '/' . a:file_path
+    let dir_path = fnamemodify(full_path, ':h')
+    try
+        call mkdir(dir_path, 'p')
+    catch
+        call vimqq#log#error('failed to create dir: ' . dir_path)
+        return
+    endtry
+    let json_text = json_encode(a:data)
+    call writefile([json_text], full_path)
+endfunction

@@ -55,7 +55,7 @@ function! vimqq#platform#jobs#start(command, config)
         call OnJob(job)
     endif
     if job_status(job) ==# 'fail'
-        call vimqq#log#error('Job ' . a:command . 'failed to start.')
+        call vimqq#log#error('Job ' . string(a:command) . 'failed to start.')
         return v:false
     endif
     call s:keep_job(job)

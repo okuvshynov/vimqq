@@ -1,0 +1,7 @@
+You are given a source file in the code repository.
+
+Your job is to summarize the file so that it can serve as high level documentation.
+
+You will be also given several other files as a context. If you can identify any relationships between main file and any of the context, include it in your summary.
+
+Provide only the summary itself in your response.
