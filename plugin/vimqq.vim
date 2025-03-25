@@ -11,6 +11,7 @@ command! -nargs=0 QQLOG execute 'vertical split ' . vimqq#log#file()
 
 command! -nargs=0 QQG   call vimqq#indexing#graph#build_graph()
 command! -nargs=0 QQGI  call vimqq#indexing#graph#build_index()
+command! -nargs=0 QQS   call vimqq#main#status_show()
 
 " we autoload to allow autowarmup in command line
 " and indexing if configured

@@ -6,10 +6,10 @@ let g:autoloaded_vimqq_indexing_related_files = 1
 
 function! vimqq#indexing#related_files#run(git_root, OnComplete)
     let rf = {
-        \ 'git_root' : a:git_root,
+        \ 'git_root'    : a:git_root,
         \ 'on_complete' : a:OnComplete,
-        \ 'graph' : {},
-        \ 'index'  : 0
+        \ 'graph'       : {},
+        \ 'commits'     : 0
     \ }
 
     function! rf.add_edge(f1, f2) dict
@@ -20,6 +20,8 @@ function! vimqq#indexing#related_files#run(git_root, OnComplete)
     endfunction
 
     function! rf.on_files(files) dict
+        let self.commits = self.commits + 1
+        call vimqq#main#status_update('commit_graph_processed', self.commits)
         call vimqq#log#debug('files: ' . string(a:files))
         for f1 in a:files
             if !filereadable(self.git_root . '/' . f1)
