@@ -18,12 +18,6 @@ function! vimqq#prompts#indexing_file_ctx() abort
     return join(readfile(prompt_file), "\n")
 endfunction
 
-function! vimqq#prompts#indexing_file() abort
-    let root_dir = vimqq#util#root()
-    let prompt_file = root_dir . '/prompts/indexing_file.txt'
-    return join(readfile(prompt_file), "\n")
-endfunction
-
 function! vimqq#prompts#reviewer_prompt() abort
     let root_dir = vimqq#util#root()
     let prompt_file = root_dir . '/prompts/reviewer_prompt.txt'
