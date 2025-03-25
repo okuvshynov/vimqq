@@ -24,31 +24,8 @@ function vimqq#bots#llama_cpp_indexer#new(config = {})
 
     " request has following fields:
     "   - on_complete callback
-    "   - content - file content to summarize 
-    "
-    " TODO: Later we'll add existing index and multiple file.
-    " For now just summarize each file
-    function bot.summarize(request) dict
-        let prompt = vimqq#prompts#indexing_file()
-        let prompt = prompt . "\nFile content:\n" . a:request.content 
-
-        let messages = [
-        \   {'role': 'user', 'content' : prompt}
-        \ ]
-
-        let req = {
-        \   'messages' : messages,
-        \   'max_tokens' : s:MAX_TOKENS,
-        \   'on_complete': {err, p, m -> err is v:null ? a:request.on_complete(m.content[0].text) : a:request.on_error(err)},
-        \   'stream' : v:false
-        \ }
-
-        call self.api.chat(req)
-    endfunction
-
-    " request has following fields:
-    "   - on_complete callback
-    "   - content - content to send as text
+    "   - on_error    callback
+    "   - content     content to send as text message
     function bot.message(request) dict
         let messages = [
         \   {'role': 'user', 'content' : get(a:request, 'content', '')}
