@@ -36,6 +36,15 @@ function! vimqq#main#show_chat(chat_id)
     call s:controller.show_chat(a:chat_id)
 endfunction
 
+function vimqq#main#status_update(key, value)
+    call s:controller.status.update(a:key, a:value)
+endfunction
+
+function vimqq#main#status_show()
+    let lines = s:controller.status.render()
+    call vimqq#platform#popup#show(lines)
+endfunction
+
 function! vimqq#main#init() abort
     call vimqq#main#setup()
 endfunction

@@ -14,18 +14,20 @@ function! vimqq#controller#new() abort
     let controller = {}
 
     " Move all script-level variables into controller
-    let controller.ui = v:null
-    let controller.db = v:null
-    let controller.bots = v:null
-    let controller.state = v:null
+    let controller.ui      = v:null
+    let controller.db      = v:null
+    let controller.bots    = v:null
+    let controller.state   = v:null
     let controller.toolset = v:null
+    let controller.status  = v:null
 
     function! controller.init() dict
-        let self.ui = vimqq#ui#new()
-        let self.db = vimqq#db#new(g:vqq_chats_dir)
-        let self.bots = vimqq#bots#bots#new()
-        let self.state = vimqq#state#new(self.db)
+        let self.ui      = vimqq#ui#new()
+        let self.db      = vimqq#db#new(g:vqq_chats_dir)
+        let self.bots    = vimqq#bots#bots#new()
+        let self.state   = vimqq#state#new(self.db)
         let self.toolset = vimqq#tools#toolset#new()
+        let self.status  = vimqq#status#new()
         let self._in_flight = {}
 
         " to autoload and start command line monitoring

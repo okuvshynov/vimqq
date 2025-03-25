@@ -4,6 +4,8 @@ endif
 
 let g:autoloaded_vimqq_popup = 1
 
+let s:POPUP_TIMEOUT_MS = 5000
+
 function! vimqq#platform#popup#show(lines)
   let lines = a:lines
   
@@ -32,7 +34,7 @@ function! vimqq#platform#popup#show(lines)
           \ 'border': [1, 1, 1, 1],
           \ 'borderchars': ['-', '|', '-', '|', '+', '+', '+', '+'],
           \ 'close': 'click',
-          \ 'time': 1000,
+          \ 'time': s:POPUP_TIMEOUT_MS,
           \ })
   " For Neovim - create floating window
   elseif has('nvim')
@@ -53,7 +55,7 @@ function! vimqq#platform#popup#show(lines)
     let win = nvim_open_win(buf, v:false, opts)
     
     " Auto-close after 5 seconds
-    call timer_start(1000, {-> nvim_win_close(win, v:true)})
+    call timer_start(s:POPUP_TIMEOUT_MS, {-> nvim_win_close(win, v:true)})
   else
     " Fallback for older Vim versions
     echo "Status:"
