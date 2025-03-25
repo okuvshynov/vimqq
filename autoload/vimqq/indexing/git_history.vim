@@ -6,7 +6,7 @@ endif
 
 let g:autoloaded_vimqq_indexing_git_history = 1
 
-let s:COMMIT_LIMIT  = 100
+let s:COMMIT_LIMIT  = 500
 let s:READ_DELAY_MS = 100 
 
 function! vimqq#indexing#git_history#file_reader(git_root, commit_id, OnComplete)

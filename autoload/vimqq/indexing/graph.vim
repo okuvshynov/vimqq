@@ -6,7 +6,7 @@ let g:autoloaded_vimqq_indexing_graph = 1
 
 let s:GRAPH_INDEX_NAME = 'commit_graph.idx'
 let s:INDEX_NAME       = 'graph_index.idx'
-let s:CONTEXT_SIZE     = 5
+let s:CONTEXT_SIZE     = 10
 
 function! vimqq#indexing#graph#build_graph()
     let idx = {}
