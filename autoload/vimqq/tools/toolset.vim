@@ -23,6 +23,7 @@ endfunction
 
 function! vimqq#tools#toolset#new()
     let res = {}
+    let res.counters = {}
 
     let root = s:find_project_root()
 
@@ -32,6 +33,11 @@ function! vimqq#tools#toolset#new()
         \ vimqq#tools#create_file#new(root),
         \ vimqq#tools#run_cmd#new(root)
     \ ]
+
+    function! res.inc(key) dict
+        let self.counters[a:key] = get(self.counters, a:key, 0) + 1
+        call vimqq#main#status_update('tools: ' . a:key, self.counters[a:key])
+    endfunction
 
     function! res.def() dict
         let res = []
@@ -43,6 +49,7 @@ function! vimqq#tools#toolset#new()
 
     function! res.run_async(tool_call, callback) dict
         call vimqq#log#debug('tool call: ' . string(a:tool_call))
+        call self.inc(a:tool_call['name'])
         for tool in self.tools
             if tool.name() ==# a:tool_call['name']
                 call tool.run_async(a:tool_call['input'], a:callback)
