@@ -9,10 +9,10 @@ let g:autoloaded_vimqq_anthropic_adapter = 1
 function! vimqq#api#anthropic_adapter#tool_schema(schema)
     let fn = a:schema['function']
     let res = {
-    \   'name': fn['name'],
-    \   'description' : fn['description'],
+    \   'name'         : fn['name'],
+    \   'description'  : fn['description'],
     \   'input_schema' : fn['parameters']
-    \} 
+    \ }
     return res
 endfunction
 
@@ -37,12 +37,12 @@ function! vimqq#api#anthropic_adapter#run(request)
     endif
 
     let req = {
-    \   'messages' : messages,
-    \   'model': a:request.model,
+    \   'messages'   : messages,
+    \   'model'      : a:request.model,
     \   'max_tokens' : get(a:request, 'max_tokens', 1024),
-    \   'stream': get(a:request, 'stream', v:false),
-    \   'tools': vimqq#api#anthropic_adapter#adapt_tools(tools)
-    \}
+    \   'stream'     : get(a:request, 'stream', v:false),
+    \   'tools'      : vimqq#api#anthropic_adapter#adapt_tools(tools)
+    \ }
 
     if system_msg isnot v:null
         let req['system'] = system_msg
@@ -57,7 +57,6 @@ function! vimqq#api#anthropic_adapter#run(request)
         endif
         let req['thinking'] = {'type': 'enabled', 'budget_tokens': tokens}
     endif
-
 
     return req
 endfunction

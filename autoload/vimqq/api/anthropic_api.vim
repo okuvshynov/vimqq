@@ -120,18 +120,20 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
 
                 " Get turn usage information
                 let last_turn_usage = get(self._req_last_turn_usages, a:req_id, {})
-                let in_tokens = get(last_turn_usage, 'cache_creation_input_tokens', 0) +
-                            \ get(last_turn_usage, 'cache_read_input_tokens', 0) +
-                            \ get(last_turn_usage, 'input_tokens', 0)
+                let in_tokens =
+                    \ get(last_turn_usage, 'cache_creation_input_tokens', 0) +
+                    \ get(last_turn_usage, 'cache_read_input_tokens', 0) +
+                    \ get(last_turn_usage, 'input_tokens', 0)
 
                 let out_tokens = get(response.usage, 'output_tokens', 0)
                 call s:SysMessage('info', 'Turn: in = ' . in_tokens . ', out = ' . out_tokens)
 
                 " Get total conversation usage
                 let usage = self._req_usages[a:req_id]
-                let in_tokens = get(usage, 'cache_creation_input_tokens', 0) +
-                            \ get(usage, 'cache_read_input_tokens', 0) +
-                            \ get(usage, 'input_tokens', 0)
+                let in_tokens =
+                    \ get(usage, 'cache_creation_input_tokens', 0) +
+                    \ get(usage, 'cache_read_input_tokens', 0) +
+                    \ get(usage, 'input_tokens', 0)
 
                 let out_tokens = get(usage, 'output_tokens', 0)
 

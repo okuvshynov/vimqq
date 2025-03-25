@@ -139,5 +139,3 @@ function! vimqq#api#anthropic_builder#plain(params) abort
 
     return builder
 endfunction
-
-

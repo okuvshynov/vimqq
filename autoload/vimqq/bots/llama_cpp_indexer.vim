@@ -30,6 +30,7 @@ function vimqq#bots#llama_cpp_indexer#new(config = {})
         let messages = [
         \   {'role': 'user', 'content' : get(a:request, 'content', '')}
         \ ]
+        call vimqq#log#debug('content len: ' . len(messages[0].content))
 
         let req = {
         \   'messages' : messages,
