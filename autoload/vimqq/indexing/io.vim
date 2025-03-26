@@ -116,7 +116,7 @@ endfunction
 function! vimqq#indexing#io#write_path(index_name, file_path, data)
     let root = vimqq#indexing#io#root()
     if root is v:null
-        call vimqq#log#error('attempt to read index with no index dir.')
+        call vimqq#log#error('attempt to write index with no index dir.')
         return
     endif
     let index_path = root . '/' . s:INDEX_DIRECTORY . '/' . a:index_name

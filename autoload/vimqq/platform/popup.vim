@@ -29,6 +29,7 @@ function! vimqq#platform#popup#show(lines)
   " For Vim - create popup
   if exists('*popup_create')
     call popup_create(lines, {
+          \ 'title': 'VimQQ status',
           \ 'pos': 'center',
           \ 'padding': [1, 2, 1, 2],
           \ 'border': [1, 1, 1, 1],
