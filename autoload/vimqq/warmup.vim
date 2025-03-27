@@ -65,13 +65,13 @@ endfunction
 function! s:check_command_line(timer_id)
     if mode() ==# 'c'  " Check if we're in command mode
         if s:warmup_in_progress 
-            call vimqq#log#debug('not issuing second warmup')
+            "call vimqq#log#debug('not issuing second warmup')
             return
         endif
         if getcmdtype() ==# ':'
             let cmdline = getcmdline()
             call vimqq#warmup#parse(cmdline)
-            call vimqq#log#debug('warmup: [' . cmdline . '] ' . string(s:warmup_in_progress))
+            "call vimqq#log#debug('warmup: [' . cmdline . '] ' . string(s:warmup_in_progress))
         endif
     endif
 endfunction
