@@ -135,7 +135,7 @@ function! vimqq#db#new(db_file) abort
 
     function! db.seq_id() dict
         let self._seq_id = self._seq_id + 1
-        call self._save_metadata()
+        " call self._save_metadata()
         return self._seq_id
     endfunction
 

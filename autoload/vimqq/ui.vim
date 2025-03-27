@@ -117,13 +117,6 @@ function vimqq#ui#new() abort
 
     " {{{ public:
 
-    function! ui.update_queue_size(queue_size) dict
-        if self._queue_size != a:queue_size
-            let self._queue_size = a:queue_size
-            redrawstatus!
-        endif
-    endfunction
-
     function! ui.append_partial(chunk) dict
         let bufnum = s:bnrs(s:CHAT_BUF_NAME)
         if bufnum != -1

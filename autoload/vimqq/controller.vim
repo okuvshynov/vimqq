@@ -62,7 +62,6 @@ function! vimqq#controller#new() abort
             call self.show_chat(a:chat_id)
         endif
 
-        call self.ui.update_queue_size(len(self._in_flight))
     endfunction
 
     function! controller.notify(event, args) dict
@@ -124,7 +123,6 @@ function! vimqq#controller#new() abort
             endif
 
             call self.show_chat(chat_id)
-            call self.ui.update_queue_size(len(self._in_flight))
             return
         endif
 
@@ -247,7 +245,6 @@ function! vimqq#controller#new() abort
             call self.show_chat(chat_id)
         endif
 
-        call self.ui.update_queue_size(len(self._in_flight))
     endfunction
 
     " This is a little confusing. There are two warmups:
