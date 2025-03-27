@@ -17,7 +17,6 @@ function! vimqq#api#llama_api#new(conf) abort
         let builder = self._builders[a:req_id]
         let messages = split(a:msg, '\n')
         for message in messages
-            call vimqq#log#debug(message)
             if message !~# '^data: '
                 call vimqq#log#warning('Unexpected reply: ' . message)
                 continue

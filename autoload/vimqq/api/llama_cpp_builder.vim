@@ -59,7 +59,6 @@ function! vimqq#api#llama_cpp_builder#plain(params) abort
 
     function! builder.close() dict
         let json_text = join(self.parts, "\n")
-        call vimqq#log#debug('json: ' . json_text)
         try
             let parsed = json_decode(json_text)
             let message = parsed.choices[0].message
