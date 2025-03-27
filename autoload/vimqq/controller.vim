@@ -61,7 +61,34 @@ function! vimqq#controller#new() abort
         if self.run_query(a:chat_id, a:bot, a:tool_result)
             call self.show_chat(a:chat_id)
         endif
+    endfunction
 
+    function! controller.on_chunk_done(args) dict
+        if !self.db.chat_exists(a:args['chat_id'])
+            call vimqq#log#warning("callback on non-existent chat.")
+            return
+        endif
+        let chat_id = a:args['chat_id']
+        let chat = self.db.get_chat(chat_id)
+        let first = v:false
+        if !has_key(chat, 'partial_message')
+            let first = v:true
+            call vimqq#ttft#first_token(chat_id)
+            let chat['partial_message'] = a:args['builder'].msg
+            call self.db._save()
+        endif
+        let chat.partial_message.bot_name = a:args['bot'].name()
+        let chat.partial_message.seq_id = self.db.seq_id()
+        if !has_key(chat.partial_message, 'seq_id_first')
+            let chat.partial_message.seq_id_first = chat.partial_message.seq_id
+        endif
+        if a:args['chat_id'] ==# self.state.get_chat_id()
+            if first
+                call self.show_chat(a:args['chat_id'])
+            else
+                call self.ui.append_partial(a:args['chunk'])
+            endif
+        endif
     endfunction
 
     function! controller.notify(event, args) dict
@@ -149,35 +176,6 @@ function! vimqq#controller#new() abort
             endif
 
             call self.show_list()
-            return
-        endif
-        
-        if a:event ==# 'chunk_done'
-            if !self.db.chat_exists(a:args['chat_id'])
-                call vimqq#log#warning("callback on non-existent chat.")
-                return
-            endif
-            let chat_id = a:args['chat_id']
-            let chat = self.db.get_chat(chat_id)
-            let first = v:false
-            if !has_key(chat, 'partial_message')
-                let first = v:true
-                call vimqq#ttft#first_token(chat_id)
-                let chat['partial_message'] = a:args['builder'].msg
-                call self.db._save()
-            endif
-            let chat.partial_message.bot_name = a:args['bot'].name()
-            let chat.partial_message.seq_id = self.db.seq_id()
-            if !has_key(chat.partial_message, 'seq_id_first')
-                let chat.partial_message.seq_id_first = chat.partial_message.seq_id
-            endif
-            if a:args['chat_id'] ==# self.state.get_chat_id()
-                if first
-                    call self.show_chat(a:args['chat_id'])
-                else
-                    call self.ui.append_partial(a:args['chunk'])
-                endif
-            endif
             return
         endif
         

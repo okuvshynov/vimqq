@@ -83,7 +83,7 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         \   'max_tokens' : self._conf.max_tokens,
         \   'model' : self._conf.model,
         \   'stream' : a:stream,
-        \   'on_chunk' : {p, m -> vimqq#main#notify('chunk_done', {'chat_id': chat_id, 'chunk': m, 'builder': p._builder, 'bot': self})},
+        \   'on_chunk' : {p, m -> vimqq#main#on_chunk_done({'chat_id': chat_id, 'chunk': m, 'builder': p._builder, 'bot': self})},
         \   'on_complete' : {err, p, m -> vimqq#main#notify('reply_done', {'chat_id': chat_id, 'bot' : self, 'msg' : m})},
         \   'on_sys_msg' : {lvl, msg -> vimqq#sys_msg#log(lvl, chat_id, msg)}
         \ }
