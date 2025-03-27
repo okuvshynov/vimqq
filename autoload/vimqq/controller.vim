@@ -180,7 +180,7 @@ function! vimqq#controller#new() abort
         endif
         
         if a:event ==# 'reply_done'
-            call vimqq#util#log_chat(self.db._chats[a:args['chat_id']])
+            " call vimqq#util#log_chat(self.db._chats[a:args['chat_id']])
             if !self.db.chat_exists(a:args['chat_id'])
                 call vimqq#log#warning('reply completed for non-existing (likely deleted) chat.')
                 return
