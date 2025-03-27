@@ -14,6 +14,9 @@ function! vimqq#api#llama_api#new(conf) abort
     let api._builders = {}
 
     function! api._on_stream_out(msg, params, req_id) dict
+        if len(a:msg) == 0
+            return
+        endif
         let builder = self._builders[a:req_id]
         let messages = split(a:msg, '\n')
         for message in messages
