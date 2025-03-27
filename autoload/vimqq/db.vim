@@ -122,6 +122,12 @@ function! vimqq#db#new(db_file) abort
         let chat_data = self._chats[a:chat_id]
         silent! call writefile([json_encode(chat_data)], chat_file)
     endfunction
+
+    function! db.save_chat(chat_id) dict
+        " Save metadata
+        call self._save_metadata()
+        call self._save_chat(a:chat_id)
+    endfunction
     
     function! db._save() dict
         " Save metadata

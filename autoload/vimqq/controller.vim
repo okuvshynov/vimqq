@@ -75,7 +75,7 @@ function! vimqq#controller#new() abort
             let first = v:true
             call vimqq#ttft#first_token(chat_id)
             let chat['partial_message'] = a:args['builder'].msg
-            call self.db._save()
+            call self.db.save_chat(chat_id)
         endif
         let chat.partial_message.bot_name = a:args['bot'].name()
         let chat.partial_message.seq_id = self.db.seq_id()
@@ -196,7 +196,7 @@ function! vimqq#controller#new() abort
             let msg.bot_name = a:args['bot'].name()
             let msg2 = self.db.append_message(chat_id, msg)
             call self.db.clear_partial(chat_id)
-            call self.db._save()
+            call self.db.save_chat(chat_id)
             call vimqq#main#notify('reply_saved', {'chat_id': chat_id, 'bot': a:args['bot'], 'msg': msg2})
             return
         endif
