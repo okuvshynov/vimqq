@@ -10,6 +10,8 @@ let g:vqq_llama_cpp_reviewer_models = get(g:, 'vqq_llama_cpp_reviewer_models', [
 let g:vqq_claude_models = get(g:, 'vqq_claude_models', [])
 let g:vqq_claude_reviewer_models = get(g:, 'vqq_claude_reviewer_models', [])
 
+let g:vqq_gemini_models = get(g:, 'vqq_gemini_models', [])
+
 let g:vqq_default_bot   = get(g:, 'vqq_default_bot',   '')
 
 let s:MOCK_BOT_NAME = 'mqq'
@@ -66,7 +68,8 @@ function! vimqq#bots#bots#new() abort
           \ [g:vqq_llama_cpp_servers, {conf -> vimqq#bots#llama_cpp#new(conf)}],
           \ [g:vqq_llama_cpp_reviewer_models, {conf -> vimqq#bots#llama_cpp_reviewer#new(conf)}],
           \ [g:vqq_claude_reviewer_models, {conf -> vimqq#bots#claude_reviewer#new(conf)}],
-          \ [g:vqq_claude_models, {conf -> vimqq#bots#claude#new(conf)}]
+          \ [g:vqq_claude_models, {conf -> vimqq#bots#claude#new(conf)}],
+          \ [g:vqq_gemini_models, {conf -> vimqq#bots#gemini#new(conf)}]
     \]
 
     let bots._bots = s:create(config_lists)
