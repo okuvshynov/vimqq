@@ -7,8 +7,6 @@ let g:autoloaded_vimqq_gemini_adapter = 1
 " Translates tool definition schema to gemini-compatible format
 " Public for unit testing
 function! vimqq#api#gemini_adapter#tool_schema(schema)
-    " TODO: Implement proper schema translation for Gemini
-    " This will depend on how Gemini expects tool definitions
     let fn = a:schema['function']
     let res = {
     \   'name'         : fn['name'],
@@ -40,9 +38,6 @@ function! vimqq#api#gemini_adapter#run(request)
         call remove(messages, 0)
     endif
     
-    " TODO: Implement proper format for Gemini API
-    " This is a placeholder structure that will need to be adjusted 
-    " based on Gemini API documentation
     let req = {
     \   'contents'     : [],
     \   'model'        : a:request.model,
@@ -51,32 +46,25 @@ function! vimqq#api#gemini_adapter#run(request)
     \   },
     \ }
     
-    " Process and convert messages to Gemini format
-    " TODO: Implement proper message conversion for Gemini
     for message in messages
-        let entry = {
-            \ 'role' : s:ROLE_MAP[message.role],
-            \ 'parts' : [{'text' : message.content[0].text}]
-        \ }
-        call add(req.contents, entry)
+        if has_key(message.content[0], 'text')
+            let entry = {
+                \ 'role' : s:ROLE_MAP[message.role],
+                \ 'parts' : [{'text' : message.content[0].text}]
+            \ }
+            call add(req.contents, entry)
+        else
+            " TODO: handle tool calls/replies
+        endif
     endfor
     
     " Add system prompt if present
     if system_prompt isnot v:null
-        " TODO: Adjust based on how Gemini handles system prompts
-        " This might be in a different format than Anthropic's API
+        let req['system_instruction'] = {'parts' : [{'text' : system_prompt}]}
     endif
-    
-    " Add extended thinking capability if requested
-    if has_key(a:request, 'thinking_tokens')
-        let tokens = a:request['thinking_tokens']
-        if has_key(a:request, 'on_sys_msg')
-            call a:request.on_sys_msg(
-                \ 'info',
-                \ 'extended thinking with ' . tokens . ' token budget: ON')
-        endif
-        " TODO: Implement thinking tokens feature for Gemini if available
-        " or closest equivalent
+
+    if has_key(a:request, 'tools')
+        let req['tools'] = [{'functionDeclarations' : vimqq#api#gemini_adapter#adapt_tools(a:request['tools'])}]
     endif
     
     return req
