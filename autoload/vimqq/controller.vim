@@ -122,6 +122,7 @@ function! vimqq#controller#new() abort
             let bot = a:args['bot']
             let saved_msg = a:args['msg']
             
+            call vimqq#ttft#completion(chat_id)
             call self.show_chat(chat_id)
             if has_key(self._in_flight, chat_id)
                 unlet self._in_flight[chat_id]
@@ -207,7 +208,7 @@ function! vimqq#controller#new() abort
                 return
             endif
             call self.db.set_title(a:args['chat_id'], a:args['title'])
-            call vimqq#sys_msg#info(a:args.chat_id, 'Setting title: ' . a:args['title'])
+            call vimqq#sys_msg#info(a:args.chat_id, 'title: ' . a:args['title'])
             let bot = a:args['bot']
             if bot.warmup_on_select()
                 call bot.send_warmup(self.db.get_messages(a:args['chat_id']))

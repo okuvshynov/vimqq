@@ -16,7 +16,21 @@ function! vimqq#ttft#first_token(chat_id) abort
     if exists('*reltime')
         if has_key(s:latencies, a:chat_id)
             let latency = reltimefloat(reltime(s:latencies[a:chat_id]))
-            call vimqq#log#info(printf('TTFT %.3f s', latency))
+            let ttft = printf('client: ttft = %.3f s', latency)
+            call vimqq#sys_msg#info(a:chat_id, ttft)
+            "unlet s:latencies[a:chat_id]
+        else
+            call vimqq#log#warning('token for chat with no start point.')
+        endif
+    endif
+endfunction
+
+function! vimqq#ttft#completion(chat_id) abort
+    if exists('*reltime')
+        if has_key(s:latencies, a:chat_id)
+            let latency = reltimefloat(reltime(s:latencies[a:chat_id]))
+            let latency = printf('client: generation = %.3f s', latency)
+            call vimqq#sys_msg#info(a:chat_id, latency)
             unlet s:latencies[a:chat_id]
         else
             call vimqq#log#warning('token for chat with no start point.')

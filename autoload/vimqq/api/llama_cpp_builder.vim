@@ -24,14 +24,14 @@ function! vimqq#api#llama_cpp_builder#streaming(params) abort
         if has_key(a:response, "usage")
             let in_tokens = get(a:response.usage, 'prompt_tokens', 0)
             let out_tokens = get(a:response.usage, 'completion_tokens', 0)
-            call self.on_sys_msg('info', 'Turn: in = ' . in_tokens . ', out = ' . out_tokens)
+            call self.on_sys_msg('info', 'tokens (turn): in = ' . in_tokens . ', out = ' . out_tokens)
         endif
         if has_key(a:response, "timings")
             let tps = get(a:response.timings, "predicted_per_second", "n/a")
             let tps = string(tps)
             " With warmup tps for prompt processing is misleading
             " Let's just track TTFT instead.
-            call self.on_sys_msg('info', 'server-side gen: ' . tps . ' tokens/second')
+            call self.on_sys_msg('info', 'server: generation: ' . tps . ' tokens/second')
         endif
     endfunction
 
