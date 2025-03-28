@@ -31,7 +31,7 @@ function! vimqq#api#gemini_builder#plain(params) abort
         for part in parsed.candidates[0].content.parts
             if has_key(part, 'text')
                 call self.append_text(part.text)
-                call self.on_chunk(self.params, text)
+                call self.on_chunk(self.params, part.text)
             endif
 
             if has_key(part, 'functionCall')

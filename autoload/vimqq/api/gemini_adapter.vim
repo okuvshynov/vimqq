@@ -47,14 +47,40 @@ function! vimqq#api#gemini_adapter#run(request)
     \ }
     
     for message in messages
-        if has_key(message.content[0], 'text')
+        let content = message.content[0]
+        if content['type'] ==# 'text'
             let entry = {
                 \ 'role' : s:ROLE_MAP[message.role],
-                \ 'parts' : [{'text' : message.content[0].text}]
+                \ 'parts' : [{'text' : content.text}]
             \ }
             call add(req.contents, entry)
-        else
-            " TODO: handle tool calls/replies
+            continue
+        endif
+
+        if content['type'] ==# 'tool_use'
+            let fn_call = {'functionCall' : {
+                \ 'name': content['name'],
+                \ 'args': content['input']
+            \ }}
+            let entry = {
+                \ 'role' : 'model',
+                \ 'parts' : [fn_call]
+            \ } 
+            call add(req.contents, entry)
+            continue
+        endif
+
+        if content['type'] ==# 'tool_result'
+            let fn_result = { 'functionResponse' : {
+                \ 'name' : 'tool_name_tbd',
+                \ 'response' : { 'result' : content['content']}
+            \ }}
+            let entry = {
+                \ 'role' : 'model',
+                \ 'parts' : [fn_result]
+            \ } 
+            call add(req.contents, entry)
+            continue
         endif
     endfor
     
