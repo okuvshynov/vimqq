@@ -47,41 +47,32 @@ function! vimqq#api#gemini_adapter#run(request)
     \ }
     
     for message in messages
-        let content = message.content[0]
-        if content['type'] ==# 'text'
-            let entry = {
-                \ 'role' : s:ROLE_MAP[message.role],
-                \ 'parts' : [{'text' : content.text}]
-            \ }
-            call add(req.contents, entry)
-            continue
-        endif
+        let entry = {'role' : s:ROLE_MAP[message.role], 'parts': []}
+        for content in message.content
+            if content['type'] ==# 'text'
+                call add(entry.parts, {'text' : content.text})
+                continue
+            endif
 
-        if content['type'] ==# 'tool_use'
-            let fn_call = {'functionCall' : {
-                \ 'name': content['name'],
-                \ 'args': content['input']
-            \ }}
-            let entry = {
-                \ 'role' : 'model',
-                \ 'parts' : [fn_call]
-            \ } 
-            call add(req.contents, entry)
-            continue
-        endif
+            if content['type'] ==# 'tool_use'
+                let fn_call = {'functionCall' : {
+                    \ 'name': content['name'],
+                    \ 'args': content['input']
+                \ }}
+                call add(entry.parts, fn_call)
+                continue
+            endif
 
-        if content['type'] ==# 'tool_result'
-            let fn_result = { 'functionResponse' : {
-                \ 'name' : 'tool_name_tbd',
-                \ 'response' : { 'result' : content['content']}
-            \ }}
-            let entry = {
-                \ 'role' : 'model',
-                \ 'parts' : [fn_result]
-            \ } 
-            call add(req.contents, entry)
-            continue
-        endif
+            if content['type'] ==# 'tool_result'
+                let fn_result = { 'functionResponse' : {
+                    \ 'name' : 'tool_name_tbd',
+                    \ 'response' : { 'result' : content['content']}
+                \ }}
+                call add(entry.parts, fn_result)
+                continue
+            endif
+        endfor
+        call add(req.contents, entry)
     endfor
     
     " Add system prompt if present
