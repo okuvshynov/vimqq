@@ -28,10 +28,10 @@ function! vimqq#api#llama_cpp_builder#streaming(params) abort
         endif
         if has_key(a:response, "timings")
             let tps = get(a:response.timings, "predicted_per_second", "n/a")
-            let tps = string(tps)
+            let tps = printf('server: generation = %.3f tok/s', tps)
             " With warmup tps for prompt processing is misleading
             " Let's just track TTFT instead.
-            call self.on_sys_msg('info', 'server: generation: ' . tps . ' tokens/second')
+            call self.on_sys_msg('info', tps)
         endif
     endfunction
 
