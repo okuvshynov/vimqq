@@ -27,13 +27,6 @@ function! vimqq#api#gemini_api#new(conf = {}) abort
         call vimqq#log#error('job error')
     endfunction
 
-    " Not calling any callback as we expect to act on data: [DONE]
-    function! api._on_stream_close(params, req_id) dict
-        let s:SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
-        call s:SysMessage('info', 'gemini stream closed.')
-        call self._cleanup_req_id(a:req_id)
-    endfunction
-
     function! api._on_rate_limit(params) dict
         call s:SysMessage(
             \ 'warning',
@@ -52,15 +45,6 @@ function! vimqq#api#gemini_api#new(conf = {}) abort
         endif
         call s:SysMessage('error', err)
         call vimqq#log#error(err)
-    endfunction
-
-    function! api._on_stream_out(data, params, req_id) dict
-        " TODO: Implement stream output handling for Gemini API
-        let s:SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
-        let builder = self._builders[a:req_id]
-        
-        " Specific implementation for handling streaming output will go here
-        " This will depend on Gemini's API response format
     endfunction
 
     function! api._on_out(msg, params, req_id) dict
@@ -96,21 +80,12 @@ function! vimqq#api#gemini_api#new(conf = {}) abort
         let req_id = self._req_id
         let self._req_id = self._req_id + 1
 
-        if req.stream
-            let self._builders[req_id] = vimqq#api#gemini_builder#streaming(a:params)
-            let job_conf = {
-            \   'out_cb': {channel, d -> self._on_stream_out(d, a:params, req_id)},
-            \   'err_cb': {channel, d -> self._on_error(d, a:params)},
-            \   'close_cb': {channel -> self._on_stream_close(a:params, req_id)},
-            \ }
-        else
-            let self._builders[req_id] = vimqq#api#gemini_builder#plain(a:params)
-            let job_conf = {
-            \   'out_cb': {channel, d -> self._on_out(d, a:params, req_id)},
-            \   'err_cb': {channel, d -> self._on_error(d, a:params)},
-            \   'close_cb': {channel -> self._on_close(a:params, req_id)}
-            \ }
-        endif
+        let self._builders[req_id] = vimqq#api#gemini_builder#plain(a:params)
+        let job_conf = {
+        \   'out_cb': {channel, d -> self._on_out(d, a:params, req_id)},
+        \   'err_cb': {channel, d -> self._on_error(d, a:params)},
+        \   'close_cb': {channel -> self._on_close(a:params, req_id)}
+        \ }
 
         let json_req = json_encode(req)
         call vimqq#log#debug('JSON_REQ: ' . json_req)

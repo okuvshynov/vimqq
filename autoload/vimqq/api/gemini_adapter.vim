@@ -18,6 +18,8 @@ function! vimqq#api#gemini_adapter#tool_schema(schema)
     return res
 endfunction
 
+let s:ROLE_MAP = {'user' : 'user', 'assistant' : 'model'}
+
 function! vimqq#api#gemini_adapter#adapt_tools(tools)
     let res = []
     for tool in a:tools
@@ -42,17 +44,22 @@ function! vimqq#api#gemini_adapter#run(request)
     " This is a placeholder structure that will need to be adjusted 
     " based on Gemini API documentation
     let req = {
-    \   'contents'     : [],  " Will be populated with converted messages
+    \   'contents'     : [],
     \   'model'        : a:request.model,
     \   'generationConfig' : {
     \       'maxOutputTokens' : get(a:request, 'max_tokens', 1024),
     \   },
-    \   'stream'       : get(a:request, 'stream', v:false),
-    \   'tools'        : vimqq#api#gemini_adapter#adapt_tools(tools)
     \ }
     
     " Process and convert messages to Gemini format
     " TODO: Implement proper message conversion for Gemini
+    for message in messages
+        let entry = {
+            \ 'role' : s:ROLE_MAP[message.role],
+            \ 'parts' : [{'text' : message.content[0].text}]
+        \ }
+        call add(req.contents, entry)
+    endfor
     
     " Add system prompt if present
     if system_prompt isnot v:null
