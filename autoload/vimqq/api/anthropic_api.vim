@@ -29,13 +29,14 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
 
     " Not calling any callback as we expect to act on data: [DONE]
     function! api._on_stream_close(params, req_id) dict
-        let s:SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
-        call s:SysMessage('info', 'anthropic stream closed.')
+        let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
+        call SysMessage('info', 'anthropic stream closed.')
         call self._cleanup_req_id(a:req_id)
     endfunction
 
     function! api._on_rate_limit(params) dict
-        call s:SysMessage(
+        let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
+        call SysMessage(
             \ 'warning',
             \ 'Reached rate limit. Waiting ' . s:RATE_LIMIT_WAIT_S . ' seconds before retry'
         \ )
@@ -49,12 +50,13 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
             call self._on_rate_limit(a:params)
             return
         endif
-        call s:SysMessage('error', err)
+        let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
+        call SysMessage('error', err)
         call vimqq#log#error(err)
     endfunction
 
     function! api._on_stream_out(data, params, req_id) dict
-        let s:SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
+        let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
 
         let builder = self._builders[a:req_id]
 
@@ -126,7 +128,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
                     \ get(last_turn_usage, 'input_tokens', 0)
 
                 let out_tokens = get(response.usage, 'output_tokens', 0)
-                call s:SysMessage('info', 'Turn: in = ' . in_tokens . ', out = ' . out_tokens)
+                call SysMessage('info', 'Turn: in = ' . in_tokens . ', out = ' . out_tokens)
 
                 " Get total conversation usage
                 let usage = self._req_usages[a:req_id]
@@ -137,7 +139,7 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
 
                 let out_tokens = get(usage, 'output_tokens', 0)
 
-                call s:SysMessage('info', 'Conversation: in = ' . in_tokens . ', out = ' . out_tokens)
+                call SysMessage('info', 'Conversation: in = ' . in_tokens . ', out = ' . out_tokens)
                 continue
             endif
 

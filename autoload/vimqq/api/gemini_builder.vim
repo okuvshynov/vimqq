@@ -22,9 +22,24 @@ function! vimqq#api#gemini_builder#plain(params) abort
         let self.msg.content[0].text = self.msg.content[0].text . a:text
     endfunction
 
+    function! builder.handle_usage(usage) dict
+        let in_tokens  = get(a:usage, 'promptTokenCount', 0)
+        let out_tokens = get(a:usage, 'candidatesTokenCount', 0)
+        let msg = 'tokens: in = ' . in_tokens . ', out = ' . out_tokens
+        "call self.on_sys_msg('info', msg)
+    endfunction
+
     function! builder.close() dict
         let parsed = json_decode(join(self.parts, "\n"))
         call vimqq#log#debug(string(parsed))
+        if has_key(parsed, 'error')
+            let err_message = get(parsed['error'], 'message', 'gemini API error')
+            "call self.on_sys_msg('error', err_message)
+        endif
+
+        if has_key(parsed, 'usageMetadata')
+            call self.handle_usage(parsed.usageMetadata)
+        endif
 
         let candidate = get(get(parsed, 'candidates', []), 0, {})
         let parts     = get(get(candidate, 'content', {}), 'parts', []) 
