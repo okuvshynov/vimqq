@@ -23,12 +23,13 @@ function! vimqq#api#gemini_builder#plain(params) abort
     endfunction
 
     function! builder.close() dict
-        " Process the complete response
-        " TODO: Adjust parsing based on Gemini's response format
         let parsed = json_decode(join(self.parts, "\n"))
         call vimqq#log#debug(string(parsed))
 
-        for part in parsed.candidates[0].content.parts
+        let candidate = get(get(parsed, 'candidates', []), 0, {})
+        let parts     = get(get(candidate, 'content', {}), 'parts', []) 
+
+        for part in parts
             if has_key(part, 'text')
                 call self.append_text(part.text)
                 call self.on_chunk(self.params, part.text)
