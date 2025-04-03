@@ -67,8 +67,11 @@ function! vimqq#controller#new() abort
 
     function! controller.on_usage(chat_id, bot_name, usage) abort
         call self.usage.merge(a:chat_id, a:bot_name, a:usage)
-        let msg = 'Cumulative usage: ' . string(self.usage.get(a:chat_id))
-        call vimqq#sys_msg#info(a:chat_id, msg)
+        let usage = self.usage.get(a:chat_id)
+        for [k, v] in items(usage)
+            let msg = k . ' usage = ' . string(v)
+            call vimqq#sys_msg#info(a:chat_id, msg)
+        endfor
     endfunction
 
     function! controller.on_chunk_done(args) dict
