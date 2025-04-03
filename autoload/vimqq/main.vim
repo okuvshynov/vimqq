@@ -21,6 +21,10 @@ function! vimqq#main#on_chunk_done(context) abort
     return s:controller.on_chunk_done(a:context)
 endfunction
 
+function! vimqq#main#on_usage(chat_id, bot_name, usage) abort
+    return s:controller.on_usage(a:chat_id, a:bot_name, a:usage)
+endfunction
+
 " Core controller functions
 function! vimqq#main#send_message(force_new_chat, question, context=v:null, use_index=v:false, use_tools=v:false)
     call s:controller.send_message(a:force_new_chat, a:question, a:context, a:use_index, a:use_tools)

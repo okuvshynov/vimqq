@@ -20,6 +20,7 @@ function! vimqq#controller#new() abort
     let controller.state   = v:null
     let controller.toolset = v:null
     let controller.status  = v:null
+    let controller.usage   = v:null
 
     function! controller.init() dict
         let self.ui      = vimqq#ui#new()
@@ -28,6 +29,7 @@ function! vimqq#controller#new() abort
         let self.state   = vimqq#state#new(self.db)
         let self.toolset = vimqq#tools#toolset#new()
         let self.status  = vimqq#status#new()
+        let self.usage   = vimqq#usage#new()
         let self._in_flight = {}
 
         " to autoload and start command line monitoring
@@ -61,6 +63,12 @@ function! vimqq#controller#new() abort
         if self.run_query(a:chat_id, a:bot, a:tool_result)
             call self.show_chat(a:chat_id)
         endif
+    endfunction
+
+    function! controller.on_usage(chat_id, bot_name, usage) abort
+        call self.usage.merge(a:chat_id, a:bot_name, a:usage)
+        let msg = 'Cumulative usage: ' . string(self.usage.get(a:chat_id))
+        call vimqq#sys_msg#info(a:chat_id, msg)
     endfunction
 
     function! controller.on_chunk_done(args) dict

@@ -52,7 +52,8 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
     endfunction
 
     function! bot.on_usage(chat_id, usage) dict
-        call vimqq#sys_msg#log('info', a:chat_id, string(a:usage))
+        "call vimqq#sys_msg#log('info', a:chat_id, string(a:usage))
+        call vimqq#main#on_usage(a:chat_id, self.name(), a:usage)
     endfunction
 
     function! bot.send_gen_title(chat_id, message) dict
