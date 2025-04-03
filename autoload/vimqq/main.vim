@@ -45,7 +45,9 @@ function! vimqq#main#show_chat(chat_id)
 endfunction
 
 function vimqq#main#status_update(key, value)
-    call s:controller.status.update(a:key, a:value)
+    if s:controller isnot v:null
+        call s:controller.status.update(a:key, a:value)
+    endif
 endfunction
 
 function vimqq#main#status_show()

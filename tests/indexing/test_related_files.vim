@@ -59,7 +59,6 @@ function! s:suite.test_related_files_relationship_strength() abort
         return
     endif
     
-    
     " Setup test repository
     let temp_dir = s:temp_dir
     let graph = {}
