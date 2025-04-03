@@ -1,4 +1,4 @@
-name: vimqq unit tests
+name: vimqq E2E tests
 on:
   push:
     branches: [ main ]

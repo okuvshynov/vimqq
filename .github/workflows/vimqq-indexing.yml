@@ -1,4 +1,4 @@
-name: vimqq unit tests
+name: vimqq indexing unit tests
 on:
   push:
     branches: [ main ]
