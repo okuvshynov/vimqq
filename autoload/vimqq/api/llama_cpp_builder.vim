@@ -15,6 +15,13 @@ function! vimqq#api#llama_cpp_builder#streaming(params) abort
         let self.msg.content[0].text = self.msg.content[0].text . a:text
     endfunction
 
+    function! builder.handle_usage(usage) dict
+        let usage = {}
+        let usage.input_tokens = get(a:usage, 'prompt_tokens', 0)
+        let usage.output_tokens = get(a:usage, 'completion_tokens', 0)
+        call self.on_usage(usage)
+    endfunction
+
     function! builder.delta(response) dict
         if has_key(a:response.choices[0].delta, 'content')
             let chunk = a:response.choices[0].delta.content
@@ -22,9 +29,7 @@ function! vimqq#api#llama_cpp_builder#streaming(params) abort
             call self.on_chunk(self.params, chunk)
         endif
         if has_key(a:response, "usage")
-            let in_tokens = get(a:response.usage, 'prompt_tokens', 0)
-            let out_tokens = get(a:response.usage, 'completion_tokens', 0)
-            call self.on_sys_msg('info', 'tokens (turn): in = ' . in_tokens . ', out = ' . out_tokens)
+            call self.handle_usage(a:response.usage)
         endif
         if has_key(a:response, "timings")
             let tps = get(a:response.timings, "predicted_per_second", "n/a")
@@ -47,6 +52,13 @@ function! vimqq#api#llama_cpp_builder#plain(params) abort
 
     let builder.parts = []
 
+    function! builder.handle_usage(usage) dict
+        let usage = {}
+        let usage.input_tokens = get(a:usage, 'prompt_tokens', 0)
+        let usage.output_tokens = get(a:usage, 'completion_tokens', 0)
+        call self.on_usage(usage)
+    endfunction
+
     function! builder.append_text(text) dict
         if len(self.msg.content) == 0
             let self.msg.content = [{'type': 'text', 'text': ''}]
@@ -67,6 +79,9 @@ function! vimqq#api#llama_cpp_builder#plain(params) abort
             call self.on_complete('error', self.params, self.msg)
             return
         endtry
+        if has_key(parsed, 'usage')
+            call self.handle_usage(parsed.usage)
+        endif
         if has_key(message, 'content')
             if message['content'] isnot v:null
                 call self.append_text(message.content)

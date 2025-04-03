@@ -34,7 +34,6 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         return self._conf.warmup_on_typing
     endfunction
 
-
     function! bot._on_warmup_complete(error, params) dict
         if a:error isnot v:null
             call vimqq#log#error('warmup call failed')
@@ -52,6 +51,10 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         return self._impl.chat(req)
     endfunction
 
+    function! bot.on_usage(chat_id, usage) dict
+        call vimqq#sys_msg#log('info', a:chat_id, string(a:usage))
+    endfunction
+
     function! bot.send_gen_title(chat_id, message) dict
         let prompt = vimqq#prompts#gen_title_prompt(a:message)
         let messages = [
@@ -66,6 +69,7 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         \   'model' : self._conf.model,
         \   'on_chunk' : {p, m -> vimqq#main#notify('title_done', {'chat_id' : a:chat_id, 'title': m, 'bot': self})},
         \   'on_complete': {err, p, m -> vimqq#log#debug('title complete')},
+        \   'on_usage': {u -> self.on_usage(a:chat_id, u)},
         \   'on_sys_msg' : {lvl, msg -> vimqq#sys_msg#log(lvl, chat_id, msg)}
         \ }
         return self._impl.chat(req)
@@ -85,6 +89,7 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
         \   'stream' : a:stream,
         \   'on_chunk' : {p, m -> vimqq#main#on_chunk_done({'chat_id': chat_id, 'chunk': m, 'builder': p._builder, 'bot': self})},
         \   'on_complete' : {err, p, m -> vimqq#main#notify('reply_done', {'chat_id': chat_id, 'bot' : self, 'msg' : m})},
+        \   'on_usage': {u -> self.on_usage(chat_id, u)},
         \   'on_sys_msg' : {lvl, msg -> vimqq#sys_msg#log(lvl, chat_id, msg)}
         \ }
 

@@ -23,10 +23,10 @@ function! vimqq#api#gemini_builder#plain(params) abort
     endfunction
 
     function! builder.handle_usage(usage) dict
-        let in_tokens  = get(a:usage, 'promptTokenCount', 0)
-        let out_tokens = get(a:usage, 'candidatesTokenCount', 0)
-        let msg = 'tokens: in = ' . in_tokens . ', out = ' . out_tokens
-        "call self.on_sys_msg('info', msg)
+        let usage = {}
+        let usage.input_tokens  = get(a:usage, 'promptTokenCount', 0)
+        let usage.output_tokens = get(a:usage, 'candidatesTokenCount', 0)
+        call self.on_usage(usage)
     endfunction
 
     function! builder.close() dict

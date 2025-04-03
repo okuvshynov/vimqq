@@ -15,6 +15,7 @@ function! vimqq#msg_builder#new(params) abort
     let builder.on_chunk    = get(a:params, 'on_chunk'   , {p, c    -> 0})
     let builder.on_thinking = get(a:params, 'on_thinking', {p, t    -> 0})
     let builder.on_complete = get(a:params, 'on_complete', {e, p, m -> 0})
+    let builder.on_usage    = get(a:params, 'on_usage'   , {u       -> 0})
 
     let builder.params = a:params
     let builder.params._builder = builder

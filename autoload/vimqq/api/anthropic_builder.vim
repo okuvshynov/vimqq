@@ -7,6 +7,14 @@ let g:autoloaded_vimqq_anthropic_builder = 1
 function! vimqq#api#anthropic_builder#streaming(params) abort
     let builder = vimqq#msg_builder#new(a:params).set_role('assistant')
 
+    function! builder.message_start(message) dict
+        call self.on_usage(get(a:message, 'usage', {}))
+    endfunction
+
+    function! builder.message_delta(usage) dict
+        call self.on_usage(a:usage)
+    endfunction
+
     function! builder.content_block_start(index, content_block) dict
         call assert_true(
             \ a:index == len(self.msg.content),
@@ -134,6 +142,7 @@ function! vimqq#api#anthropic_builder#plain(params) abort
                 call self.on_chunk(self.params, content['text'])
             endif
         endfor
+        call self.on_usage(get(parsed, 'usage', {}))
         call self.on_complete(v:null, self.params, self.msg)
     endfunction
 
