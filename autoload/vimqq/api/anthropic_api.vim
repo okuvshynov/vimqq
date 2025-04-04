@@ -6,10 +6,8 @@ let g:autoloaded_vimqq_api_anthropic_module = 1
 
 let g:vqq_claude_api_key = get(g:, 'vqq_claude_api_key', $ANTHROPIC_API_KEY)
 
-" TODO Need to cache more than just index
-let g:vqq_claude_cache_above = get(g:, 'vqq_claude_cache_above', 5000)
-
-let s:RATE_LIMIT_WAIT_S = 60
+let s:RATE_LIMIT_WAIT_S  = 60
+let s:CACHE_MARKER_LIMIT = 4
 
 " config is unused for now
 function! vimqq#api#anthropic_api#new(conf = {}) abort
@@ -133,10 +131,19 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
         let req = vimqq#api#anthropic_adapter#run(a:params)
         let messages = req.messages
 
-        let first_message_json = json_encode(messages[0])
-        if len(first_message_json) > g:vqq_claude_cache_above
-            let req.messages[0]['content'][0]['cache_control'] = {"type": "ephemeral"}
-        endif
+        " For our use-case we should probably just cache everything
+        " We need to be consistent in what we mark with cache_control,
+        " Let's only mark user/tool messages as cache
+        let i = 0
+        for message in req.messages
+            if i >= s:CACHE_MARKER_LIMIT
+                break
+            endif
+            if get(message, 'role', '') ==# 'user'
+                let i = i + 1
+                let message['content'][0]['cache_control'] = {'type': "ephemeral"}
+            endif
+        endfor
 
         let req_id = self._req_id
         let self._req_id = self._req_id + 1
