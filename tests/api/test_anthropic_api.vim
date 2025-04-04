@@ -43,7 +43,7 @@ function s:suite.test_stream_text()
     let api = vimqq#api#anthropic_api#new({'base_url': 'http://127.0.0.1:' . s:MOCK_PORT})
 
     let params = {
-                \ 'messages': [{'role': 'user', 'content': 'Hello'}],
+                \ 'messages': [{'role': 'user', 'content': [{'type': 'text', 'text': 'Hello'}]}],
                 \ 'stream': v:true,
                 \ 'model': 'mock_model',
                 \ 'on_chunk': function('s:OnChunk'),

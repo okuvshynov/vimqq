@@ -83,7 +83,7 @@ def stream_response():
     if not data.get('stream', False):
         return {"error": "This endpoint only supports streaming responses"}, 400
 
-    user_message = data['messages'][0]['content'].lower()
+    user_message = data['messages'][0]['content'][0]['text'].lower()
     
     def generate():
         # Start message
