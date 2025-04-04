@@ -85,7 +85,7 @@ def stream_response():
 
     user_message = data['messages'][0]['content']
     if isinstance(user_message, list):
-        user_message = user_message[0]['text'].lower()
+        user_message = user_message[0]['text']
     user_message = user_message.lower()
     
     def generate():
