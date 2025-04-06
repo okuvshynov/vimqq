@@ -96,7 +96,22 @@ function! vimqq#indexing#io#collect(index_name)
     endif
 
     return result
+endfunction
 
+" For now let's keep tag -> file only
+function! vimqq#indexing#io#ctags()
+    let root = vimqq#indexing#io#root()
+    let tags_path = root . '/tags'
+    let res = []
+    if filereadable(tags_path)
+         for tagline in readfile(tags_path)
+             let parts = split(tagline, '\t')
+             if len(parts) >= 2
+                call add(res, [parts[0], parts[1]])
+             endif
+         endfor
+    endif
+    return join(res, '\n')
 endfunction
 
 function! vimqq#indexing#io#read_path(index_name, file_path)
