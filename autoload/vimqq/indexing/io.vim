@@ -40,7 +40,7 @@ function! vimqq#indexing#io#read(index_name)
     let root = vimqq#indexing#io#root()
     if root is v:null
         call vimqq#log#error('attempt to read index with no index dir.')
-        return v:null
+        return {}
     endif
     let file_path = root . '/' . s:INDEX_DIRECTORY . '/' . a:index_name
     if filereadable(file_path)

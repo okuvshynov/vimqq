@@ -9,7 +9,6 @@ let s:vqq_dbg_exit_on_turn_end = get(g:, 'vqq_dbg_exit_on_turn_end', v:false)
 " directory to store chat history files
 let g:vqq_chats_dir = get(g:, 'vqq_chats_dir', vimqq#platform#path#data('vqq_chats'))
 
-
 function! vimqq#controller#new() abort
     let controller = {}
 
@@ -35,8 +34,7 @@ function! vimqq#controller#new() abort
         " to autoload and start command line monitoring
         call vimqq#warmup#start()
 
-        " to start indexing
-        " call vimqq#indexing#basic#run()
+        call vimqq#indexing#graph#start_if_auto()
     endfunction
 
     function! controller.run_query(chat_id, bot, message) dict
