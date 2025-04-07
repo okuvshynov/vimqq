@@ -5,6 +5,7 @@ endif
 let g:autoloaded_vimqq_indexing_graph = 1
 
 let s:GRAPH_INDEX_NAME = 'commit_graph.idx'
+let s:GRAPH_INDEX_META = 'commit_graph.meta'
 let s:INDEX_NAME       = 'graph_index'
 " TODO: make this token-based, not hardcoded
 let s:CONTEXT_SIZE     = 10
@@ -19,14 +20,15 @@ function! vimqq#indexing#graph#build_graph(params = {})
         return
     endif
 
-    function! idx.on_graph(graph) dict
+    function! idx.on_graph(meta, graph) dict
         call vimqq#main#status_update('commit_graph_completed', strftime("%X"))
         call vimqq#indexing#io#write(s:GRAPH_INDEX_NAME, a:graph)
+        call vimqq#indexing#io#write(s:GRAPH_INDEX_META, a:meta)
         " TODO: we'll return some metadata here
         call self.on_complete({})
     endfunction
 
-    let idx.graph_builder = vimqq#indexing#related_files#run(idx.root, {g -> idx.on_graph(g)})
+    let idx.graph_builder = vimqq#indexing#related_files#run(idx.root, {meta, g -> idx.on_graph(meta, g)})
 
     return idx
 endfunction

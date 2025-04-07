@@ -62,11 +62,13 @@ function! s:suite.test_related_files_relationship_strength() abort
     " Setup test repository
     let temp_dir = s:temp_dir
     let graph = {}
+    let meta  = {}
     let processing_complete = 0
     
     " Define completion callback
-    function! s:on_complete(graph) closure
+    function! s:on_complete(meta, graph) closure
         let graph = a:graph
+        let meta  = a:meta
         let processing_complete = 1
     endfunction
     
@@ -91,4 +93,5 @@ function! s:suite.test_related_files_relationship_strength() abort
 
     call s:assert.equals(len(graph), 3)
 
+    call s:assert.has_key(meta, 'head')
 endfunction

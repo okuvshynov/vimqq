@@ -9,7 +9,8 @@ function! vimqq#indexing#related_files#run(git_root, OnComplete)
         \ 'git_root'    : a:git_root,
         \ 'on_complete' : a:OnComplete,
         \ 'graph'       : {},
-        \ 'commits'     : 0
+        \ 'commits'     : 0,
+        \ 'meta'        : {}
     \ }
 
     function! rf.add_edge(f1, f2) dict
@@ -19,7 +20,10 @@ function! vimqq#indexing#related_files#run(git_root, OnComplete)
         let self.graph[a:f1] = A
     endfunction
 
-    function! rf.on_files(files) dict
+    function! rf.on_files(commit_hash, files) dict
+        if !has_key(self.meta, 'head')
+            let self.meta.head = a:commit_hash
+        endif
         let self.commits = self.commits + 1
         call vimqq#main#status_update('commit_graph_processed', self.commits)
         call vimqq#log#debug('files: ' . string(a:files))
@@ -44,8 +48,8 @@ function! vimqq#indexing#related_files#run(git_root, OnComplete)
     function! rf.start() dict
         let self.crawler = vimqq#indexing#git_history#traverse(
             \ self.git_root, 
-            \ {ch, files -> self.on_files(files)},
-            \ {cp -> self.on_complete(self.graph)}
+            \ {ch, files -> self.on_files(ch, files)},
+            \ {cp -> self.on_complete(self.meta, self.graph)}
         \)
     endfunction
 
