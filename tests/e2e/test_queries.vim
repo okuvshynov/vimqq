@@ -75,7 +75,7 @@ function s:suite.test_list_one()
     :sleep 5
 
     " go to list
-    :QQList
+    :QQLIST
     let content = s:normtime(getline(1, '$'))
     let expected = ["00:00>l=165"]
     call s:assert.equals(content, expected)
@@ -93,7 +93,7 @@ function s:suite.test_new_chat()
     :sleep 500m
     :QQN @mock world!
     :sleep 500m
-    :QQList
+    :QQLIST
     let content = s:normtime(getline(1, '$'))
     let expected = ["00:00>l=130", "00:00 l=129"]
     call s:assert.equals(content, expected)
@@ -109,7 +109,7 @@ function s:suite.test_new_chat_nodelay()
     :QQ @mock hello
     :QQN @mock world!
     :sleep 2000m
-    :QQList
+    :QQLIST
 
     let content = s:normtime(getline(1, '$'))
     " It is possible that we receive responses in 
