@@ -31,7 +31,8 @@ function! vimqq#tools#toolset#new()
         \ vimqq#tools#get_files#new(root),
         \ vimqq#tools#edit_file#new(root),
         \ vimqq#tools#create_file#new(root),
-        \ vimqq#tools#run_cmd#new(root)
+        \ vimqq#tools#run_cmd#new(root),
+        \ vimqq#tools#ctags_lookup#new(root)
     \ ]
 
     function! res.inc(key) dict
@@ -119,7 +120,8 @@ function! vimqq#tools#toolset#format(tool_call)
         \ vimqq#tools#get_files#new(root),
         \ vimqq#tools#edit_file#new(root),
         \ vimqq#tools#create_file#new(root),
-        \ vimqq#tools#run_cmd#new(root)
+        \ vimqq#tools#run_cmd#new(root),
+        \ vimqq#tools#ctags_lookup#new(root)
     \ ]
     for tool in tools
         if tool.name() ==# a:tool_call['name']
