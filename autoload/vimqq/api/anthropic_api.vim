@@ -33,10 +33,15 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
         let SysMessage = get(a:params, 'on_sys_msg', {l, m -> 0})
         call SysMessage(
             \ 'warning',
-            \ 'Reached rate limit. Waiting ' . s:RATE_LIMIT_WAIT_S . ' seconds before retry'
+            \ 'Reached rate limit. Waiting ' 
+            \ . s:RATE_LIMIT_WAIT_S
+            \ . ' seconds before retry'
         \ )
 
-        call timer_start(s:RATE_LIMIT_WAIT_S * 1000, { timer_id -> self.chat(a:params)})
+        call timer_start(
+            \ s:RATE_LIMIT_WAIT_S * 1000,
+            \ { timer_id -> self.chat(a:params)}
+        \ )
     endfunction
 
     function! api._handle_error(error_json, params) dict
@@ -84,12 +89,18 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
             endif
 
             if response['type'] ==# 'content_block_start'
-                call builder.content_block_start(response['index'], response['content_block'])
+                call builder.content_block_start(
+                    \ response['index'],
+                    \ response['content_block']
+                \ )
                 continue
             endif
             
             if response['type'] ==# 'content_block_delta'
-                call builder.content_block_delta(response['index'], response['delta'])
+                call builder.content_block_delta(
+                    \ response['index'],
+                    \ response['delta']
+                \ )
                 continue
             endif
 
@@ -139,10 +150,11 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
             if i >= s:CACHE_MARKER_LIMIT
                 break
             endif
-            if get(message, 'role', '') ==# 'user'
-                let i = i + 1
-                let message['content'][0]['cache_control'] = {'type': "ephemeral"}
+            if get(message, 'role', '') !=# 'user'
+                continue
             endif
+            let i = i + 1
+            let message['content'][0]['cache_control'] = {'type': "ephemeral"}
         endfor
 
         let req_id = self._req_id
