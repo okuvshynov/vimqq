@@ -140,7 +140,6 @@ function! vimqq#api#anthropic_api#new(conf = {}) abort
 
     function! api.chat(params) dict
         let req = vimqq#api#anthropic_adapter#run(a:params)
-        let messages = req.messages
 
         " For our use-case we should probably just cache everything
         " We need to be consistent in what we mark with cache_control,
