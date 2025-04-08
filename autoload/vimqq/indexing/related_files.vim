@@ -26,7 +26,6 @@ function! vimqq#indexing#related_files#run(git_root, OnComplete)
         endif
         let self.commits = self.commits + 1
         call vimqq#main#status_update('commit_graph_processed', self.commits)
-        call vimqq#log#debug('files: ' . string(a:files))
         for f1 in a:files
             if !filereadable(self.git_root . '/' . f1)
                 continue
