@@ -17,7 +17,7 @@ Author: Oleksandr Kuvshynov
 
 
 Features/Experiments:
- - Support remote models (Claude, Deepseek) and local llama.cpp server;
+ - Support remote models (Claude, Gemini) and local llama.cpp server;
  - automated KV cache warmup for local model evaluation;
  - dynamic warmup on typing;
  - human-readable hierarchical project indexing;
