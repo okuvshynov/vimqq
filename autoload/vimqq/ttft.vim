@@ -18,7 +18,6 @@ function! vimqq#ttft#first_token(chat_id) abort
             let latency = reltimefloat(reltime(s:latencies[a:chat_id]))
             let ttft = printf('client: ttft = %.3f s', latency)
             call vimqq#sys_msg#info(a:chat_id, ttft)
-            "unlet s:latencies[a:chat_id]
         else
             call vimqq#log#warning('token for chat with no start point.')
         endif

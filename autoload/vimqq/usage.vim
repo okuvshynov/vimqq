@@ -9,7 +9,6 @@ let g:autoloaded_vimqq_usage_module = 1
 function! vimqq#usage#new()
     let u = {}
 
-    " we double-write here for easy querying
     let u.by_chat = {}
 
     function! u.merge(chat_id, bot_name, usage) dict
