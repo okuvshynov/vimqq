@@ -134,6 +134,7 @@ function! vimqq#indexing#graph#build_index()
 
         if n_files_enqueued == n_files_summarized + n_errors
             call vimqq#main#status_update('graph_index_completed', strftime("%X"))
+            call self.gc()
         endif
     endfunction
 
@@ -155,7 +156,22 @@ function! vimqq#indexing#graph#build_index()
         call vimqq#log#error('indexing error: ' . string(a:file_path) . ' : ' . string(a:error))
         call self.inc('n_errors')
         if has_key(self.new_data, a:file_path)
+            " TODO: do what?
         endif
+    endfunction
+
+    function! idx.gc()
+        " Clean up entries for removed files
+        let summaries = vimqq#indexing#io#collect(s:INDEX_NAME)
+        let root = vimqq#indexing#io#root()
+        for [file_path, summary] in items(summaries)
+            let path = fnameescape(root . '/' . file_path)
+            if !filereadable(path)
+                call vimqq#indexing#io#rm(s:INDEX_NAME, file_path)
+                call self.inc('n_files_cleaned')
+            endif
+        endfor
+        call vimqq#main#status_update('graph_index_gc_completed', strftime("%X"))
     endfunction
 
 endfunction
@@ -170,6 +186,7 @@ function! vimqq#indexing#graph#format()
     endfor
     return join(res, "\n")
 endfunction
+
 
 function! vimqq#indexing#graph#start_if_auto()
     if !vimqq#indexing#conf#get('auto', v:false)

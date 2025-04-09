@@ -98,6 +98,20 @@ function! vimqq#indexing#io#collect(index_name)
     return result
 endfunction
 
+function! vimqq#indexing#io#rm(index_name, path)
+    let root = vimqq#indexing#io#root()
+    if root is v:null
+        call vimqq#log#error('attempt to read index with no index dir.')
+        return
+    endif
+    let path = root . '/' . s:INDEX_DIRECTORY . '/' . a:path
+    let path = fnameescape(path)
+
+    if filereadable(path)
+        call delete(path)
+    endif
+endfunction
+
 " For now let's keep tag -> file only
 function! vimqq#indexing#io#ctags()
     let root = vimqq#indexing#io#root()
