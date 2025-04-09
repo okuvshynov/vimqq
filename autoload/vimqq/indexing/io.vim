@@ -104,8 +104,9 @@ function! vimqq#indexing#io#rm(index_name, path)
         call vimqq#log#error('attempt to read index with no index dir.')
         return
     endif
-    let path = root . '/' . s:INDEX_DIRECTORY . '/' . a:path
+    let path = root . '/' . s:INDEX_DIRECTORY . '/' . a:index_name . '/' . a:path
     let path = fnameescape(path)
+    call vimqq#log#debug('attempt remove ' . path)
 
     if filereadable(path)
         call delete(path)
