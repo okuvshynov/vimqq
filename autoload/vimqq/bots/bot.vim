@@ -20,7 +20,7 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
     let bot._conf = deepcopy(s:DEFAULT_CONF)
     call extend(bot._conf, a:config)
     
-    let bot._impl = a:impl
+    let bot._impl    = a:impl
 
     function! bot.name() dict
         return self._conf.bot_name
@@ -52,11 +52,35 @@ function! vimqq#bots#bot#new(impl, config = {}) abort
     endfunction
 
     function! bot.on_usage(chat_id, usage) dict
-        "call vimqq#sys_msg#log('info', a:chat_id, string(a:usage))
         call vimqq#main#on_usage(a:chat_id, self.name(), a:usage)
     endfunction
 
+    " This will set the bots instance so we can get other bot
+    " by name in case we need it for override (e.g. title gen)
+    function! bot.set_factory(factory) dict
+        let self.factory = a:factory
+    endfunction
+
+    " If 'title_bot_override' exists
+    " And bot with that name exists
+    " Use that bot for title gen
+    " This is important as we might not want mess up the KV cache
+    " for main bot and can use much cheaper model for title gen
+    function! bot.title_override_bot() dict
+        if !has_key(self, 'factory')
+            call vimqq#log#debug('no bot factory instance.')
+            return v:null
+        endif
+        let title_override_name = get(self._conf, 'title_gen_bot', '')
+        return self.factory.find(title_override_name)
+    endfunction
+
     function! bot.send_gen_title(chat_id, message) dict
+        let title_bot = self.title_override_bot()
+        if title_bot isnot v:null
+            return title_bot.send_gen_title(a:chat_id, a:message)
+        endif
+
         let prompt = vimqq#prompts#gen_title_prompt(a:message)
         let messages = [
         \   {'role': 'system', 'content' : self._conf.system_prompt},

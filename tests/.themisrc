@@ -3,7 +3,6 @@ set nocompatible
 let g:vqq_log_level = 'DEBUG'
 let g:vqq_llama_cpp_servers = [{'bot_name': 'mock', 'addr': 'http://localhost:8888'}]
 let g:vqq_indexer_addr   = 'http://localhost:8888'
-let g:vqq_tokenizer_addr = 'http://localhost:8888'
 let g:vqq_time_format = "00:00"
 let g:vqq_skip_init = 1
 

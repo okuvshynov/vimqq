@@ -66,10 +66,12 @@ function! vimqq#controller#new() abort
     function! controller.on_usage(chat_id, bot_name, usage) abort
         call self.usage.merge(a:chat_id, a:bot_name, a:usage)
         let usage = self.usage.get(a:chat_id)
+        call vimqq#sys_msg#info(a:chat_id, 'usage: {')
         for [k, v] in items(usage)
-            let msg = k . ' usage = ' . string(v)
+            let msg = '    ' . k . ' = ' . string(v)
             call vimqq#sys_msg#info(a:chat_id, msg)
         endfor
+        call vimqq#sys_msg#info(a:chat_id, '}')
     endfunction
 
     function! controller.on_chunk_done(args) dict
@@ -218,10 +220,6 @@ function! vimqq#controller#new() abort
             endif
             call self.db.set_title(a:args['chat_id'], a:args['title'])
             call vimqq#sys_msg#info(a:args.chat_id, 'title: ' . a:args['title'])
-            let bot = a:args['bot']
-            if bot.warmup_on_select()
-                call bot.send_warmup(self.db.get_messages(a:args['chat_id']))
-            endif
             return
         endif
     endfunction

@@ -81,7 +81,7 @@ function s:suite.test_list_one()
     call s:assert.equals(content, expected)
 
     let l:server_stats = s:server_stats()
-    let expected_stats = {"n_chat_queries": 3, "n_stream_queries": 1, "n_deltas": 3, "n_non_stream_queries": 1, "n_warmups": 1}
+    let expected_stats = {"n_chat_queries": 2, "n_stream_queries": 1, "n_deltas": 3, "n_non_stream_queries": 1}
     call s:assert.equals(l:server_stats, expected_stats)
 endfunction
 
@@ -98,7 +98,7 @@ function s:suite.test_new_chat()
     let expected = ["00:00>l=130", "00:00 l=129"]
     call s:assert.equals(content, expected)
     let l:server_stats = s:server_stats()
-    let expected_stats = {"n_chat_queries": 6, "n_stream_queries": 2, "n_deltas": 6, "n_non_stream_queries": 2, "n_warmups": 2}
+    let expected_stats = {"n_chat_queries": 4, "n_stream_queries": 2, "n_deltas": 6, "n_non_stream_queries": 2}
     call s:assert.equals(l:server_stats, expected_stats)
 endfunction
 
@@ -121,7 +121,7 @@ function s:suite.test_new_chat_nodelay()
     \ ]
     call s:assert.includes(expected, join(content, '\n'))
     let l:server_stats = s:server_stats()
-    let expected_stats = {"n_chat_queries": 6, "n_stream_queries": 2, "n_deltas": 6, "n_non_stream_queries": 2, "n_warmups": 2}
+    let expected_stats = {"n_chat_queries": 4, "n_stream_queries": 2, "n_deltas": 6, "n_non_stream_queries": 2}
     call s:assert.equals(l:server_stats, expected_stats)
 endfunction
 
@@ -143,7 +143,7 @@ function s:suite.test_query()
         call s:assert.includes(content, l)
     endfor
     let l:server_stats = s:server_stats()
-    let expected_stats = {"n_chat_queries": 3, "n_stream_queries": 1, "n_deltas": 3, "n_non_stream_queries": 1, "n_warmups": 1}
+    let expected_stats = {"n_chat_queries": 2, "n_stream_queries": 1, "n_deltas": 3, "n_non_stream_queries": 1}
     call s:assert.equals(l:server_stats, expected_stats)
 endfunction
 
@@ -172,7 +172,7 @@ function s:suite.test_query_twice()
         call s:assert.includes(content, l)
     endfor
     let l:server_stats = s:server_stats()
-    let expected_stats = {"n_chat_queries": 4, "n_stream_queries": 2, "n_deltas": 6, "n_non_stream_queries": 1, "n_warmups": 1}
+    let expected_stats = {"n_chat_queries": 3, "n_stream_queries": 2, "n_deltas": 6, "n_non_stream_queries": 1}
     call s:assert.equals(l:server_stats, expected_stats)
 endfunction
 
@@ -196,7 +196,7 @@ function s:suite.test_queue()
         call s:assert.includes(content, l)
     endfor
     let l:server_stats = s:server_stats()
-    let expected_stats = {'n_warmups': 1, 'n_deltas': 3, 'n_stream_queries': 1, 'n_non_stream_queries': 1, 'n_chat_queries': 3}
+    let expected_stats = {'n_deltas': 3, 'n_stream_queries': 1, 'n_non_stream_queries': 1, 'n_chat_queries': 2}
     call s:assert.equals(l:server_stats, expected_stats)
 endfunction
 
@@ -243,6 +243,6 @@ function s:suite.test_selection()
         call s:assert.includes(content, l)
     endfor
     let l:server_stats = s:server_stats()
-    let expected_stats = {"n_chat_queries": 3, "n_stream_queries": 1, "n_deltas": 3, "n_non_stream_queries": 1, "n_warmups": 1}
+    let expected_stats = {"n_chat_queries": 2, "n_stream_queries": 1, "n_deltas": 3, "n_non_stream_queries": 1}
     call s:assert.equals(l:server_stats, expected_stats)
 endfunction

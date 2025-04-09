@@ -81,6 +81,7 @@ function! vimqq#bots#bots#new() abort
     endif
     let bots._default_bot = bots._bots[0]
     for bot in bots._bots
+        call bot.set_factory(bots)
         if bot.name() ==# g:vqq_default_bot
             let bots._default_bot = bot
         endif
