@@ -7,7 +7,7 @@ AI plugin for Vim/NeoVim with focus on local evaluation, flexible context and ag
 https://github.com/user-attachments/assets/f1b34385-c6e2-4202-a17d-2ef09e83becc
 
 Features (including experimental)
-* Support for both remote models through paid APIs (Claude, Deepseek) and local models via llama.cpp server;
+* Support for both remote models through paid APIs (Claude, Gemini) and local models via llama.cpp server;
 * automated KV cache warmup for local model evaluation;
 * dynamic warmup on typing - in case of long questions, it is a good idea to prefill cache for the question itself;
 * human-readable hierarchical project indexing;
