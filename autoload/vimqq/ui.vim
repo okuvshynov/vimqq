@@ -216,38 +216,47 @@ endfunction
 function! s:setup_syntax()
     syntax clear
 
-    syntax match timestr    "^\d\d:\d\d"      nextgroup=userPrompt,botPrompt,infoPrompt,warningPrompt,errorPrompt skipwhite
-    syntax match userPrompt "You:"            contained nextgroup=taggedBot skipwhite
-    syntax match infoPrompt "info:"           contained nextgroup=restOfLineInfo skipwhite
-    syntax match warningPrompt "warning:"           contained nextgroup=restOfLineWarn skipwhite
-    syntax match errorPrompt "error:"           contained nextgroup=restOfLineError skipwhite
+    syntax match timestr    "^\d\d:\d\d"      nextgroup=userPrompt,botPrompt,infoPrompt,warnPrompt,errorPrompt skipwhite
+
+    syntax match userPrompt  "You:"     contained nextgroup=taggedBot       skipwhite
+    syntax match infoPrompt  "info:"    contained nextgroup=restOfLineInfo  skipwhite
+    syntax match warnPrompt  "warning:" contained nextgroup=restOfLineWarn  skipwhite
+    syntax match errorPrompt "error:"   contained nextgroup=restOfLineError skipwhite
     syntax match botPrompt  "\%(You\|info\|warning\|error\)\@![A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
     syntax match taggedBot  "@[A-Za-z0-9_]\+" contained nextgroup=restOfLine
     syntax match indexSize  "\[index (\d\+ bytes)\]"
     syntax match toolCall "\[tool_call: .\+(.*)\]"
     syntax match toolCallRes "\[tool_call_result\]"
 
-    syntax match restOfLine ".*$" contained
-    syntax match restOfLineInfo ".*$" contained
-    syntax match restOfLineWarn ".*$" contained
+    syntax match functionCall "^>>" nextgroup=restOfLineFn skipwhite
+
+    syntax match restOfLine      ".*$" contained
+    syntax match restOfLineFn    ".*$" contained
+    syntax match restOfLineInfo  ".*$" contained
+    syntax match restOfLineWarn  ".*$" contained
     syntax match restOfLineError ".*$" contained
 
     highlight link userPrompt Identifier
     highlight link botPrompt Identifier
 
-    highlight link infoPrompt Title
+    highlight link infoPrompt     Title
     highlight link restOfLineInfo Title
 
-    highlight link warningPrompt WarningMsg
+    highlight link warnPrompt     WarningMsg
     highlight link restOfLineWarn WarningMsg
 
-    highlight link errorPrompt ErrorMsg
+    highlight link errorPrompt     ErrorMsg
     highlight link restOfLineError ErrorMsg
+
     highlight link timestr Constant
     highlight link taggedBot Comment
     highlight link indexSize Todo
-    highlight link toolCall Todo
+
+    highlight link toolCall    Constant
     highlight link toolCallRes Todo
+
+    highlight link functionCall Constant
+    "highlight link restOfLineFn Todo
 endfunction
 
 augroup VQQSyntax
