@@ -67,7 +67,7 @@ function! vimqq#tools#get_files#new(root) abort
     function! tool.format_call(tool_use_args) dict abort
         let paths = a:tool_use_args['filepaths']
         let path_list = join(paths, ", ")
-        return "\n>> get_files(" . path_list . ")\n\n"
+        return "\n>>> get_files(" . path_list . ")\n\n"
     endfunction
 
     return tool

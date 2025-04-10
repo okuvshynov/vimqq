@@ -4,6 +4,8 @@ endif
 
 let g:autoloaded_vimqq_tools_edit_file_module = 1
 
+let s:COLLAPSE_WHEN_OVER_N = 10
+
 function! vimqq#tools#edit_file#new(root) abort
     let tool = {}
 
@@ -101,11 +103,10 @@ function! vimqq#tools#edit_file#new(root) abort
         let path = a:tool_use_args['filepath']
         let args = a:tool_use_args['needle'] . "\n\"\"\",\n\"\"\""
         let args = args . "\n" . a:tool_use_args['replacement']
-        let COLLAPSE_WHEN_OVER_N = 1
-        if count(args, "\n") > COLLAPSE_WHEN_OVER_N
+        if count(args, "\n") > s:COLLAPSE_WHEN_OVER_N
             let args = "{{{ \n"  . args . "\n}}}"
         endif
-        let output = ">> edit_file('" . path . "', \"\"\""
+        let output = ">>> edit_file('" . path . "', \"\"\""
         return "\n" . output . "\n" . args . "\n\"\"\")" . "\n\n"
 
     endfunction

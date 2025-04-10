@@ -91,22 +91,8 @@ function vimqq#ui#new() abort
     endfunction
 
     function! ui._append_message(message) dict
-        let TIME_FORMAT = "%H:%M"
-        let tstamp = "        "
-        let rendered = vimqq#msg_render#render(a:message)
-
-        if rendered is v:null
-            call vimqq#log#info('skip rendering message')
-            return
-        endif
-
-        if has_key(rendered, 'timestamp')
-            let tstamp = strftime(TIME_FORMAT . " ", rendered['timestamp'])
-        endif
-        let prompt = tstamp . rendered['author']
-        let lines = split(prompt . rendered['text'], '\n')
         setlocal modifiable
-        for l in lines
+        for l in vimqq#msg_render#render_lines(a:message)
             if line('$') == 1 && getline(1) ==# ''
                 call setline(1, l)
             else
@@ -232,7 +218,7 @@ function! s:setup_syntax()
     syntax match indexSize  "\[index (\d\+ bytes)\]"
     syntax match toolCallRes "\[tool_call_result\]"
 
-    syntax match functionCall "^>>" nextgroup=restOfLineFn skipwhite
+    syntax match functionCall "^>>>" nextgroup=restOfLineFn skipwhite
 
     syntax match restOfLine      ".*$" contained
     syntax match restOfLineFn    ".*$" contained

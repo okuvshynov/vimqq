@@ -70,7 +70,7 @@ function! vimqq#tools#ctags_lookup#new(root) abort
 
     function! tool.format_call(tool_use_args) dict abort
         let symbol = a:tool_use_args['symbol']
-        return "\n>> ctags_lookup(" . symbol . ")\n\n"
+        return "\n>>> ctags_lookup(" . symbol . ")\n\n"
     endfunction
 
     return tool

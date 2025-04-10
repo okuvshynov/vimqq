@@ -9,10 +9,10 @@ let g:autoloaded_vimqq_message_render = 1
 " - author: (user + tagged bot, bot, tool, local level - info, etc.
 " - text
 
-" tool output longer than 400 bytes will be hidden in fold
+" tool output longer than 500 bytes will be hidden in fold
 " we are not using line count to capture the case when it is one extremely
 " long line, which will make chat hard to read.
-let s:TOOL_FOLD_LIMIT = 400
+let s:TOOL_FOLD_LIMIT = 500
 
 function! s:render_local(msg) abort
     if exists('g:vqq_hide_local_msg')
@@ -38,9 +38,9 @@ function! s:render_tool_results(msg) abort
         if content.type ==# 'tool_result'
             let text = content['content']
             if len(text) >= s:TOOL_FOLD_LIMIT
-                let text = "\n\n{{{ [tool_call_result]\n" . text . "\n}}}\n\n"
+                let text = "\n\n{{{ \n" . text . "\n}}}\n\n"
             else
-                let text = "\n\n[tool_call_result]\n" . text . "\n\n"
+                let text = "\n\n" . text . "\n\n"
             endif
             let res = res . text
         else
@@ -48,11 +48,7 @@ function! s:render_tool_results(msg) abort
         endif
     endfor
 
-    return {
-        \ 'timestamp' : a:msg['timestamp'],
-        \ 'author'    : 'tool: @' . a:msg['bot_name'],
-        \ 'text'      : res
-    \ }
+    return { 'text' : res }
 endfunction
 
 function! s:is_tool_result(msg) abort
@@ -123,3 +119,20 @@ function! vimqq#msg_render#render(msg)
     return v:null
 endfunction
 
+" returns a list of lines, not rendered message
+function! vimqq#msg_render#render_lines(message)
+    let TIME_FORMAT = "%H:%M"
+    let rendered = vimqq#msg_render#render(a:message)
+
+    if rendered is v:null
+        call vimqq#log#info('skip rendering message')
+        return []
+    endif
+
+    let prompt = ""
+    if has_key(rendered, 'timestamp')
+        let prompt = strftime(TIME_FORMAT . " ", rendered['timestamp'])
+    endif
+    let prompt = prompt . get(rendered, 'author', '')
+    return split(prompt . get(rendered, 'text', ''), '\n')
+endfunction

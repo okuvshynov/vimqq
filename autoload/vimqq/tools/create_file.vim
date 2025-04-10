@@ -74,7 +74,7 @@ function! vimqq#tools#create_file#new(root) abort
         if count(content, "\n") > COLLAPSE_WHEN_OVER_N
             let content = "{{{ " . content . "\n}}}"
         endif
-        let output = ">> create_file('" . path . "', \"\"\""
+        let output = ">>> create_file('" . path . "', \"\"\""
 
         return "\n" . output . "\n" . content . "\n\"\"\")" . "\n\n"
     endfunction
