@@ -51,12 +51,16 @@ function! vimqq#tools#create_file#new(root) abort
             call add(res, 'ERROR: File already exists.')
         else
             " Write content to file
-            let lines = split(content, "\n", 1)
-            call writefile(lines, file_path, 'b')
+            let lines  = split(content, "\n", 1)
+            let status = writefile(lines, file_path, 'b')
             
             call add(res, '')
             call add(res, path)
-            call add(res, 'SUCCESS: File created successfully.')
+            if status == 0
+                call add(res, 'SUCCESS: File created successfully.')
+            else
+                call add(res, 'ERROR: Unable to create file')
+            endif
         endif
 
         return join(res, "\n")
