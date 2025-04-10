@@ -15,6 +15,9 @@ let g:autoloaded_vimqq_message_render = 1
 let s:TOOL_FOLD_LIMIT = 400
 
 function! s:render_local(msg) abort
+    if exists('g:vqq_hide_local_msg')
+        return v:null
+    endif
     let text = ""
     for content in a:msg.content
         if content['type'] ==# 'text'
@@ -117,6 +120,6 @@ function! vimqq#msg_render#render(msg)
         return s:render_assistant(a:msg)
     endif
     call vimqq#log#error('role not valid: ' . a:msg.role)
-    return v:none
+    return v:null
 endfunction
 

@@ -95,6 +95,11 @@ function vimqq#ui#new() abort
         let tstamp = "        "
         let rendered = vimqq#msg_render#render(a:message)
 
+        if rendered is v:null
+            call vimqq#log#info('skip rendering message')
+            return
+        endif
+
         if has_key(rendered, 'timestamp')
             let tstamp = strftime(TIME_FORMAT . " ", rendered['timestamp'])
         endif
@@ -225,7 +230,6 @@ function! s:setup_syntax()
     syntax match botPrompt  "\%(You\|info\|warning\|error\)\@![A-Za-z0-9_]\+:" contained nextgroup=restOfLine skipwhite
     syntax match taggedBot  "@[A-Za-z0-9_]\+" contained nextgroup=restOfLine
     syntax match indexSize  "\[index (\d\+ bytes)\]"
-    syntax match toolCall "\[tool_call: .\+(.*)\]"
     syntax match toolCallRes "\[tool_call_result\]"
 
     syntax match functionCall "^>>" nextgroup=restOfLineFn skipwhite
@@ -252,7 +256,6 @@ function! s:setup_syntax()
     highlight link taggedBot Comment
     highlight link indexSize Todo
 
-    highlight link toolCall    Constant
     highlight link toolCallRes Todo
 
     highlight link functionCall Constant
