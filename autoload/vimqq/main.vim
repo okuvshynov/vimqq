@@ -21,6 +21,10 @@ function! vimqq#main#on_chunk_done(context) abort
     return s:controller.on_chunk_done(a:context)
 endfunction
 
+function! vimqq#main#project_root() abort
+    return s:controller.root
+endfunction
+
 function! vimqq#main#on_usage(chat_id, bot_name, usage) abort
     return s:controller.on_usage(a:chat_id, a:bot_name, a:usage)
 endfunction

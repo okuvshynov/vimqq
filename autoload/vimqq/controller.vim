@@ -20,6 +20,7 @@ function! vimqq#controller#new() abort
     let controller.toolset = v:null
     let controller.status  = v:null
     let controller.usage   = v:null
+    let controller.root    = v:null
 
     function! controller.init() dict
         let self.ui      = vimqq#ui#new()
@@ -29,6 +30,7 @@ function! vimqq#controller#new() abort
         let self.toolset = vimqq#tools#toolset#new()
         let self.status  = vimqq#status#new()
         let self.usage   = vimqq#usage#new()
+        let self.root    = vimqq#indexing#io#compute_root()
         let self._in_flight = {}
 
         " to autoload and start command line monitoring

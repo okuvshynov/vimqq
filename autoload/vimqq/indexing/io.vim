@@ -8,6 +8,10 @@ let s:INDEX_DIRECTORY = '.vqq'
 let s:IGNORE_FILE     = '.vqqignore'
 
 function! vimqq#indexing#io#root()
+    return vimqq#main#project_root()
+endfunction
+
+function! vimqq#indexing#io#compute_root()
     let current_dir = expand('%:p:h')
     let prev_dir = ''
 
