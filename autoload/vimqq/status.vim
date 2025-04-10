@@ -11,7 +11,7 @@ function! vimqq#status#new()
 
     let status.values = {}
 
-    function! status.update(key, message) dict
+    function! status.update(key, message=v:null) dict
         if a:message is v:null
             unlet! self.values[a:key]
         else

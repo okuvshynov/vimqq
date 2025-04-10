@@ -37,6 +37,10 @@ function! vimqq#controller#new() abort
         call vimqq#indexing#graph#start_if_auto()
     endfunction
 
+    function! controller.chat_status(chat_id, status=v:null) dict
+        call self.status.update('chat_' . a:chat_id, a:status)
+    endfunction
+
     function! controller.run_query(chat_id, bot, message) dict
         if has_key(self._in_flight, a:chat_id)
             call vimqq#sys_msg#info(a:chat_id, 'Try sending your message after assistant reply is complete')
@@ -48,6 +52,7 @@ function! vimqq#controller#new() abort
         call self.db.append_message(a:chat_id, a:message)
         let chat = self.db.get_chat(a:chat_id)
         if a:bot.send_chat(chat)
+            call self.chat_status(a:chat_id, 'message_sent')
             let self._in_flight[a:chat_id] = v:true
             return v:true
         else
@@ -87,6 +92,7 @@ function! vimqq#controller#new() abort
             call vimqq#ttft#first_token(chat_id)
             let chat['partial_message'] = a:args['builder'].msg
             call self.db.save_chat(chat_id)
+            call self.chat_status(chat_id, 'streaming')
         endif
         let chat.partial_message.bot_name = a:args['bot'].name()
         let chat.partial_message.seq_id = self.db.seq_id()
@@ -136,6 +142,7 @@ function! vimqq#controller#new() abort
             call vimqq#ttft#completion(chat_id)
             call self.show_chat(chat_id)
             if has_key(self._in_flight, chat_id)
+                call self.chat_status(chat_id, 'reply_done')
                 unlet self._in_flight[chat_id]
             else
                 vimqq#log#error('got a reply from non-enqueued query')
@@ -146,6 +153,7 @@ function! vimqq#controller#new() abort
             " check if we need to call tools
             let builder = vimqq#msg_builder#tool().set_bot_name(bot.name())
             if self.toolset.run(saved_msg, builder, {m -> self.on_tool_result(bot, m, chat_id)})
+                call self.chat_status(chat_id, 'running_tools')
                 let turn_end = v:false
             endif
     
@@ -156,6 +164,9 @@ function! vimqq#controller#new() abort
             endif
 
             " Getting here means 'conversation turn end', input back to user
+            if turn_end
+                call self.chat_status(chat_id)
+            endif
             " test/benchmark only behavior
             if s:vqq_dbg_exit_on_turn_end && turn_end
                 cquit 0
